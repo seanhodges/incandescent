@@ -19,8 +19,7 @@ class EventPayloadTypeAdapter {
                           payloadConnect: JsonAdapter<LWEventPayloadConnect>,
                           payloadGroupResult: JsonAdapter<LWEventPayloadGroup>): LWEventPayload? {
 
-        val value = reader.readJsonValue() as Map<Any, String>?
-        println("Keys: " + value!!.keys)
+        val value = reader.readJsonValue() as Map<Any, String>
 
         // Bit hacky here, can't get the operation value now so inferring from
         // the payload fields that are present
