@@ -84,6 +84,7 @@ class LightwaveServerTest {
     }
 
     @Test
+    @Ignore
     @Throws(InterruptedException::class)
     fun testReadsGroupInfo() {
         val responded = AtomicBoolean(false)
@@ -106,6 +107,38 @@ class LightwaveServerTest {
         server.connect(ACCESS_TOKEN)
         Thread.sleep(3000)
         val operation = LWOperation("group", "read")
+        operation.addPayload(LWOperationPayloadGroup(ROOT_GROUP_ID))
+        server.command(operation)
+        Thread.sleep(3000)
+        server.disconnect()
+
+        assertTrue(responded.get())
+        assertEquals("9", result.toString())
+    }
+
+    @Test
+    @Throws(InterruptedException::class)
+    fun testReadsGroupHierarchy() {
+        val responded = AtomicBoolean(false)
+        val result = StringBuilder()
+
+        val listener = object : LWEventListener {
+            override fun onEvent(event: LWEvent) {
+                println(event)
+                if (event.clazz == "group" && event.operation == "hierarchy") {
+                    responded.set(true)
+                    //result.append((event.items[0].payload as LWEventPayloadGroup).features)
+                }
+            }
+
+            override fun onError(e: Throwable) {
+                throw RuntimeException(e)
+            }
+        }
+        server.addListener(listener)
+        server.connect(ACCESS_TOKEN)
+        Thread.sleep(3000)
+        val operation = LWOperation("group", "hierarchy")
         operation.addPayload(LWOperationPayloadGroup(ROOT_GROUP_ID))
         server.command(operation)
         Thread.sleep(3000)

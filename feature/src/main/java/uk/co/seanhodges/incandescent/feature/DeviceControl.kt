@@ -1,6 +1,5 @@
 package uk.co.seanhodges.incandescent.feature
 
-import android.content.Context
 import android.graphics.Color
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -31,14 +30,14 @@ class DeviceControl : AppCompatActivity() {
         val offButton = findViewById<Button>(R.id.off_button)
         offButton.setOnClickListener {
             val operation = LWOperation("feature", "write")
-            operation.addPayload(LWOperationPayloadFeature(FEATURE_SWITCH_ID, 0))
+            operation.addPayload(LWOperationPayloadFeature(FEATURE_LIVING_ROOM_SWITCH_ID, 0))
             server.command(operation)
         }
 
         val onButton = findViewById<Button>(R.id.on_button)
         onButton.setOnClickListener {
             val operation = LWOperation("feature", "write")
-            operation.addPayload(LWOperationPayloadFeature(FEATURE_SWITCH_ID, 1))
+            operation.addPayload(LWOperationPayloadFeature(FEATURE_LIVING_ROOM_SWITCH_ID, 1))
             server.command(operation)
         }
     }
@@ -61,7 +60,7 @@ class DeviceControl : AppCompatActivity() {
             override fun onProgressChanged(croller: Croller, progress: Int) {
                 // use the progress
                 val operation = LWOperation("feature", "write")
-                operation.addPayload(LWOperationPayloadFeature(FEATURE_DIM_ID, progress))
+                operation.addPayload(LWOperationPayloadFeature(FEATURE_LIVING_ROOM_DIM_ID, progress))
                 server.command(operation)
             }
 
@@ -78,8 +77,10 @@ class DeviceControl : AppCompatActivity() {
     }
 
     companion object {
+        private val FEATURE_LIVING_ROOM_SWITCH_ID = "5b8aa9b4d36c330fd5b4e100-22-3157332334+1"
+        private val FEATURE_LIVING_ROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-23-3157332334+1"
 
-        private val FEATURE_SWITCH_ID = "5b8aa9b4d36c330fd5b4e100-22-3157332334+1"
-        private val FEATURE_DIM_ID = "5b8aa9b4d36c330fd5b4e100-23-3157332334+1"
+        private val FEATURE_BEDROOM_SWITCH_ID = "5b8aa9b4d36c330fd5b4e100-46-3157332334+1"
+        private val FEATURE_BEDROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-47-3157332334+1"
     }
 }

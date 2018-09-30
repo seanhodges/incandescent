@@ -7,6 +7,22 @@
     tools:context=".DeviceControl">
 
     <LinearLayout
+        android:id="@+id/location_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/room_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Living room" />
+
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/switch_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -14,12 +30,14 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/location_layout">
 
         <Button
             android:id="@+id/off_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:width="128dp"
+            android:height="64dp"
             android:layout_weight="1"
             android:text="@string/switch_off" />
 
@@ -27,6 +45,8 @@
             android:id="@+id/on_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:width="128dp"
+            android:height="64dp"
             android:layout_weight="1"
             android:text="@string/switch_on" />
     </LinearLayout>
@@ -34,7 +54,7 @@
     <com.sdsmdg.harjot.crollerTest.Croller
         android:id="@+id/croller"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
+        android:layout_height="300dp"
         android:layout_marginTop="32dp"
         android:layout_marginBottom="32dp"
         app:back_circle_color="#EDEDED"
