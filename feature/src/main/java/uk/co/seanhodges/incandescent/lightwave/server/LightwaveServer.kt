@@ -122,9 +122,8 @@ class LightwaveServer : WebSocketListener() {
     }
 
     companion object {
-
         private val JSON_CONTENT_TYPE = MediaType.parse("application/json; charset=utf-8")
-        private val SOCKET_CLOSE_STATUS = 1000
+        private const val SOCKET_CLOSE_STATUS = 1000
     }
 }
 

@@ -1,4 +1,4 @@
-package uk.co.seanhodges.incandescent.feature
+package uk.co.seanhodges.incandescent.client
 
 import org.junit.Test
 

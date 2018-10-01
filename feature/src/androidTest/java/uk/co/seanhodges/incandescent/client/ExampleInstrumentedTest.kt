@@ -1,4 +1,4 @@
-package uk.co.seanhodges.incandescent.feature
+package uk.co.seanhodges.incandescent.client
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("uk.co.seanhodges.incandescent.feature.test", appContext.packageName)
+        assertEquals("uk.co.seanhodges.incandescent.client.test", appContext.packageName)
     }
 }
