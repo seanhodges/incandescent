@@ -13,7 +13,7 @@ data class LWEvent(
 )
 
 data class LWEventItem (
-        val itemId: Int = 0,
+        val itemId: Int,
         val payload: LWEventPayload
 )
 
@@ -26,7 +26,9 @@ data class LWEventPayloadConnect (
 data class LWEventPayloadFeature (
         val value: Int,
         val status: String
-) : LWEventPayload
+) : LWEventPayload {
+    var featureId: String? = ""
+}
 
 data class LWEventPayloadGetRootGroups (
         val groupIds: List<String>

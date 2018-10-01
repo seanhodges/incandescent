@@ -14,7 +14,7 @@ import java.lang.ref.WeakReference
 
 
 class OperationExecutor(
-        private val server : LightwaveServer = LightwaveServer()
+        private val server : LightwaveServer
 ) {
 
     private val handlerThread = HandlerThread(EXECUTOR_NAME)
@@ -26,12 +26,12 @@ class OperationExecutor(
     }
 
     fun connectToServer(ctx: WeakReference<Context>) {
-        val connectTask = ConnectToServerTask(ctx) { success: Boolean ->
+        val connectTask = ConnectToServerTask(ctx, onConnected = { success: Boolean ->
             // Start operation executor
             if (success) {
                 start()
             }
-        }
+        })
         connectTask.execute(server)
     }
 
@@ -50,11 +50,11 @@ class OperationExecutor(
     private fun processOperations() {
         operationQueue.keys.forEach { featureId: String ->
             val newValue : Int? = operationQueue[featureId]
-
             val operation = LWOperation("feature", "write")
             operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
             server.command(operation)
         }
+        operationQueue.clear()
     }
 
     companion object {
@@ -69,8 +69,11 @@ class ConnectToServerTask(private val ctx: WeakReference<Context>,
 
     override fun doInBackground(vararg server: LightwaveServer): Boolean {
         try {
+            Log.d(javaClass.name, "Connecting...")
             val token : String = server[0].authenticate("seanhodges84@gmail.com", "Do4lovedo4love")
+            Log.d(javaClass.name, "Access token is: $token")
             server[0].connect(token)
+            Log.d(javaClass.name, "Connection success")
         } catch (e: Exception) {
             Log.e(javaClass.name, "Connection failed", e)
             return false
@@ -79,6 +82,7 @@ class ConnectToServerTask(private val ctx: WeakReference<Context>,
     }
 
     override fun onPostExecute(success: Boolean) {
+        super.onPostExecute(success)
 
         if (!success && ctx.get() != null) {
             Toast.makeText(ctx.get(), "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
@@ -86,6 +90,7 @@ class ConnectToServerTask(private val ctx: WeakReference<Context>,
         else if (ctx.get() != null) {
             Toast.makeText(ctx.get(), "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
         }
+        Log.d(javaClass.name, "Notifying caller")
         onConnected.invoke(success)
     }
 }

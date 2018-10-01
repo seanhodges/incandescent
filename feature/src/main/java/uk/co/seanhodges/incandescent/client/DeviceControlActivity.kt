@@ -3,15 +3,19 @@ package uk.co.seanhodges.incandescent.client
 import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import com.sdsmdg.harjot.crollerTest.Croller
+import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
 
-class DeviceControlActivity : Activity() {
+class DeviceControlActivity : Activity(), DeviceChangeAware {
 
-    private val executor = OperationExecutor()
+    private val server = LightwaveServer()
+    private val executor = OperationExecutor(server)
+    private val deviceChangeHandler = DeviceChangeHandler(server)
 
     private var selectedRoom : String = "Living room"
     private var selectedSwitchFeature : String = FEATURE_LIVING_ROOM_SWITCH_ID
@@ -26,6 +30,7 @@ class DeviceControlActivity : Activity() {
         setupDimmer()
 
         executor.connectToServer(WeakReference(applicationContext))
+        deviceChangeHandler.addListener(this)
     }
 
     private fun setupLocationSelectors() {
@@ -62,7 +67,7 @@ class DeviceControlActivity : Activity() {
         croller.indicatorWidth = 10f
         croller.backCircleColor = Color.parseColor("#EDEDED")
         croller.mainCircleColor = Color.WHITE
-        croller.max = 50
+        croller.max = 100
         croller.startOffset = 45
         croller.setIsContinuous(false)
         croller.labelColor = Color.BLACK
@@ -70,6 +75,16 @@ class DeviceControlActivity : Activity() {
         croller.indicatorColor = Color.parseColor("#0B3C49")
         croller.progressSecondaryColor = Color.parseColor("#EEEEEE")
         croller.setOnProgressChangedListener { newValue -> executor.enqueue(selectedDimFeature, newValue) };
+    }
+
+    override fun onDeviceChanged(featureId: String, newValue: Int) {
+        Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
+        if (featureId.equals(selectedDimFeature)) {
+            runOnUiThread {
+                val croller = findViewById<View>(R.id.croller) as Croller
+                croller.progress = newValue
+            }
+        }
     }
 
     companion object {
