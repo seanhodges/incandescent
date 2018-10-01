@@ -1,7 +1,10 @@
 package uk.co.seanhodges.incandescent.client
 
 import android.app.Activity
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.ColorFilter
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -53,12 +56,18 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
 
     private fun setupOnOffSwitches() {
         val offButton = findViewById<Button>(R.id.off_button)
-        offButton.setOnClickListener { executor.enqueue(selectedSwitchFeature, 0) }
-
         val onButton = findViewById<Button>(R.id.on_button)
+
+        offButton.setOnClickListener {
+            executor.enqueue(selectedSwitchFeature, 0)
+            executor.enqueue(selectedDimFeature, 0) // Workaround for a bug in my dimmer bulbs :)
+            applyOnOffHighlight(false)
+        }
+
         onButton.setOnClickListener {
             executor.enqueue(selectedSwitchFeature, 1)
             executor.enqueue(selectedDimFeature, 100) // Workaround for a bug in my dimmer bulbs :)
+            applyOnOffHighlight(true)
         }
     }
 
@@ -67,6 +76,7 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         croller.indicatorWidth = 10f
         croller.backCircleColor = Color.parseColor("#EDEDED")
         croller.mainCircleColor = Color.WHITE
+        croller.min = 0
         croller.max = 100
         croller.startOffset = 45
         croller.setIsContinuous(false)
@@ -74,7 +84,11 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         croller.progressPrimaryColor = Color.parseColor("#0B3C49")
         croller.indicatorColor = Color.parseColor("#0B3C49")
         croller.progressSecondaryColor = Color.parseColor("#EEEEEE")
-        croller.setOnProgressChangedListener { newValue -> executor.enqueue(selectedDimFeature, newValue) };
+        croller.setOnProgressChangedListener { newValue ->
+            executor.enqueue(selectedDimFeature, newValue)
+            executor.enqueue(selectedSwitchFeature, if (newValue > 0) 1 else 0)
+            applyOnOffHighlight(newValue > 0)
+        };
     }
 
     override fun onDeviceChanged(featureId: String, newValue: Int) {
@@ -83,7 +97,22 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
             runOnUiThread {
                 val croller = findViewById<View>(R.id.croller) as Croller
                 croller.progress = newValue
+                applyOnOffHighlight(croller.progress > 0)
             }
+        }
+    }
+
+    private fun applyOnOffHighlight(on: Boolean) {
+        val offButton = findViewById<Button>(R.id.off_button)
+        val onButton = findViewById<Button>(R.id.on_button)
+
+        if (on) {
+            offButton.background.clearColorFilter()
+            onButton.background.setColorFilter(this.getColor(R.color.btn_on_active), PorterDuff.Mode.MULTIPLY)
+        }
+        else {
+            offButton.background.setColorFilter(this.getColor(R.color.btn_off_active), PorterDuff.Mode.MULTIPLY)
+            onButton.background.clearColorFilter()
         }
     }
 

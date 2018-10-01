@@ -36,18 +36,18 @@
             android:id="@+id/off_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:width="128dp"
             android:height="64dp"
-            android:layout_weight="1"
             android:text="@string/switch_off" />
 
         <Button
             android:id="@+id/on_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:width="128dp"
             android:height="64dp"
-            android:layout_weight="1"
             android:text="@string/switch_on" />
     </LinearLayout>
 
