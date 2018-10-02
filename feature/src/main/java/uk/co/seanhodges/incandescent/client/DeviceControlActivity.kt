@@ -1,9 +1,7 @@
 package uk.co.seanhodges.incandescent.client
 
 import android.app.Activity
-import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.ColorFilter
 import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
@@ -24,6 +22,8 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
     private var selectedSwitchFeature : String = FEATURE_LIVING_ROOM_SWITCH_ID
     private var selectedDimFeature : String = FEATURE_LIVING_ROOM_DIM_ID
 
+    private var disableListeners = true // FIXME(sean): hack because updating UI control values triggers a change
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
@@ -32,6 +32,8 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         setupOnOffSwitches()
         setupDimmer()
 
+        executor.enqueueLoad(selectedSwitchFeature)
+        executor.enqueueLoad(selectedDimFeature)
         executor.connectToServer(WeakReference(applicationContext))
         deviceChangeHandler.addListener(this)
     }
@@ -51,6 +53,8 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
                 selectedDimFeature = FEATURE_LIVING_ROOM_DIM_ID
             }
             (btn as Button).text = selectedRoom
+            executor.enqueueLoad(selectedSwitchFeature)
+            executor.enqueueLoad(selectedDimFeature)
         }
     }
 
@@ -59,15 +63,19 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         val onButton = findViewById<Button>(R.id.on_button)
 
         offButton.setOnClickListener {
-            executor.enqueue(selectedSwitchFeature, 0)
-            executor.enqueue(selectedDimFeature, 0) // Workaround for a bug in my dimmer bulbs :)
-            applyOnOffHighlight(false)
+            if (!disableListeners) {
+                executor.enqueueChange(selectedSwitchFeature, 0)
+                executor.enqueueChange(selectedDimFeature, 0) // Workaround for a bug in my dimmer bulbs :)
+                applyOnOffHighlight(false)
+            }
         }
 
         onButton.setOnClickListener {
-            executor.enqueue(selectedSwitchFeature, 1)
-            executor.enqueue(selectedDimFeature, 100) // Workaround for a bug in my dimmer bulbs :)
-            applyOnOffHighlight(true)
+            if (!disableListeners) {
+                executor.enqueueChange(selectedSwitchFeature, 1)
+                executor.enqueueChange(selectedDimFeature, 100) // Workaround for a bug in my dimmer bulbs :)
+                applyOnOffHighlight(true)
+            }
         }
     }
 
@@ -85,19 +93,31 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         croller.indicatorColor = Color.parseColor("#0B3C49")
         croller.progressSecondaryColor = Color.parseColor("#EEEEEE")
         croller.setOnProgressChangedListener { newValue ->
-            executor.enqueue(selectedDimFeature, newValue)
-            executor.enqueue(selectedSwitchFeature, if (newValue > 0) 1 else 0)
-            applyOnOffHighlight(newValue > 0)
+            if (!disableListeners) {
+                executor.enqueueChange(selectedDimFeature, newValue)
+                executor.enqueueChange(selectedSwitchFeature, if (newValue > 0) 1 else 0)
+                applyOnOffHighlight(newValue > 0)
+            }
         };
     }
 
     override fun onDeviceChanged(featureId: String, newValue: Int) {
         Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
-        if (featureId.equals(selectedDimFeature)) {
+        // FIXME(sean): since the featureId is not returned in response we assume group read is always for dimmer
+        if (featureId.equals(selectedDimFeature) || featureId.equals("")) {
             runOnUiThread {
+                disableListeners = true
                 val croller = findViewById<View>(R.id.croller) as Croller
                 croller.progress = newValue
                 applyOnOffHighlight(croller.progress > 0)
+                disableListeners = false
+            }
+        }
+        else if (featureId.equals(selectedSwitchFeature)) {
+            runOnUiThread {
+                disableListeners = true
+                applyOnOffHighlight(newValue == 1)
+                disableListeners = false
             }
         }
     }

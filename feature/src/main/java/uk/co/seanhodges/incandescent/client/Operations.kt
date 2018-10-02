@@ -6,6 +6,8 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.widget.Toast
+import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
+import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
 import java.util.*
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadFeature
@@ -15,24 +17,41 @@ import java.lang.ref.WeakReference
 
 class OperationExecutor(
         private val server : LightwaveServer
-) {
+) : LWEventListener {
 
     private val handlerThread = HandlerThread(EXECUTOR_NAME)
-    private val operationQueue = HashMap<String, Int>()
+    private val loadQueue = ArrayList<String>()
+    private val changeQueue = HashMap<String, Int>()
 
-    fun enqueue(featureId : String, newValue : Int) {
+    init {
+        server.addListener(this)
+    }
+
+    fun enqueueLoad(featureId : String) {
+        loadQueue.add(featureId)
+    }
+
+    fun enqueueChange(featureId : String, newValue : Int) {
         // Will replace the old value if exists
-        operationQueue[featureId] = newValue
+        changeQueue[featureId] = newValue
     }
 
     fun connectToServer(ctx: WeakReference<Context>) {
-        val connectTask = ConnectToServerTask(ctx, onConnected = { success: Boolean ->
-            // Start operation executor
-            if (success) {
-                start()
-            }
-        })
+        val connectTask = ConnectToServerTask(ctx)
         connectTask.execute(server)
+    }
+
+    override fun onEvent(event: LWEvent) {
+        if (!(event.clazz.equals("user") && event.operation.equals("authenticate"))) {
+            return // Watch for authentication success
+        }
+
+        start()
+    }
+
+    override fun onError(error: Throwable) {
+        //TODO(sean): implement proper in-app error handling
+        Log.e(javaClass.name, "Server auth error: " + error.message)
     }
 
     private fun start() {
@@ -48,13 +67,20 @@ class OperationExecutor(
     }
 
     private fun processOperations() {
-        operationQueue.keys.forEach { featureId: String ->
-            val newValue : Int? = operationQueue[featureId]
+        loadQueue.forEach { featureId: String ->
+            val operation = LWOperation("feature", "read")
+            operation.addPayload(LWOperationPayloadFeature(featureId))
+            server.command(operation)
+        }
+        loadQueue.clear()
+
+        changeQueue.keys.forEach { featureId: String ->
+            val newValue : Int? = changeQueue[featureId]
             val operation = LWOperation("feature", "write")
             operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
             server.command(operation)
         }
-        operationQueue.clear()
+        changeQueue.clear()
     }
 
     companion object {
@@ -63,9 +89,7 @@ class OperationExecutor(
     }
 }
 
-class ConnectToServerTask(private val ctx: WeakReference<Context>,
-                          private val onConnected: (success: Boolean) -> Unit
-) : AsyncTask<LightwaveServer, Void, Boolean>() {
+class ConnectToServerTask(private val ctx: WeakReference<Context>) : AsyncTask<LightwaveServer, Void, Boolean>() {
 
     override fun doInBackground(vararg server: LightwaveServer): Boolean {
         try {
@@ -73,7 +97,6 @@ class ConnectToServerTask(private val ctx: WeakReference<Context>,
             val token : String = server[0].authenticate("seanhodges84@gmail.com", "Do4lovedo4love")
             Log.d(javaClass.name, "Access token is: $token")
             server[0].connect(token)
-            Log.d(javaClass.name, "Connection success")
         } catch (e: Exception) {
             Log.e(javaClass.name, "Connection failed", e)
             return false
@@ -90,7 +113,5 @@ class ConnectToServerTask(private val ctx: WeakReference<Context>,
         else if (ctx.get() != null) {
             Toast.makeText(ctx.get(), "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
         }
-        Log.d(javaClass.name, "Notifying caller")
-        onConnected.invoke(success)
     }
 }

@@ -21,7 +21,7 @@ class DeviceChangeHandler(server: LightwaveServer) : LWEventListener {
     }
 
     override fun onEvent(event: LWEvent) {
-        if (event.clazz != "feature" || event.operation != "event" || event.direction != "notification") {
+        if (!(event.clazz.equals("feature") && (event.operation.equals("event") || event.operation.equals("read")))) {
             return // Filter only unsolicited feature change events
         }
 
