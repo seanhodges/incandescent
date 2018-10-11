@@ -1,6 +1,8 @@
 package uk.co.seanhodges.incandescent.client
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
@@ -8,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import com.sdsmdg.harjot.crollerTest.Croller
+import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
@@ -32,10 +35,28 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         setupOnOffSwitches()
         setupDimmer()
 
+        deviceChangeHandler.addListener(this)
+    }
+
+    override fun onPostResume() {
+        super.onPostResume()
+
         executor.enqueueLoad(selectedSwitchFeature)
         executor.enqueueLoad(selectedDimFeature)
-        executor.connectToServer(WeakReference(applicationContext))
-        deviceChangeHandler.addListener(this)
+
+        val prefs = getSharedPreferences("userDetails", Context.MODE_PRIVATE)
+        if (prefs == null || !prefs.contains("user")) {
+            startActivity(Intent(this, AuthenticateActivity::class.java))
+        }
+        else {
+            executor.connectToServer(WeakReference(applicationContext), prefs.all)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        server.disconnect()
     }
 
     private fun setupLocationSelectors() {

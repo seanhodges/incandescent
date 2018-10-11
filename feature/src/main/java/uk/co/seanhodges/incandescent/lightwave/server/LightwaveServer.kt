@@ -43,7 +43,7 @@ class LightwaveServer : WebSocketListener() {
     }
 
     @Throws(IOException::class)
-    fun authenticate(username: String, password: String): String {
+    fun authenticate(username: String, password: String): LWAuthenticatedResult {
         val json = "{\"email\":\"$username\",\"password\":\"$password\",\"version\":\"1.8.12\"}"
         val body = RequestBody.create(JSON_CONTENT_TYPE, json)
         val req = Request.Builder()
@@ -55,15 +55,14 @@ class LightwaveServer : WebSocketListener() {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Host", "auth.lightwaverf.com")
                 .addHeader("Accept-Language", "en-us")
-                .addHeader("Accept-Encoding", "br, gzip, deflate")
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
         val resultStr = res.body()!!.string()
         res.close()
 
-        val result : LWAuthenticatedResult = authenticatedAdapter.fromJson(resultStr)!!
-        return result.tokens.accessToken
+        println("<<< $resultStr")
+        return authenticatedAdapter.fromJson(resultStr)!!
     }
 
     fun connect(accessToken: String) {
@@ -83,7 +82,9 @@ class LightwaveServer : WebSocketListener() {
     }
 
     fun disconnect() {
-        webSocket!!.close(SOCKET_CLOSE_STATUS, "")
+        if (webSocket != null) {
+            webSocket!!.close(SOCKET_CLOSE_STATUS, "")
+        }
     }
 
     override fun onOpen(webSocket: WebSocket?, response: Response?) {
@@ -134,7 +135,7 @@ data class LWAuthenticatedResult(
 data class LWAuthenticatedTokens(
         @field:Json(name = "access_token") val accessToken : String,
         @field:Json(name = "token_type") val tokenType : String,
-        @field:Json(name = "expires_in") val expiresIn : Int,
+        @field:Json(name = "expires_in") val expiresIn : Long,
         @field:Json(name = "refresh_token") val refreshToken : String,
         @field:Json(name = "id_token") val idToken : String
 )

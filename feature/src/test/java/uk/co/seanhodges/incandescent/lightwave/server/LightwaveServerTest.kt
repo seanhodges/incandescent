@@ -22,7 +22,7 @@ class LightwaveServerTest {
     @Ignore
     @Throws(IOException::class)
     fun testAuthenticatesAndGetsAccessToken() {
-        val accessToken : String = server.authenticate(LW_ACCOUNT_USERNAME, LW_ACCOUNT_PASSWORD)
+        val accessToken : LWAuthenticatedResult = server.authenticate(LW_ACCOUNT_USERNAME, LW_ACCOUNT_PASSWORD)
         println(accessToken)
     }
 

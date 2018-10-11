@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Incandescent</string>
+    <string name="title_activity_authenticate">Connect with LightwaveRF</string>
 </resources>
