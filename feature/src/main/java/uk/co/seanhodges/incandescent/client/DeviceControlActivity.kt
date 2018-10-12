@@ -41,11 +41,12 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
     override fun onPostResume() {
         super.onPostResume()
 
+        disableListeners = true
         executor.enqueueLoad(selectedSwitchFeature)
         executor.enqueueLoad(selectedDimFeature)
 
         val prefs = getSharedPreferences("userDetails", Context.MODE_PRIVATE)
-        if (prefs == null || !prefs.contains("user")) {
+        if (prefs == null || !prefs.contains("accessToken")) {
             startActivity(Intent(this, AuthenticateActivity::class.java))
         }
         else {

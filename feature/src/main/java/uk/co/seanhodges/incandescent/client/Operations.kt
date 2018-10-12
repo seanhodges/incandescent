@@ -90,17 +90,26 @@ class OperationExecutor(
 
     private fun processOperations() {
         loadQueue.forEach { featureId: String ->
-            val operation = LWOperation("feature", "read")
-            operation.addPayload(LWOperationPayloadFeature(featureId))
-            server.command(operation)
+            try {
+                val operation = LWOperation("feature", "read")
+                operation.addPayload(LWOperationPayloadFeature(featureId))
+                server.command(operation)
+            }
+            catch (e: Throwable) {
+                Log.e(javaClass.name, "Server error while processing load operation", e)
+            }
         }
         loadQueue.clear()
 
         changeQueue.keys.forEach { featureId: String ->
-            val newValue : Int? = changeQueue[featureId]
-            val operation = LWOperation("feature", "write")
-            operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
-            server.command(operation)
+            try {
+                val newValue: Int? = changeQueue[featureId]
+                val operation = LWOperation("feature", "write")
+                operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
+                server.command(operation)}
+            catch (e: Throwable) {
+                Log.e(javaClass.name, "Server error while processing change operation", e)
+            }
         }
         changeQueue.clear()
     }

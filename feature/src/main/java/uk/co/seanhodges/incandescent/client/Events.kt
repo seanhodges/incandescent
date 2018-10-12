@@ -25,9 +25,15 @@ class DeviceChangeHandler(server: LightwaveServer) : LWEventListener {
             return // Filter only unsolicited feature change events
         }
 
+        if (event.items.size < 1 || event.items[0].payload == null) {
+            Log.e(javaClass.name, "Could not process event due to missing payload: $event")
+            return // No event payload, ignore this event
+        }
+
+        val payload : LWEventPayloadFeature = event.items[0].payload as LWEventPayloadFeature
+        val featureId : String = payload.featureId ?: ""
+
         listeners.forEach {
-            val payload : LWEventPayloadFeature = event.items[0].payload as LWEventPayloadFeature
-            val featureId : String = payload.featureId ?: ""
             it.onDeviceChanged(featureId, payload.value)
         }
     }
