@@ -1,7 +1,6 @@
-package uk.co.seanhodges.incandescent.client
+package uk.co.seanhodges.incandescent.client.control
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -11,6 +10,10 @@ import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import com.sdsmdg.harjot.crollerTest.Croller
+import uk.co.seanhodges.incandescent.client.DeviceChangeAware
+import uk.co.seanhodges.incandescent.client.DeviceChangeHandler
+import uk.co.seanhodges.incandescent.client.OperationExecutor
+import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
@@ -20,7 +23,6 @@ import java.lang.ref.WeakReference
 class DeviceControlActivity : Activity(), DeviceChangeAware {
 
     private val server = LightwaveServer()
-    private val authRepository = AuthRepository(WeakReference(applicationContext))
     private val executor = OperationExecutor(server)
     private val deviceChangeHandler = DeviceChangeHandler(server)
 
@@ -48,7 +50,8 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         executor.enqueueLoad(selectedSwitchFeature)
         executor.enqueueLoad(selectedDimFeature)
 
-        if (authRepository.isAuthenticated()) {
+        val authRepository = AuthRepository(WeakReference(applicationContext))
+        if (!authRepository.isAuthenticated()) {
             startActivity(Intent(this, AuthenticateActivity::class.java))
         }
         else {

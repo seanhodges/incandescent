@@ -116,7 +116,7 @@ class LightwaveServer : WebSocketListener() {
         val printWriter = PrintWriter(writer)
         t!!.printStackTrace(printWriter)
 
-        println("<<<[ERROR] " + t.toString() + "\n" + writer.toString())
+        println("[ERROR!] " + t.toString() + "\n" + writer.toString())
         for (listener in listeners) {
             listener.onError(t)
         }

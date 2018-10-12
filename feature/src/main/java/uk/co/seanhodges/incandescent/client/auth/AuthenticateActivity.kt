@@ -20,7 +20,6 @@ import java.lang.ref.WeakReference
 class AuthenticateActivity : Activity() {
 
     private val server = LightwaveServer()
-    private val authRepository = AuthRepository(WeakReference(applicationContext))
     private var authTask: AuthenticateTask? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +69,8 @@ class AuthenticateActivity : Activity() {
             focusView?.requestFocus()
         } else {
             showProgress(true)
-            authTask = AuthenticateTask(emailStr, passwordStr)
+            val authRepository = AuthRepository(WeakReference(applicationContext))
+            authTask = AuthenticateTask(authRepository, emailStr, passwordStr)
             authTask!!.execute(server)
         }
     }
@@ -107,7 +107,11 @@ class AuthenticateActivity : Activity() {
                 })
     }
 
-    inner class AuthenticateTask internal constructor(private val emailStr: String, private val passwordStr: String) : AsyncTask<LightwaveServer, Void, Boolean>() {
+    inner class AuthenticateTask internal constructor(
+            private val authRepository: AuthRepository,
+            private val emailStr: String,
+            private val passwordStr: String
+    ) : AsyncTask<LightwaveServer, Void, Boolean>() {
 
         override fun doInBackground(vararg server: LightwaveServer): Boolean? {
             try {
