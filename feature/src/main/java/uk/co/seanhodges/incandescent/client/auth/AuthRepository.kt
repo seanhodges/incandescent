@@ -3,6 +3,7 @@ package uk.co.seanhodges.incandescent.client.auth
 import android.content.Context
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
 import java.lang.ref.WeakReference
+import java.util.*
 
 class AuthRepository(private val ctx: WeakReference<Context>) {
 
@@ -10,7 +11,8 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
                 .putInt("prefsVersion", PREFS_VERSION)
-                .putString("id", details._id)
+                .putString("userId", details._id)
+                .putString("deviceId", UUID.randomUUID().toString())
                 .putString("givenName", details.givenName)
                 .putString("familyName", details.familyName)
                 .putString("accessToken", details.tokens.accessToken)
@@ -46,13 +48,20 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return Credentials(
             prefs.getString("user", "")!!,
-            prefs.getString("pass", "")!!
+            prefs.getString("pass", "")!!,
+            prefs.getString("accessToken", "")!!,
+            prefs.getString("deviceId", "")!!
         )
     }
 
-    fun getAccessToken(): String {
+    fun getUserId(): String {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString("accessToken", null)!!
+        return prefs.getString("userId", null)!!
+    }
+
+    fun getDeviceId(): String {
+        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString("deviceId", null)!!
     }
 
     companion object {
@@ -63,5 +72,7 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
 
 data class Credentials(
         val user: String,
-        val pass: String
+        val pass: String,
+        val accessToken: String,
+        val deviceId: String
 )

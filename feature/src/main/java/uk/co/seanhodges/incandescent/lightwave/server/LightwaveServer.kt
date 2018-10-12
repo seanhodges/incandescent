@@ -24,7 +24,10 @@ class LightwaveServer : WebSocketListener() {
     private val eventAdapter: JsonAdapter<LWEvent>
 
     private var webSocket: WebSocket? = null
+
     private var accessToken: String? = null
+    private var senderId: String = ""
+    private var transactionId: Int = 0
 
     private val listeners = ArrayList<LWEventListener>()
 
@@ -65,8 +68,9 @@ class LightwaveServer : WebSocketListener() {
         return authenticatedAdapter.fromJson(resultStr)!!
     }
 
-    fun connect(accessToken: String) {
+    fun connect(accessToken: String, senderId: String) {
         this.accessToken = accessToken
+        this.senderId = senderId
         val req = Request.Builder()
                 .url("wss://v1-linkplus-app.lightwaverf.com")
                 .build()
@@ -76,6 +80,7 @@ class LightwaveServer : WebSocketListener() {
     fun command(command: LWOperation) {
         if (webSocket == null) return
 
+        command.transactionId = ++transactionId
         val json = operationAdapter.toJson(command)
         println(">>> $json")
         webSocket!!.send(json)
@@ -89,8 +94,8 @@ class LightwaveServer : WebSocketListener() {
 
     override fun onOpen(webSocket: WebSocket?, response: Response?) {
         super.onOpen(webSocket, response)
-        val operation = LWOperation("user", "authenticate")
-        operation.addPayload(LWOperationPayloadConnect(accessToken!!))
+        val operation = LWOperation("user", senderId, "authenticate")
+        operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
         command(operation)
     }
 

@@ -23,6 +23,8 @@ class OperationExecutor(
     private val loadQueue = ArrayList<String>()
     private val changeQueue = HashMap<String, Int>()
 
+    private var senderId: String = ""
+
     init {
         server.addListener(this)
     }
@@ -45,6 +47,7 @@ class OperationExecutor(
             val connectTask = ConnectToServerTask(authRepository, onComplete)
             connectTask.execute(server)
         }
+        senderId = authRepository.getDeviceId()
     }
 
     override fun onEvent(event: LWEvent) {
@@ -79,7 +82,7 @@ class OperationExecutor(
     private fun processOperations() {
         loadQueue.forEach { featureId: String ->
             try {
-                val operation = LWOperation("feature", "read")
+                val operation = LWOperation("feature", senderId, "read")
                 operation.addPayload(LWOperationPayloadFeature(featureId))
                 server.command(operation)
             }
@@ -92,7 +95,7 @@ class OperationExecutor(
         changeQueue.keys.forEach { featureId: String ->
             try {
                 val newValue: Int? = changeQueue[featureId]
-                val operation = LWOperation("feature", "write")
+                val operation = LWOperation("feature", senderId, "write")
                 operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
                 server.command(operation)}
             catch (e: Throwable) {
@@ -121,7 +124,7 @@ class RefreshTokenAndConnectToServerTask(
             val authResult: LWAuthenticatedResult = server[0].authenticate(auth.user, auth.pass)
             Log.d(javaClass.name, "Access token is: ${authResult.tokens.accessToken}")
             Log.d(javaClass.name, "Connecting...")
-            server[0].connect(authResult.tokens.accessToken)
+            server[0].connect(authResult.tokens.accessToken, auth.deviceId)
             return authResult
         } catch (e: Exception) {
             Log.e(javaClass.name, "Connection failed", e)
@@ -146,9 +149,9 @@ class ConnectToServerTask(
 
     override fun doInBackground(vararg server: LightwaveServer): Boolean {
         try {
-            val accessToken = authRepository.getAccessToken()
+            val auth: Credentials = authRepository.getCredentials()
             Log.d(javaClass.name, "Connecting...")
-            server[0].connect(accessToken)
+            server[0].connect(auth.accessToken, auth.deviceId)
         } catch (e: Exception) {
             Log.e(javaClass.name, "Connection failed", e)
             return false
