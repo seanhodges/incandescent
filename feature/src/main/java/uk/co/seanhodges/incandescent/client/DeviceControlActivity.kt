@@ -9,7 +9,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.Toast
 import com.sdsmdg.harjot.crollerTest.Croller
+import uk.co.seanhodges.incandescent.client.auth.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
@@ -18,6 +20,7 @@ import java.lang.ref.WeakReference
 class DeviceControlActivity : Activity(), DeviceChangeAware {
 
     private val server = LightwaveServer()
+    private val authRepository = AuthRepository(WeakReference(applicationContext))
     private val executor = OperationExecutor(server)
     private val deviceChangeHandler = DeviceChangeHandler(server)
 
@@ -45,12 +48,18 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         executor.enqueueLoad(selectedSwitchFeature)
         executor.enqueueLoad(selectedDimFeature)
 
-        val prefs = getSharedPreferences("userDetails", Context.MODE_PRIVATE)
-        if (prefs == null || !prefs.contains("accessToken")) {
+        if (authRepository.isAuthenticated()) {
             startActivity(Intent(this, AuthenticateActivity::class.java))
         }
         else {
-            executor.connectToServer(WeakReference(applicationContext), prefs.all)
+            executor.connectToServer(authRepository, onComplete = { success: Boolean ->
+                if (success) {
+                    Toast.makeText(this, "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
+                }
+            })
         }
     }
 

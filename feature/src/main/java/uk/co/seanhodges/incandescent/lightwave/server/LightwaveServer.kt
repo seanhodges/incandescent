@@ -129,6 +129,9 @@ class LightwaveServer : WebSocketListener() {
 }
 
 data class LWAuthenticatedResult(
+        val _id : String,
+        val givenName : String,
+        val familyName : String,
         val tokens : LWAuthenticatedTokens
 )
 

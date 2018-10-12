@@ -3,7 +3,6 @@ package uk.co.seanhodges.incandescent.client.auth
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.app.Activity
-import android.content.Context
 import android.os.AsyncTask
 import android.os.Bundle
 import android.text.TextUtils
@@ -16,10 +15,12 @@ import kotlinx.android.synthetic.main.activity_authenticate.*
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
+import java.lang.ref.WeakReference
 
 class AuthenticateActivity : Activity() {
 
     private val server = LightwaveServer()
+    private val authRepository = AuthRepository(WeakReference(applicationContext))
     private var authTask: AuthenticateTask? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,18 +114,7 @@ class AuthenticateActivity : Activity() {
                 Log.d(javaClass.name, "Authenticating...")
                 val authResult : LWAuthenticatedResult = server[0].authenticate(emailStr, passwordStr)
                 Log.d(javaClass.name, "Access token is: ${authResult.tokens.accessToken}")
-
-                val prefs = getSharedPreferences("userDetails", Context.MODE_PRIVATE)
-                prefs.edit()
-                        .putString("accessToken", authResult.tokens.accessToken)
-                        .putString("idToken", authResult.tokens.idToken)
-                        .putString("refreshToken", authResult.tokens.refreshToken)
-                        .putString("tokenType", authResult.tokens.tokenType)
-                        .putString("user", emailStr)
-                        .putString("pass", passwordStr)
-                        .putLong("expiresIn", authResult.tokens.expiresIn)
-                        .putLong("createdOn", System.currentTimeMillis())
-                        .apply()
+                authRepository.save(authResult, emailStr, passwordStr)
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Authentication failed", e)
                 return false
