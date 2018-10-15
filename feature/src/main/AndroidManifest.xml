@@ -5,17 +5,22 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application>
-        <activity android:name=".control.DeviceControlActivity">
+        <activity
+            android:name=".room.RoomSelectActivity"
+            android:label="@string/title_activity_room_select"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".control.DeviceControlActivity"
+            android:label="title_activity_device_control"></activity>
         <activity
             android:name=".auth.AuthenticateActivity"
-            android:label="@string/title_activity_authenticate">
-        </activity>
+            android:label="@string/title_activity_authenticate"></activity>
     </application>
 
 </manifest>
