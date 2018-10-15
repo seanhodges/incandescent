@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Button xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="80dp"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:padding="15dp"
+    android:layout_width="128dp"
+    android:layout_height="128dp"
     android:text=""
-    android:drawableTop="@android:drawable/ic_menu_gallery"/>
+    android:drawablePadding="5dp"/>

@@ -11,22 +11,24 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import uk.co.seanhodges.incandescent.client.R
 
+private const val DEVICE_BUTTON_IMAGE_SIZE = 72
+
 class RoomSelectActivity : AppCompatActivity() {
 
     private val roomData = arrayOf(
             Room("1", "Living room", arrayOf(
-                    Device("1", "Main light", ""),
-                    Device("2", "Side light", "")
+                    Device("1", "Main light", "light"),
+                    Device("2", "Side light", "socket")
             )),
             Room("2", "Kitchen", arrayOf(
-                    Device("1", "Socket", "")
+                    Device("1", "Socket", "socket")
             )),
             Room("3", "Bedroom", arrayOf(
-                    Device("1", "Main light", ""),
-                    Device("2", "Socket", "")
+                    Device("1", "Main light", "light"),
+                    Device("2", "Socket", "socket")
             )),
             Room("4", "Nursery", arrayOf(
-                    Device("1", "Main light", "")
+                    Device("1", "Main light", "light")
             ))
     )
 
@@ -65,10 +67,16 @@ class ContentAdapter(private val roomData: Array<Room>) : RecyclerView.Adapter<R
     private fun createNewDeviceView(device : Device): View {
         val button: TextView = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as TextView
         button.text = device.text
-
-        // TODO: load image into button
-
+        val image = getDeviceButtonImage(device.type)
+        val imageSizePx = (DEVICE_BUTTON_IMAGE_SIZE * parent.resources.displayMetrics.density).toInt()
+        image.setBounds(0, 0, imageSizePx, imageSizePx)
+        button.setCompoundDrawablesRelative(null, image, null, null)
         return button
+    }
+
+    private fun getDeviceButtonImage(id: String) = when(id) {
+        "light" -> parent.resources.getDrawable(R.drawable.device_button_lightbulb, null)
+        else -> parent.resources.getDrawable(R.drawable.device_button_socket, null)
     }
 
     override fun getItemCount(): Int {
@@ -87,5 +95,5 @@ open class Room(
 open class Device(
         open var id: String,
         open var text: String,
-        open var url: String
+        open var type: String
 )
