@@ -3,5 +3,6 @@
     android:padding="15dp"
     android:layout_width="128dp"
     android:layout_height="128dp"
-    android:text=""
+    android:text="Example device"
+    android:drawableTop="@drawable/device_button_lightbulb"
     android:drawablePadding="5dp"/>

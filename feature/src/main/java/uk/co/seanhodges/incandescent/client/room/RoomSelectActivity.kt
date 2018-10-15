@@ -1,5 +1,6 @@
 package uk.co.seanhodges.incandescent.client.room
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -10,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 
 private const val DEVICE_BUTTON_IMAGE_SIZE = 72
 
@@ -60,6 +62,9 @@ class ContentAdapter(private val roomData: Array<Room>) : RecyclerView.Adapter<R
         val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
         for (device in room.devices) {
             val deviceView = createNewDeviceView(device)
+            deviceView.setOnClickListener {
+                parent.context.startActivity(Intent(parent.context, DeviceControlActivity::class.java))
+            }
             deviceList.addView(deviceView)
         }
     }

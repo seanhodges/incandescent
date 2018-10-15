@@ -79,7 +79,7 @@ class OperationExecutor(
         handler.post(runnableCode)
     }
 
-    private fun processOperations() {
+    fun processOperations() {
         loadQueue.forEach { featureId: String ->
             try {
                 val operation = LWOperation("feature", senderId, "read")
