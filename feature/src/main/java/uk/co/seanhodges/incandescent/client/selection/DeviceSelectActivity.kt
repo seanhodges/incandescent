@@ -80,7 +80,9 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
         for (device in roomData[position].devices ?: emptyList()) {
             val deviceView = createNewDeviceView(device)
             deviceView.setOnClickListener {
-                parent.context.startActivity(Intent(parent.context, DeviceControlActivity::class.java))
+                val intent = Intent(parent.context, DeviceControlActivity::class.java)
+                intent.putExtra("selectedDevice", device)
+                parent.context.startActivity(intent)
             }
             deviceList.addView(deviceView)
         }

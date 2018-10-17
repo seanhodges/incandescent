@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.*
 import java.lang.ref.WeakReference
 import androidx.room.Embedded
+import java.io.Serializable
 
 class DeviceRepository(ctx: Context) {
 
@@ -21,15 +22,37 @@ class DeviceRepository(ctx: Context) {
 
     fun buildTestDb() {
         db.roomDao().insertRoomAndDevices(RoomEntity("1", "Living room"), listOf(
-                DeviceEntity("1", "Main light", "light", "1")
+                DeviceEntity(
+                        "1",
+                        "Main light",
+                        "light",
+                        FEATURE_LIVING_ROOM_POWER_ID,
+                        FEATURE_LIVING_ROOM_DIM_ID,
+                        "1"
+                )
         ))
         db.roomDao().insertRoomAndDevices(RoomEntity("2", "Bedroom"), listOf(
-                DeviceEntity("2", "Main light", "light", "2")
+                DeviceEntity(
+                        "2",
+                        "Main light",
+                        "light",
+                        FEATURE_BEDROOM_POWER_ID,
+                        FEATURE_BEDROOM_DIM_ID,
+                        "2"
+                )
         ))
     }
 
     fun getAllRooms(): List<RoomWithDevices> {
         return db.roomDao().loadAllWithDevices()
+    }
+
+    companion object {
+        private val FEATURE_LIVING_ROOM_POWER_ID = "5b8aa9b4d36c330fd5b4e100-22-3157332334+1"
+        private val FEATURE_LIVING_ROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-23-3157332334+1"
+
+        private val FEATURE_BEDROOM_POWER_ID = "5b8aa9b4d36c330fd5b4e100-46-3157332334+1"
+        private val FEATURE_BEDROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-47-3157332334+1"
     }
 }
 
@@ -60,7 +83,7 @@ data class RoomEntity(
 
         @ColumnInfo(name = "title")
         var title: String
-)
+) : Serializable
 
 @Entity(tableName = "device")
 data class DeviceEntity(
@@ -74,17 +97,24 @@ data class DeviceEntity(
         @ColumnInfo(name = "type")
         var type: String,
 
+        @ColumnInfo(name = "power_command")
+        var powerCommand: String?,
+
+        @ColumnInfo(name = "dim_command")
+        var dimCommand: String?,
+
         @ForeignKey(entity = RoomEntity::class,
                 parentColumns = ["id"],
-                childColumns = ["roomId"])
+                childColumns = ["room_id"])
+        @ColumnInfo(name = "room_id")
         var roomId: String
-)
+) : Serializable
 
 class RoomWithDevices {
 
     @Embedded
     var room: RoomEntity? = null
 
-    @Relation(parentColumn = "id", entityColumn = "roomId", entity = DeviceEntity::class)
+    @Relation(parentColumn = "id", entityColumn = "room_id", entity = DeviceEntity::class)
     var devices: List<DeviceEntity>? = null
 }
