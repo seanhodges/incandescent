@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -67,9 +67,9 @@
         app:layout_constraintRight_toRightOf="parent"
         app:main_circle_color="#FFFFFF"
         app:max="100"
-        app:progress="0"
+        app:value="0"
         app:progress_primary_color="#0B3C49"
         app:progress_secondary_color="#EDEDED"
         app:start_offset="45" />
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

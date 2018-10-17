@@ -142,8 +142,8 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
             runOnUiThread {
                 disableListeners = true
                 val croller = findViewById<View>(R.id.croller) as Croller
-                croller.progress = newValue
-                applyOnOffHighlight(croller.progress > 0)
+                croller.value = newValue
+                applyOnOffHighlight(croller.value > 0)
                 disableListeners = false
             }
         }
