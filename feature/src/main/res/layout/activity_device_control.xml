@@ -6,21 +6,44 @@
     android:layout_height="match_parent"
     tools:context=".control.DeviceControlActivity">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/location_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/room_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Living room" />
+        <ImageView
+            android:id="@+id/device_image"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="48dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/device_button_socket" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/room_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Room name"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/device_image"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/device_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Device name"
+            app:layout_constraintBottom_toBottomOf="@id/device_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/device_image"
+            app:layout_constraintTop_toBottomOf="@id/room_info"
+            app:layout_constraintVertical_bias="1.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/switch_layout"

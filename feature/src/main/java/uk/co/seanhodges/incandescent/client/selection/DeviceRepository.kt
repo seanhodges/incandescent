@@ -92,7 +92,7 @@ data class DeviceEntity(
         var id: String,
 
         @ColumnInfo(name = "title")
-        var text: String,
+        var title: String,
 
         @ColumnInfo(name = "type")
         var type: String,

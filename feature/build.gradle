@@ -39,4 +39,5 @@ dependencies {
     androidTestImplementation ('androidx.test:rules:1.1.0-beta02'){
         exclude module: 'support-annotations'
     }
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }

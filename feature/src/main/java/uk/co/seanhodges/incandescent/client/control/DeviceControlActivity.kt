@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import com.sdsmdg.harjot.crollerTest.Croller
 import uk.co.seanhodges.incandescent.client.DeviceChangeAware
@@ -17,6 +18,7 @@ import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.selection.DeviceEntity
+import uk.co.seanhodges.incandescent.client.selection.RoomEntity
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
@@ -27,6 +29,7 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
     private val executor = OperationExecutor(server)
     private val deviceChangeHandler = DeviceChangeHandler(server)
 
+    private lateinit var selectedRoom: RoomEntity
     private lateinit var selectedDevice: DeviceEntity
 
     private var disableListeners = true // FIXME(sean): hack because updating UI control values triggers a change
@@ -35,6 +38,12 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
 
+        if (!intent.hasExtra("selectedRoom")) {
+            Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
+            finish()
+            return
+        }
+        selectedRoom = intent.getSerializableExtra("selectedRoom") as RoomEntity
         if (!intent.hasExtra("selectedDevice")) {
             Log.e(this.javaClass.name, "Device info missing when attempting to open DeviceControlActivity")
             finish()
@@ -43,6 +52,7 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         selectedDevice = intent.getSerializableExtra("selectedDevice") as DeviceEntity
         Log.d(this.javaClass.name, "Selected device is ${selectedDevice.id}")
 
+        setupDeviceInfo()
         setupOnOffSwitches()
         setupDimmer()
 
@@ -76,6 +86,13 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         super.onPause()
 
         server.disconnect()
+    }
+
+    private fun setupDeviceInfo() {
+        val roomInfo = findViewById<TextView>(R.id.room_info)
+        roomInfo.text = selectedRoom.title
+        val deviceInfo = findViewById<TextView>(R.id.device_info)
+        deviceInfo.text = selectedDevice.title
     }
 
     private fun setupOnOffSwitches() {

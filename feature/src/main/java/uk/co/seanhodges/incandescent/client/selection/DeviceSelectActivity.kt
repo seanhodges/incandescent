@@ -81,6 +81,7 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
             val deviceView = createNewDeviceView(device)
             deviceView.setOnClickListener {
                 val intent = Intent(parent.context, DeviceControlActivity::class.java)
+                intent.putExtra("selectedRoom", room)
                 intent.putExtra("selectedDevice", device)
                 parent.context.startActivity(intent)
             }
@@ -90,7 +91,7 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
 
     private fun createNewDeviceView(device : DeviceEntity): View {
         val button: TextView = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as TextView
-        button.text = device.text
+        button.text = device.title
         val image = getDeviceButtonImage(device.type)
         val imageSizePx = (DEVICE_BUTTON_IMAGE_SIZE * parent.resources.displayMetrics.density).toInt()
         image.setBounds(0, 0, imageSizePx, imageSizePx)
