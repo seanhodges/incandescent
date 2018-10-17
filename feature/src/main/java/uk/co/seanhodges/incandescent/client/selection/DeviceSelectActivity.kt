@@ -1,6 +1,8 @@
 package uk.co.seanhodges.incandescent.client.selection
 
+import android.content.Context
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +16,8 @@ import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 import java.lang.ref.WeakReference
 
+
+
 private const val DEVICE_BUTTON_IMAGE_SIZE = 72
 
 class DeviceSelectActivity : AppCompatActivity() {
@@ -24,17 +28,41 @@ class DeviceSelectActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
-        repository = DeviceRepository(WeakReference(this))
-
         val recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = ContentAdapter(repository.getAllRooms())
+        recyclerView.adapter = ContentAdapter()
+
+        GetRoomsTask(this, recyclerView.adapter as ContentAdapter).execute()
     }
 }
 
-class ContentAdapter(private val roomData: List<RoomWithDevices>) : RecyclerView.Adapter<RoomViewHolder>() {
+private class GetRoomsTask(ctx : Context, private val adapter: ContentAdapter) : AsyncTask<Void, Void, List<RoomWithDevices>>() {
 
+    private val ctxRef: WeakReference<Context> = WeakReference(ctx)
+
+    override fun doInBackground(vararg params: Void): List<RoomWithDevices>? {
+        val ctx = ctxRef.get() ?: return emptyList()
+
+        val repository = DeviceRepository(ctx)
+        repository.buildTestDb()
+        return repository.getAllRooms()
+    }
+
+    override fun onPostExecute(result: List<RoomWithDevices>?) {
+        super.onPostExecute(result)
+        adapter.setData(result ?: emptyList())
+    }
+}
+
+class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
+
+    private var roomData: List<RoomWithDevices> = emptyList()
     private lateinit var parent: ViewGroup
+
+    fun setData(newData: List<RoomWithDevices>) {
+        this.roomData = newData
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
         this.parent = parent
@@ -48,6 +76,7 @@ class ContentAdapter(private val roomData: List<RoomWithDevices>) : RecyclerView
         roomTitle.text = room?.title
 
         val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
+        deviceList.removeAllViewsInLayout()
         for (device in roomData[position].devices ?: emptyList()) {
             val deviceView = createNewDeviceView(device)
             deviceView.setOnClickListener {

@@ -6,17 +6,20 @@ import androidx.room.*
 import java.lang.ref.WeakReference
 import androidx.room.Embedded
 
-class DeviceRepository(ctx: WeakReference<Context>) {
+class DeviceRepository(ctx: Context) {
 
     private var db: AppDatabase
+    private val ctxRef: WeakReference<Context> = WeakReference(ctx)
 
     private val DATABASE_NAME: String = "incandescent-device-register"
 
     init {
 //        db = Room.databaseBuilder(ctx.get()!!,
 //                AppDatabase::class.java, DATABASE_NAME).build()
-        db = Room.inMemoryDatabaseBuilder(ctx.get()!!, AppDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(ctxRef.get()!!, AppDatabase::class.java).build()
+    }
 
+    fun buildTestDb() {
         db.roomDao().insertRoomAndDevices(RoomEntity("1", "Living room"), listOf(
                 DeviceEntity("1", "Main light", "light", "1")
         ))
@@ -28,7 +31,6 @@ class DeviceRepository(ctx: WeakReference<Context>) {
     fun getAllRooms(): List<RoomWithDevices> {
         return db.roomDao().loadAllWithDevices()
     }
-
 }
 
 @Database(entities = [
