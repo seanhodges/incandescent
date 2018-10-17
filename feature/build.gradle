@@ -16,17 +16,24 @@ android {
 }
 
 dependencies {
+    def room_version = "2.1.0-alpha01"
+
     implementation 'com.sdsmdg.harjot:croller:1.0.7'
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     implementation 'com.squareup.moshi:moshi-kotlin:1.7.0'
 
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version" // use kapt for Kotlin
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation project(':base')
-    testCompile 'org.mockito:mockito-inline:2.23.0'
+    testImplementation 'org.mockito:mockito-inline:2.23.0'
     testImplementation 'junit:junit:4.12'
-    androidTestCompile 'org.mockito:mockito-android:2.23.0'
+    androidTestImplementation 'org.mockito:mockito-android:2.23.0'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
+    androidTestImplementation ('com.android.support.test:rules:0.5'){
+        exclude module: 'support-annotations'
+    }
 }

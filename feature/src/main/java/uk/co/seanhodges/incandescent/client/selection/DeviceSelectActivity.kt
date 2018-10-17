@@ -1,4 +1,4 @@
-package uk.co.seanhodges.incandescent.client.room
+package uk.co.seanhodges.incandescent.client.selection
 
 import android.content.Intent
 import android.os.Bundle
@@ -12,39 +12,27 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
+import java.lang.ref.WeakReference
 
 private const val DEVICE_BUTTON_IMAGE_SIZE = 72
 
-class RoomSelectActivity : AppCompatActivity() {
+class DeviceSelectActivity : AppCompatActivity() {
 
-    private val roomData = arrayOf(
-            Room("1", "Living room", arrayOf(
-                    Device("1", "Main light", "light"),
-                    Device("2", "Side light", "socket")
-            )),
-            Room("2", "Kitchen", arrayOf(
-                    Device("1", "Socket", "socket")
-            )),
-            Room("3", "Bedroom", arrayOf(
-                    Device("1", "Main light", "light"),
-                    Device("2", "Socket", "socket")
-            )),
-            Room("4", "Nursery", arrayOf(
-                    Device("1", "Main light", "light")
-            ))
-    )
+    private lateinit var repository: DeviceRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
+        repository = DeviceRepository(WeakReference(this))
+
         val recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = ContentAdapter(roomData)
+        recyclerView.adapter = ContentAdapter(repository.getAllRooms())
     }
 }
 
-class ContentAdapter(private val roomData: Array<Room>) : RecyclerView.Adapter<RoomViewHolder>() {
+class ContentAdapter(private val roomData: List<RoomWithDevices>) : RecyclerView.Adapter<RoomViewHolder>() {
 
     private lateinit var parent: ViewGroup
 
@@ -55,12 +43,12 @@ class ContentAdapter(private val roomData: Array<Room>) : RecyclerView.Adapter<R
     }
 
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
-        val room = roomData[position]
+        val room = roomData[position].room
         val roomTitle : TextView = holder.containerView.findViewById(R.id.roomTitle)
-        roomTitle.text = room.title
+        roomTitle.text = room?.title
 
         val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
-        for (device in room.devices) {
+        for (device in roomData[position].devices ?: emptyList()) {
             val deviceView = createNewDeviceView(device)
             deviceView.setOnClickListener {
                 parent.context.startActivity(Intent(parent.context, DeviceControlActivity::class.java))
@@ -69,7 +57,7 @@ class ContentAdapter(private val roomData: Array<Room>) : RecyclerView.Adapter<R
         }
     }
 
-    private fun createNewDeviceView(device : Device): View {
+    private fun createNewDeviceView(device : DeviceEntity): View {
         val button: TextView = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as TextView
         button.text = device.text
         val image = getDeviceButtonImage(device.type)
@@ -90,15 +78,3 @@ class ContentAdapter(private val roomData: Array<Room>) : RecyclerView.Adapter<R
 }
 
 class RoomViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)
-
-open class Room(
-        open var id: String,
-        open var title: String,
-        open var devices: Array<Device>
-)
-
-open class Device(
-        open var id: String,
-        open var text: String,
-        open var type: String
-)

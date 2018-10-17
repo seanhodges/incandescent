@@ -6,7 +6,7 @@
 
     <application>
         <activity
-            android:name=".room.RoomSelectActivity"
+            android:name=".selection.DeviceSelectActivity"
             android:label="@string/title_activity_room_select"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
