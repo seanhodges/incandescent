@@ -10,7 +10,9 @@ data class LWEvent(
         val direction: String,
         val items: MutableList<LWEventItem>,
         @field:Json(name = "class") val clazz: String
-)
+) {
+    @Transient var json: String = ""
+}
 
 data class LWEventItem (
         val itemId: Int,
@@ -35,5 +37,14 @@ data class LWEventPayloadGetRootGroups (
 ) : LWEventPayload
 
 data class LWEventPayloadGroup (
-        val features: Map<String, LWEventPayloadFeature>
+        val features: Map<String, LWEventPayloadGroupFeature>
 ) : LWEventPayload
+
+data class LWEventPayloadGroupFeature (
+        val featureId: String,
+        val attributes: LWEventPayloadGroupFeatureAttributes
+)
+
+data class LWEventPayloadGroupFeatureAttributes (
+        val type: String
+)

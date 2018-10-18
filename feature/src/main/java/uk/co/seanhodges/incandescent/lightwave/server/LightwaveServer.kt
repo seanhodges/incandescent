@@ -105,6 +105,7 @@ class LightwaveServer : WebSocketListener() {
 
         try {
             val event = eventAdapter.fromJson(text)
+            event?.json = text ?: ""
 
             for (listener in listeners) {
                 listener.onEvent(event!!)

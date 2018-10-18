@@ -1,7 +1,5 @@
 package uk.co.seanhodges.incandescent.client
 
-import de.jodamob.kotlin.testrunner.KotlinTestRunner
-import de.jodamob.kotlin.testrunner.OpenedPackages
 import org.hamcrest.core.Is.`is`
 import org.junit.Test
 
