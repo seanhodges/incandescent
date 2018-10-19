@@ -8,7 +8,6 @@ import uk.co.seanhodges.incandescent.client.auth.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.Credentials
 import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
-import java.util.*
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadFeature
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
@@ -16,12 +15,13 @@ import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 
 
 class OperationExecutor(
-        private val server : LightwaveServer
+        private val server : LightwaveServer,
+        private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf()
 ) : LWEventListener {
 
     private val handlerThread = HandlerThread(EXECUTOR_NAME)
-    private val loadQueue = ArrayList<String>()
-    private val changeQueue = HashMap<String, Int>()
+    private val loadQueue = arrayListOf<String>()
+    private val changeQueue = mutableMapOf<String, Int>()
 
     private var senderId: String = ""
 
@@ -87,6 +87,13 @@ class OperationExecutor(
             try {
                 val operation = LWOperation("feature", senderId, "read")
                 operation.addPayload(LWOperationPayloadFeature(featureId))
+
+                // We're forcing the transaction ID into the itemId field to handle an API bug:
+                // LW doesn't return any reliable reference back for these events, so we don't know which feature the value is for.
+                // Using the itemId we can map feature read events back to the feature that originally requested them
+                operation.items[0].itemId = operation.transactionId
+                loadItemIdToFeatureId[operation.items[0].itemId] = featureId
+
                 server.command(operation)
             }
             catch (e: Throwable) {

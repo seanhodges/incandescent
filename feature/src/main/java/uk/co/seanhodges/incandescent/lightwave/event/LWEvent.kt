@@ -27,10 +27,9 @@ data class LWEventPayloadConnect (
 
 data class LWEventPayloadFeature (
         val value: Int,
-        val status: String
-) : LWEventPayload {
-    var featureId: String? = ""
-}
+        val status: String,
+        var featureId: String
+) : LWEventPayload
 
 data class LWEventPayloadGetRootGroups (
         val groupIds: List<String>

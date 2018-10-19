@@ -80,7 +80,6 @@ class LightwaveServer : WebSocketListener() {
     fun command(command: LWOperation) {
         if (webSocket == null) return
 
-        command.transactionId = ++transactionId
         val json = operationAdapter.toJson(command)
         println(">>> $json")
         webSocket!!.send(json)

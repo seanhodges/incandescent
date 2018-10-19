@@ -8,7 +8,9 @@ import java.util.*
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 
 
-class DeviceChangeHandler(server: LightwaveServer) : LWEventListener {
+class DeviceChangeHandler(server: LightwaveServer,
+                          private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf()
+) : LWEventListener {
 
     private val listeners = ArrayList<DeviceChangeAware>()
 
@@ -26,7 +28,7 @@ class DeviceChangeHandler(server: LightwaveServer) : LWEventListener {
 
     override fun onEvent(event: LWEvent) {
         if (!(event.clazz.equals("feature") && (event.operation.equals("event") || event.operation.equals("read")))) {
-            return // Filter only unsolicited feature change events
+            return // Filter only feature change events
         }
 
         if (event.items.size < 1 || event.items[0].payload == null) {
@@ -35,7 +37,10 @@ class DeviceChangeHandler(server: LightwaveServer) : LWEventListener {
         }
 
         val payload : LWEventPayloadFeature = event.items[0].payload as LWEventPayloadFeature
-        val featureId : String = payload.featureId ?: ""
+        if (payload.featureId.isNullOrEmpty()) {
+            payload.featureId = loadItemIdToFeatureId[event.items[0].itemId]!!
+        }
+        val featureId : String = payload.featureId
 
         listeners.forEach {
             it.onDeviceChanged(featureId, payload.value)

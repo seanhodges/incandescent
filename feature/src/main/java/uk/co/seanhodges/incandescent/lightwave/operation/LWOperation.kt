@@ -11,15 +11,19 @@ data class LWOperation(
     val direction : String = "request"
     val items : MutableList<LWOperationItem> = ArrayList()
 
-    var transactionId: Int = 1
+    var transactionId: Int = ++NEXT_TRANSACTION_ID
 
     fun addPayload(payload: LWOperationPayload) {
         items.add(LWOperationItem(items.size + 1, payload))
     }
+
+    companion object {
+        var NEXT_TRANSACTION_ID : Int = 0
+    }
 }
 
 data class LWOperationItem (
-        val itemId : Int = 0,
+        var itemId : Int = 0,
         val payload : LWOperationPayload
 )
 

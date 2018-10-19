@@ -136,11 +136,10 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
         // FIXME(sean): for unsolicited changes the featureId is not returned in response,
         //              so we just assume group read is always for dimmer :/
-        if (featureId.equals(selectedDevice.dimCommand) || featureId.equals("")) {
+        if (featureId.equals(selectedDevice.dimCommand)) {
             withUiChangeListenersDisabled {
                 val croller = findViewById<View>(R.id.croller) as Croller
                 croller.value = newValue
-                applyOnOffHighlight(croller.value > 0)
             }
         }
         else if (featureId.equals(selectedDevice.powerCommand)) {
