@@ -31,7 +31,6 @@ class DeviceSelectActivity : AppCompatActivity() {
     private val server = Inject.server
     private val executor = Inject.executor
 
-    private lateinit var repository: DeviceRepository
     private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,12 +61,6 @@ class DeviceSelectActivity : AppCompatActivity() {
                 GetRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
             })
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        server.disconnect()
     }
 }
 

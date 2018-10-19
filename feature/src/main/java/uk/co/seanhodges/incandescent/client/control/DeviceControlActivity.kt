@@ -74,15 +74,15 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
                 }
-                deviceChangeHandler.addListener(this)
             })
         }
+
+        deviceChangeHandler.addListener(this)
     }
 
     override fun onPause() {
         super.onPause()
         deviceChangeHandler.removeListener(this)
-        server.disconnect()
     }
 
     private fun setupDeviceInfo() {

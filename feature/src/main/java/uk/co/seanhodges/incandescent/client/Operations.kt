@@ -43,9 +43,12 @@ class OperationExecutor(
             val refreshTask = RefreshTokenAndConnectToServerTask(authRepository, onComplete)
             refreshTask.execute(server)
         }
-        else {
+        else if (senderId == "") {
             val connectTask = ConnectToServerTask(authRepository, onComplete)
             connectTask.execute(server)
+        }
+        else {
+            // We've already connected, ignore request
         }
         senderId = authRepository.getDeviceId()
     }
