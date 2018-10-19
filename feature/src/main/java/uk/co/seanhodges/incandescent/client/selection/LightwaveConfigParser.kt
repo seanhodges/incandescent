@@ -23,6 +23,10 @@ class LightwaveConfigLoader(
     private var groupHierarchy: String? = null
     private var groupInfo: LWEventPayloadGroup? = null
 
+    init {
+        server.addListener(this)
+    }
+
     override fun onEvent(event: LWEvent) {
         if (event.clazz == "user" && event.operation == "rootGroups") {
             // Root group ID loaded, fetch the group data
@@ -34,7 +38,7 @@ class LightwaveConfigLoader(
         else if (event.clazz == "group" && event.operation == "hierarchy") {
             groupHierarchy = event.json as String
         }
-        else if (event.clazz == "group" && event.operation == "info") {
+        else if (event.clazz == "group" && event.operation == "read") {
             groupInfo = event.items[0].payload as LWEventPayloadGroup
         }
 
@@ -67,7 +71,7 @@ class LightwaveConfigLoader(
     }
 
     private fun getGroupInfo(rootId : String) {
-        val operation = LWOperation("group", "1", "info")
+        val operation = LWOperation("group", "1", "read")
         operation.addPayload(LWOperationPayloadGroup(rootId))
         server.command(operation)
     }

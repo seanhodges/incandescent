@@ -12,39 +12,87 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.auth.AuthRepository
+import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
+import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroup
+import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
-
+import java.util.concurrent.CountDownLatch
 
 
 private const val DEVICE_BUTTON_IMAGE_SIZE = 72
 
 class DeviceSelectActivity : AppCompatActivity() {
 
+    private val server = LightwaveServer()
+    private val executor = OperationExecutor(server)
+
     private lateinit var repository: DeviceRepository
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
-        val recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
+        recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = ContentAdapter()
+    }
 
-        GetRoomsTask(this, recyclerView.adapter as ContentAdapter).execute()
+    override fun onPostResume() {
+        super.onPostResume()
+
+        val authRepository = AuthRepository(WeakReference(applicationContext))
+        if (!authRepository.isAuthenticated()) {
+            startActivity(Intent(this, AuthenticateActivity::class.java))
+        }
+        else {
+            executor.connectToServer(authRepository, onComplete = { success: Boolean ->
+                if (success) {
+                    Toast.makeText(this, "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
+                }
+
+                GetRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
+            })
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        server.disconnect()
     }
 }
 
-private class GetRoomsTask(ctx : Context, private val adapter: ContentAdapter) : AsyncTask<Void, Void, List<RoomWithDevices>>() {
+private class GetRoomsTask(
+        ctx : Context,
+        private val server: LightwaveServer,
+        private val adapter: ContentAdapter
+) : AsyncTask<Void, Void, List<RoomWithDevices>>() {
 
     private val ctxRef: WeakReference<Context> = WeakReference(ctx)
+    private val doneSignal = CountDownLatch(1)
 
     override fun doInBackground(vararg params: Void): List<RoomWithDevices>? {
         val ctx = ctxRef.get() ?: return emptyList()
 
         val repository = DeviceRepository(ctx)
-        repository.buildTestDb()
+        if (repository.isNewDB()) {
+            LightwaveConfigLoader(server, repository).load { hierarchy: String, info: LWEventPayloadGroup ->
+                LightwaveConfigParser(hierarchy, info).parse { room, devices ->
+                    repository.addRoomAndDevices(RoomWithDevices(room, devices))
+                }
+                doneSignal.countDown();
+            }
+            doneSignal.await()
+        }
         return repository.getAllRooms()
     }
 

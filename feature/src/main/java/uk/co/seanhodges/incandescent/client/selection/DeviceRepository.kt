@@ -1,6 +1,7 @@
 package uk.co.seanhodges.incandescent.client.selection
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.*
 import java.lang.ref.WeakReference
@@ -15,9 +16,13 @@ class DeviceRepository(ctx: Context) {
     private val DATABASE_NAME: String = "incandescent-device-register"
 
     init {
-//        db = Room.databaseBuilder(ctx.get()!!,
-//                AppDatabase::class.java, DATABASE_NAME).build()
-        db = Room.inMemoryDatabaseBuilder(ctxRef.get()!!, AppDatabase::class.java).build()
+        db = Room.databaseBuilder(ctxRef.get()!!,
+                AppDatabase::class.java, DATABASE_NAME).build()
+//        db = Room.inMemoryDatabaseBuilder(ctxRef.get()!!, AppDatabase::class.java).build()
+    }
+
+    fun isNewDB() : Boolean {
+        return db.roomDao().count() < 1
     }
 
     fun buildTestDb() {
@@ -47,6 +52,12 @@ class DeviceRepository(ctx: Context) {
         return db.roomDao().loadAllWithDevices()
     }
 
+    fun addRoomAndDevices(entry: RoomWithDevices) {
+        if (entry.room == null) return
+        Log.d(javaClass.name, "Adding room ${entry.room?.title} with ${entry.devices?.size} devices")
+        db.roomDao().insertRoomAndDevices(entry.room!!, entry.devices ?: emptyList())
+    }
+
     companion object {
         private val FEATURE_LIVING_ROOM_POWER_ID = "5b8aa9b4d36c330fd5b4e100-22-3157332334+1"
         private val FEATURE_LIVING_ROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-23-3157332334+1"
@@ -70,7 +81,10 @@ interface RoomDao {
     @Query("SELECT * FROM room")
     fun loadAllWithDevices(): List<RoomWithDevices>
 
-    @Insert
+    @Query("SELECT count(id) FROM room")
+    fun count(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRoomAndDevices(user: RoomEntity, devices: List<DeviceEntity>)
 }
 
@@ -110,11 +124,11 @@ data class DeviceEntity(
         var roomId: String
 ) : Serializable
 
-class RoomWithDevices {
+data class RoomWithDevices(
 
     @Embedded
-    var room: RoomEntity? = null
+    var room: RoomEntity? = null,
 
     @Relation(parentColumn = "id", entityColumn = "room_id", entity = DeviceEntity::class)
     var devices: List<DeviceEntity>? = null
-}
+)
