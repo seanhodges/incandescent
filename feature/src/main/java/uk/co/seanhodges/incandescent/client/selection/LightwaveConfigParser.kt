@@ -28,7 +28,10 @@ class LightwaveConfigLoader(
     }
 
     override fun onEvent(event: LWEvent) {
-        if (event.clazz == "user" && event.operation == "rootGroups") {
+        if (event.clazz.equals("user") && event.operation.equals("authenticate")) {
+            getRootGroupId()
+        }
+        else if (event.clazz == "user" && event.operation == "rootGroups") {
             // Root group ID loaded, fetch the group data
             val payload = event.items[0].payload as LWEventPayloadGetRootGroups
             val rootGroupId = payload.groupIds[0]
@@ -55,7 +58,8 @@ class LightwaveConfigLoader(
 
     fun load(onComplete: (hierarchy: String, info: LWEventPayloadGroup) -> Unit) {
         this.onComplete = onComplete
-        getRootGroupId()
+
+        // Must wait for authentication before loading group info, see onEvent()
     }
 
     private fun getRootGroupId() {
@@ -140,7 +144,7 @@ class LightwaveConfigParser(
                 val deviceEntity = DeviceEntity(
                         featureSet.id,
                         featureSet.name,
-                        "light",
+                        inferTypeFromCommands(powerCommand, dimCommand),
                         powerCommand,
                         dimCommand,
                         room.id
@@ -150,6 +154,13 @@ class LightwaveConfigParser(
             onRoomFound(roomEntity, deviceEntities)
         }
 
+    }
+
+    private fun inferTypeFromCommands(powerCommand: String?, dimCommand: String?): String {
+        if (dimCommand == null) {
+            return "socket"
+        }
+        return "light"
     }
 
     private fun findCommand(features: List<String>, type: String): String? {
