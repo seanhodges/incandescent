@@ -90,14 +90,14 @@ class LightwaveServerIntTest {
     @Throws(InterruptedException::class)
     fun testReadsGroupInfo() {
         val responded = AtomicBoolean(false)
-        val result = StringBuilder()
+        var result = mapOf<String, LWEventPayloadGroupFeature>()
 
         val listener = object : LWEventListener {
             override fun onEvent(event: LWEvent) {
                 println(event)
                 if (event.clazz == "group" && event.operation == "read") {
                     responded.set(true)
-                    result.append((event.items[0].payload as LWEventPayloadGroup).features)
+                    result = (event.items[0].payload as LWEventPayloadGroup).features
                 }
             }
 
@@ -115,7 +115,7 @@ class LightwaveServerIntTest {
         server.disconnect()
 
         assertTrue(responded.get())
-        assertEquals("9", result.toString())
+        assertEquals(57, result.size)
     }
 
     @Test
@@ -210,6 +210,38 @@ class LightwaveServerIntTest {
 
         assertTrue(responded.get())
         assertEquals(FEATURE_DIM_VALUE, result.get())
+    }
+
+
+    @Test
+    @Throws(InterruptedException::class)
+    fun testReadsIdentify() {
+        val responded = AtomicBoolean(false)
+        val result = AtomicInteger()
+
+        val listener = object : LWEventListener {
+            override fun onEvent(event: LWEvent) {
+                if (event.clazz == "feature" && event.operation == "read") {
+                    responded.set(true)
+                    result.set((event.items[0].payload as LWEventPayloadFeature).value)
+                }
+            }
+
+            override fun onError(e: Throwable) {
+                throw RuntimeException(e)
+            }
+        }
+        server.addListener(listener)
+        server.connect(authenticate(), "")
+        Thread.sleep(3000)
+        val operation = LWOperation("feature", "", "read")
+        operation.addPayload(LWOperationPayloadFeature("5b8aa9b4d36c330fd5b4e100-40-3157332334+1"))
+        server.command(operation)
+        Thread.sleep(3000)
+        server.disconnect()
+
+        assertTrue(responded.get())
+        assertEquals(99, result.get())
     }
 
     companion object {

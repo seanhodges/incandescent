@@ -5,34 +5,31 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import com.sdsmdg.harjot.crollerTest.Croller
-import uk.co.seanhodges.incandescent.client.DeviceChangeAware
-import uk.co.seanhodges.incandescent.client.DeviceChangeHandler
-import uk.co.seanhodges.incandescent.client.OperationExecutor
-import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.auth.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.selection.DeviceEntity
 import uk.co.seanhodges.incandescent.client.selection.RoomEntity
-import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
 
 class DeviceControlActivity : Activity(), DeviceChangeAware {
 
-    private val server = LightwaveServer()
-    private val executor = OperationExecutor(server)
-    private val deviceChangeHandler = DeviceChangeHandler(server)
+    private val server = Inject.server
+    private val executor = Inject.executor
+    private val deviceChangeHandler = Inject.deviceChangeHandler
 
     private lateinit var selectedRoom: RoomEntity
     private lateinit var selectedDevice: DeviceEntity
 
-    private var disableListeners = true // FIXME(sean): hack because updating UI control values triggers a change
+    @Volatile private var eventsPreventingUiChangeListeners = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,17 +49,16 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         selectedDevice = intent.getSerializableExtra("selectedDevice") as DeviceEntity
         Log.d(this.javaClass.name, "Selected device is ${selectedDevice.id}")
 
-        setupDeviceInfo()
-        setupOnOffSwitches()
-        setupDimmer()
-
-        deviceChangeHandler.addListener(this)
+        withUiChangeListenersDisabled {
+            setupDeviceInfo()
+            setupOnOffSwitches()
+            setupDimmer()
+        }
     }
 
     override fun onPostResume() {
         super.onPostResume()
 
-        disableListeners = true
         selectedDevice.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
         selectedDevice.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
 
@@ -78,13 +74,14 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
                 }
+                deviceChangeHandler.addListener(this)
             })
         }
     }
 
     override fun onPause() {
         super.onPause()
-
+        deviceChangeHandler.removeListener(this)
         server.disconnect()
     }
 
@@ -100,19 +97,17 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         val onButton = findViewById<Button>(R.id.on_button)
 
         offButton.setOnClickListener {
-            if (!disableListeners) {
-                selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 0) }
+            if (eventsPreventingUiChangeListeners > 0) return@setOnClickListener
+            selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 0) }
 //                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, 0) } // Workaround for a bug in my dimmer bulbs :)
-                applyOnOffHighlight(false)
-            }
+            applyOnOffHighlight(false)
         }
 
         onButton.setOnClickListener {
-            if (!disableListeners) {
-                selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 1) }
+            if (eventsPreventingUiChangeListeners > 0) return@setOnClickListener
+            selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 1) }
 //                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, 100) } // Workaround for a bug in my dimmer bulbs :)
-                applyOnOffHighlight(true)
-            }
+            applyOnOffHighlight(true)
         }
     }
 
@@ -130,32 +125,37 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         croller.indicatorColor = Color.parseColor("#0B3C49")
         croller.progressSecondaryColor = Color.parseColor("#EEEEEE")
         croller.setOnProgressChangedListener { newValue ->
-            if (!disableListeners) {
-                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, newValue) }
-                selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, if (newValue > 0) 1 else 0) }
-                applyOnOffHighlight(newValue > 0)
-            }
+            if (eventsPreventingUiChangeListeners > 0) return@setOnProgressChangedListener
+            selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, newValue) }
+            selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, if (newValue > 0) 1 else 0) }
+            applyOnOffHighlight(newValue > 0)
         };
     }
 
     override fun onDeviceChanged(featureId: String, newValue: Int) {
         Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
-        // FIXME(sean): since the featureId is not returned in response we assume group read is always for dimmer
+        // FIXME(sean): for unsolicited changes the featureId is not returned in response,
+        //              so we just assume group read is always for dimmer :/
         if (featureId.equals(selectedDevice.dimCommand) || featureId.equals("")) {
-            runOnUiThread {
-                disableListeners = true
+            withUiChangeListenersDisabled {
                 val croller = findViewById<View>(R.id.croller) as Croller
                 croller.value = newValue
                 applyOnOffHighlight(croller.value > 0)
-                disableListeners = false
             }
         }
         else if (featureId.equals(selectedDevice.powerCommand)) {
-            runOnUiThread {
-                disableListeners = true
+            withUiChangeListenersDisabled {
                 applyOnOffHighlight(newValue == 1)
-                disableListeners = false
             }
+        }
+    }
+
+    private fun withUiChangeListenersDisabled(actions: () -> Unit) {
+        runOnUiThread {
+            ++eventsPreventingUiChangeListeners
+            actions()
+            // Account for the delayed callback behaviour in Croller
+            Handler().postDelayed({ --eventsPreventingUiChangeListeners }, 1000)
         }
     }
 

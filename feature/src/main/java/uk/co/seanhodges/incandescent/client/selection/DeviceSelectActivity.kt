@@ -13,7 +13,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import uk.co.seanhodges.incandescent.client.OperationExecutor
+import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
@@ -28,8 +28,8 @@ private const val DEVICE_BUTTON_IMAGE_SIZE = 72
 
 class DeviceSelectActivity : AppCompatActivity() {
 
-    private val server = LightwaveServer()
-    private val executor = OperationExecutor(server)
+    private val server = Inject.server
+    private val executor = Inject.executor
 
     private lateinit var repository: DeviceRepository
     private lateinit var recyclerView: RecyclerView

@@ -12,6 +12,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 
 import kotlinx.android.synthetic.main.activity_authenticate.*
+import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
@@ -19,7 +20,7 @@ import java.lang.ref.WeakReference
 
 class AuthenticateActivity : Activity() {
 
-    private val server = LightwaveServer()
+    private val server = Inject.server
     private var authTask: AuthenticateTask? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
