@@ -19,7 +19,7 @@
             android:layout_height="48dp"
             android:layout_marginStart="48dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/device_button_socket" />
+            app:srcCompat="@drawable/device_button_lightbulb" />
 
         <TextView
             android:id="@+id/room_info"
@@ -36,12 +36,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
             android:text="Device name"
-            app:layout_constraintBottom_toBottomOf="@id/device_image"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/device_image"
-            app:layout_constraintTop_toBottomOf="@id/room_info"
-            app:layout_constraintVertical_bias="1.0" />
+            app:layout_constraintTop_toBottomOf="@id/room_info" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

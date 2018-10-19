@@ -9,6 +9,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.sdsmdg.harjot.crollerTest.Croller
@@ -52,7 +53,13 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         withUiChangeListenersDisabled {
             setupDeviceInfo()
             setupOnOffSwitches()
-            setupDimmer()
+
+            if (selectedDevice.type == "light") {
+                setupDimmer()
+            }
+            else {
+                hideDimmer()
+            }
         }
     }
 
@@ -90,6 +97,14 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         roomInfo.text = selectedRoom.title
         val deviceInfo = findViewById<TextView>(R.id.device_info)
         deviceInfo.text = selectedDevice.title
+
+        val deviceImage = findViewById<ImageView>(R.id.device_image)
+        deviceImage.setImageResource(getDeviceImage(selectedDevice.type))
+    }
+
+    private fun getDeviceImage(id: String) = when(id) {
+        "light" -> R.drawable.device_button_lightbulb
+        else -> R.drawable.device_button_socket
     }
 
     private fun setupOnOffSwitches() {
@@ -111,8 +126,14 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         }
     }
 
+    private fun hideDimmer() {
+        val croller = findViewById<View>(R.id.croller) as Croller
+        croller.visibility = View.GONE
+    }
+
     private fun setupDimmer() {
         val croller = findViewById<View>(R.id.croller) as Croller
+        croller.visibility = View.VISIBLE
         croller.indicatorWidth = 10f
         croller.backCircleColor = Color.parseColor("#EDEDED")
         croller.mainCircleColor = Color.WHITE
