@@ -7,7 +7,7 @@
     <application>
         <activity
             android:name=".selection.DeviceSelectActivity"
-            android:label="@string/title_activity_room_select"
+            android:label="@string/application_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,10 +17,10 @@
         </activity>
         <activity
             android:name=".control.DeviceControlActivity"
-            android:label="title_activity_device_control"></activity>
+            android:label="@string/application_name"></activity>
         <activity
             android:name=".auth.AuthenticateActivity"
-            android:label="@string/title_activity_authenticate"></activity>
+            android:label="@string/application_name"></activity>
     </application>
 
 </manifest>
