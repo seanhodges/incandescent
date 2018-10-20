@@ -53,18 +53,39 @@ class DeviceSelectActivity : AppCompatActivity() {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (success) {
                     Toast.makeText(this, "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
+                    LoadRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
                 }
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
                 }
-
-                GetRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
             })
+
+            GetRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
         }
     }
 }
 
 private class GetRoomsTask(
+        ctx : Context,
+        private val server: LightwaveServer,
+        private val adapter: ContentAdapter
+) : AsyncTask<Void, Void, List<RoomWithDevices>>() {
+
+    private val ctxRef: WeakReference<Context> = WeakReference(ctx)
+
+    override fun doInBackground(vararg params: Void): List<RoomWithDevices>? {
+        val ctx = ctxRef.get() ?: return emptyList()
+        val repository = DeviceRepository(ctx)
+        return repository.getAllRooms()
+    }
+
+    override fun onPostExecute(result: List<RoomWithDevices>?) {
+        super.onPostExecute(result)
+        adapter.setData(result ?: emptyList())
+    }
+}
+
+private class LoadRoomsTask(
         ctx : Context,
         private val server: LightwaveServer,
         private val adapter: ContentAdapter
@@ -85,13 +106,16 @@ private class GetRoomsTask(
                 doneSignal.countDown();
             }
             doneSignal.await()
+            return repository.getAllRooms()
         }
-        return repository.getAllRooms()
+        return emptyList()
     }
 
     override fun onPostExecute(result: List<RoomWithDevices>?) {
         super.onPostExecute(result)
-        adapter.setData(result ?: emptyList())
+        if (result != null && result.size > 0) {
+            adapter.setData(result)
+        }
     }
 }
 
