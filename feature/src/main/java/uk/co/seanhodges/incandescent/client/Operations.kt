@@ -148,7 +148,9 @@ class RefreshTokenAndConnectToServerTask(
             authRepository.save(result)
             onComplete(true)
         }
-        onComplete(false)
+        else {
+            onComplete(false)
+        }
     }
 }
 
