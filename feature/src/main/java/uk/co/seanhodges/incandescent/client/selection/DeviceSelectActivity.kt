@@ -52,7 +52,6 @@ class DeviceSelectActivity : AppCompatActivity() {
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (success) {
-                    Toast.makeText(this, "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
                     LoadRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
                 }
                 else {

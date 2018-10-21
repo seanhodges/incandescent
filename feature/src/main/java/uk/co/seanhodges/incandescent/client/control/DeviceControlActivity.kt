@@ -75,10 +75,7 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         }
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
-                if (success) {
-                    Toast.makeText(this, "Connected to Lightwave server :)", Toast.LENGTH_SHORT).show()
-                }
-                else {
+                if (!success) {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
                 }
             })
