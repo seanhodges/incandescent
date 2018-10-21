@@ -2,4 +2,5 @@
 <resources>
     <color name="btn_off_active">#e80000</color>
     <color name="btn_on_active">#fcf263</color>
+    <color name="room_card">#efefef</color>
 </resources>

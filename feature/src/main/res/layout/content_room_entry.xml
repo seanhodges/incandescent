@@ -9,6 +9,8 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="4dp"
         android:layout_margin="8dp"
+        app:cardBackgroundColor="@color/room_card"
+        app:cardElevation="5dp"
         android:layout_gravity="center_horizontal">
 
         <LinearLayout
@@ -25,7 +27,9 @@
                 android:text="Living room" />
 
             <HorizontalScrollView
-                android:layout_margin="16dp"
+                android:layout_marginLeft="@dimen/text_margin"
+                android:layout_marginBottom="@dimen/text_margin"
+                android:layout_marginRight="@dimen/text_margin"
                 android:layout_width="match_parent"
                 android:scrollbars="none"
                 android:layout_height="wrap_content">
