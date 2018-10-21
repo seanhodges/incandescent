@@ -2,7 +2,6 @@ package uk.co.seanhodges.incandescent.client.auth
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.app.Activity
 import android.os.AsyncTask
 import android.os.Bundle
 import android.text.TextUtils
@@ -10,6 +9,7 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 
 import kotlinx.android.synthetic.main.activity_authenticate.*
 import uk.co.seanhodges.incandescent.client.Inject
@@ -18,7 +18,7 @@ import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
-class AuthenticateActivity : Activity() {
+class AuthenticateActivity : AppCompatActivity() {
 
     private val server = Inject.server
     private var authTask: AuthenticateTask? = null

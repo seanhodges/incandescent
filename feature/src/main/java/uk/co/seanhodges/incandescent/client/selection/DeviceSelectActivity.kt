@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -34,12 +35,21 @@ class DeviceSelectActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setupActionBar()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
         recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = ContentAdapter()
+    }
+
+    private fun setupActionBar() {
+        window.requestFeature(Window.FEATURE_ACTION_BAR)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        supportActionBar?.setDisplayUseLogoEnabled(true)
+        supportActionBar?.setLogo(R.mipmap.ic_launcher)
+        supportActionBar?.title = getString(R.string.select_device_title)
     }
 
     override fun onPostResume() {

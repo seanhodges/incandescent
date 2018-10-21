@@ -1,17 +1,19 @@
 package uk.co.seanhodges.incandescent.client.control
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.MenuItem
 import android.view.View
+import android.view.Window
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.sdsmdg.harjot.crollerTest.Croller
 import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.auth.AuthRepository
@@ -19,9 +21,12 @@ import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.selection.DeviceEntity
 import uk.co.seanhodges.incandescent.client.selection.RoomEntity
 import java.lang.ref.WeakReference
+import androidx.core.app.NavUtils
 
 
-class DeviceControlActivity : Activity(), DeviceChangeAware {
+
+
+class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
 
     private val server = Inject.server
     private val executor = Inject.executor
@@ -33,6 +38,7 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
     @Volatile private var eventsPreventingUiChangeListeners = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setupActionBar()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
 
@@ -63,6 +69,11 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         }
     }
 
+    private fun setupActionBar() {
+        window.requestFeature(Window.FEATURE_ACTION_BAR)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
     override fun onPostResume() {
         super.onPostResume()
 
@@ -89,6 +100,16 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
         deviceChangeHandler.removeListener(this)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.getItemId()) {
+            android.R.id.home -> {
+                NavUtils.navigateUpFromSameTask(this)
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     private fun setupDeviceInfo() {
         val roomInfo = findViewById<TextView>(R.id.room_info)
         roomInfo.text = selectedRoom.title
@@ -97,6 +118,9 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
 
         val deviceImage = findViewById<ImageView>(R.id.device_image)
         deviceImage.setImageResource(getDeviceImage(selectedDevice.type))
+
+        supportActionBar?.setIcon(getDeviceImage(selectedDevice.type))
+        supportActionBar?.title = "${roomInfo.text} > ${deviceInfo.text}"
     }
 
     private fun getDeviceImage(id: String) = when(id) {

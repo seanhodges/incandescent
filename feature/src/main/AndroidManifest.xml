@@ -8,7 +8,7 @@
         <activity
             android:name=".selection.DeviceSelectActivity"
             android:label="@string/application_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:logo="@mipmap/ic_launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -17,10 +17,15 @@
         </activity>
         <activity
             android:name=".control.DeviceControlActivity"
-            android:label="@string/application_name"></activity>
+            android:label="@string/control_device_title"
+            android:parentActivityName=".selection.DeviceSelectActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".selection.DeviceSelectActivity" />
+        </activity>
         <activity
             android:name=".auth.AuthenticateActivity"
-            android:label="@string/application_name"></activity>
+            android:label="@string/authenticate_title"></activity>
     </application>
 
 </manifest>

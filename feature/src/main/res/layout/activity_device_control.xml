@@ -6,7 +6,9 @@
     android:layout_height="match_parent"
     tools:context=".control.DeviceControlActivity">
 
+    <!-- FIXME(sean) visibility="gone" - disabled until we can find a pretty way to show this -->
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:visibility="gone"
         android:id="@+id/location_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
