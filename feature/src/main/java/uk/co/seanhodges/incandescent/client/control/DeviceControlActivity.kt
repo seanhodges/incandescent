@@ -101,7 +101,8 @@ class DeviceControlActivity : Activity(), DeviceChangeAware {
 
     private fun getDeviceImage(id: String) = when(id) {
         "light" -> R.drawable.device_button_lightbulb
-        else -> R.drawable.device_button_socket
+        "socket" -> R.drawable.device_button_socket
+        else -> R.drawable.device_button_unknown
     }
 
     private fun setupOnOffSwitches() {

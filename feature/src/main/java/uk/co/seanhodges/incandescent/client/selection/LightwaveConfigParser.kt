@@ -157,10 +157,13 @@ class LightwaveConfigParser(
     }
 
     private fun inferTypeFromCommands(powerCommand: String?, dimCommand: String?): String {
-        if (dimCommand == null) {
+        if (!dimCommand.isNullOrEmpty()) {
+            return "light"
+        }
+        else if (!powerCommand.isNullOrEmpty()) {
             return "socket"
         }
-        return "light"
+        return "unknown"
     }
 
     private fun findCommand(features: List<String>, type: String): String? {
