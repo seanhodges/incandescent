@@ -13,8 +13,6 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <!-- Room selection -->
+    <string name="select_device_title">Rooms and appliances</string>
     <string name="action_settings">Settings</string>
-    <string name="select_device_title">Choose an appliance</string>
-    <string name="control_device_title">Control device</string>
-    <string name="authenticate_title">Authenticate with Lightwave</string>
 </resources>

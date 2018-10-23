@@ -1,35 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/room_background"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/roomTitle"
+        android:paddingTop="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/text_margin"
+        android:textSize="22sp"
+        tools:text="Living room" />
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="4dp"
-        android:layout_margin="8dp"
-        app:cardBackgroundColor="@color/room_card"
-        app:cardElevation="5dp"
+        android:layout_margin="0dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/white"
         android:layout_gravity="center_horizontal">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/roomTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/text_margin"
-                android:textSize="22sp"
-                android:text="Living room" />
-
             <HorizontalScrollView
-                android:layout_marginLeft="@dimen/text_margin"
-                android:layout_marginBottom="@dimen/text_margin"
-                android:layout_marginRight="@dimen/text_margin"
+                android:layout_margin="@dimen/text_margin"
                 android:layout_width="match_parent"
                 android:scrollbars="none"
                 android:layout_height="wrap_content">
@@ -38,10 +35,19 @@
                     android:id="@+id/deviceList"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
+                    android:paddingBottom="10dp"
                     android:orientation="horizontal">
+
+                    <Button
+                        android:layout_width="140dp"
+                        android:layout_height="140dp"
+                        tools:text="Example device"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:background="@color/white"
+                        tools:drawableTop="@drawable/device_unknown" />
 
                 </LinearLayout>
             </HorizontalScrollView>
-        </LinearLayout>
     </androidx.cardview.widget.CardView>
-</FrameLayout>
+</LinearLayout>

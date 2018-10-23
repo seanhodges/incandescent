@@ -124,9 +124,9 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
     }
 
     private fun getDeviceImage(id: String) = when(id) {
-        "light" -> R.drawable.device_button_lightbulb
-        "socket" -> R.drawable.device_button_socket
-        else -> R.drawable.device_button_unknown
+        "light" -> R.drawable.device_lightbulb
+        "socket" -> R.drawable.device_socket
+        else -> R.drawable.device_unknown
     }
 
     private fun setupOnOffSwitches() {

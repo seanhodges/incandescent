@@ -174,9 +174,9 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
     }
 
     private fun getDeviceButtonImage(id: String) = when(id) {
-        "light" -> parent.resources.getDrawable(R.drawable.device_button_lightbulb, null)
-        "socket" -> parent.resources.getDrawable(R.drawable.device_button_socket, null)
-        else -> parent.resources.getDrawable(R.drawable.device_button_unknown, null)
+        "light" -> parent.resources.getDrawable(R.drawable.device_lightbulb, null)
+        "socket" -> parent.resources.getDrawable(R.drawable.device_socket, null)
+        else -> parent.resources.getDrawable(R.drawable.device_unknown, null)
     }
 
     override fun getItemCount(): Int {

@@ -21,7 +21,7 @@
             android:layout_height="48dp"
             android:layout_marginStart="48dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:srcCompat="@drawable/device_button_lightbulb" />
+            app:srcCompat="@drawable/device_lightbulb" />
 
         <TextView
             android:id="@+id/room_info"
