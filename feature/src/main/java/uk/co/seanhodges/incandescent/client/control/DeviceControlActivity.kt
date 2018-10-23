@@ -111,22 +111,16 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
     }
 
     private fun setupDeviceInfo() {
-        val roomInfo = findViewById<TextView>(R.id.room_info)
-        roomInfo.text = selectedRoom.title
-        val deviceInfo = findViewById<TextView>(R.id.device_info)
-        deviceInfo.text = selectedDevice.title
+        val roomDrawable = IconResolver.getRoomImage(selectedRoom.title)
+        val roomImage = findViewById<ImageView>(R.id.room_image)
+        roomImage.setImageResource(roomDrawable)
 
+        val deviceDrawable = IconResolver.getDeviceImage(selectedDevice.title, selectedDevice.type)
         val deviceImage = findViewById<ImageView>(R.id.device_image)
-        deviceImage.setImageResource(getDeviceImage(selectedDevice.type))
+        deviceImage.setImageResource(deviceDrawable)
 
-        supportActionBar?.setIcon(getDeviceImage(selectedDevice.type))
-        supportActionBar?.title = "${roomInfo.text} > ${deviceInfo.text}"
-    }
-
-    private fun getDeviceImage(id: String) = when(id) {
-        "light" -> R.drawable.device_lightbulb
-        "socket" -> R.drawable.device_socket
-        else -> R.drawable.device_unknown
+        supportActionBar?.setIcon(deviceDrawable)
+        supportActionBar?.title = "${selectedRoom.title} > ${selectedDevice.title}"
     }
 
     private fun setupOnOffSwitches() {

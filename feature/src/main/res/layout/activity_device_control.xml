@@ -6,9 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".control.DeviceControlActivity">
 
-    <!-- FIXME(sean) visibility="gone" - disabled until we can find a pretty way to show this -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:visibility="gone"
         android:id="@+id/location_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,33 +14,25 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:id="@+id/room_image"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/device_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/room_lounge" />
+
+        <ImageView
             android:id="@+id/device_image"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
             android:layout_marginStart="48dp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/room_image"
             app:srcCompat="@drawable/device_lightbulb" />
-
-        <TextView
-            android:id="@+id/room_info"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Room name"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/device_image"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/device_info"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:text="Device name"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/device_image"
-            app:layout_constraintTop_toBottomOf="@id/room_info" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -50,7 +40,7 @@
         android:id="@+id/switch_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="60dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -79,7 +69,7 @@
         android:id="@+id/croller"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="20dp"
         android:layout_marginBottom="5dp"
         app:back_circle_color="#EDEDED"
         app:indicator_color="#0B3C49"

@@ -14,6 +14,7 @@ import android.view.Window
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthRepository
@@ -166,17 +167,11 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
     private fun createNewDeviceView(device : DeviceEntity): View {
         val button: TextView = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as TextView
         button.text = device.title
-        val image = getDeviceButtonImage(device.type)
+        val image = parent.resources.getDrawable(IconResolver.getDeviceImage(device.title, device.type), null)
         val imageSizePx = (DEVICE_BUTTON_IMAGE_SIZE * parent.resources.displayMetrics.density).toInt()
         image.setBounds(0, 0, imageSizePx, imageSizePx)
         button.setCompoundDrawablesRelative(null, image, null, null)
         return button
-    }
-
-    private fun getDeviceButtonImage(id: String) = when(id) {
-        "light" -> parent.resources.getDrawable(R.drawable.device_lightbulb, null)
-        "socket" -> parent.resources.getDrawable(R.drawable.device_socket, null)
-        else -> parent.resources.getDrawable(R.drawable.device_unknown, null)
     }
 
     override fun getItemCount(): Int {
