@@ -16,7 +16,7 @@ object IconResolver {
         name.containsOneOf("toilet", "loo", "rest") -> R.drawable.room_toilet
         name.containsOneOf("utility", "cupboard") -> R.drawable.room_utility
 
-        else -> R.drawable.room_unknown
+        else -> R.drawable.room_lounge
     }
 
     fun getDeviceImage(name: String, type: String): Int = when {
