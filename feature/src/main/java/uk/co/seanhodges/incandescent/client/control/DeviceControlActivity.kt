@@ -11,7 +11,6 @@ import android.view.View
 import android.view.Window
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.sdsmdg.harjot.crollerTest.Croller
@@ -35,7 +34,7 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
     private lateinit var selectedRoom: RoomEntity
     private lateinit var selectedDevice: DeviceEntity
 
-    @Volatile private var eventsPreventingUiChangeListeners = 0
+    @Volatile private var eventsPreventingCrollerChangeListener = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setupActionBar()
@@ -128,14 +127,12 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
         val onButton = findViewById<Button>(R.id.on_button)
 
         offButton.setOnClickListener {
-            if (eventsPreventingUiChangeListeners > 0) return@setOnClickListener
             selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 0) }
 //                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, 0) } // Workaround for a bug in my dimmer bulbs :)
             applyOnOffHighlight(false)
         }
 
         onButton.setOnClickListener {
-            if (eventsPreventingUiChangeListeners > 0) return@setOnClickListener
             selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 1) }
 //                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, 100) } // Workaround for a bug in my dimmer bulbs :)
             applyOnOffHighlight(true)
@@ -162,7 +159,7 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
         croller.indicatorColor = Color.parseColor("#0B3C49")
         croller.progressSecondaryColor = Color.parseColor("#EEEEEE")
         croller.setOnProgressChangedListener { newValue ->
-            if (eventsPreventingUiChangeListeners > 0) return@setOnProgressChangedListener
+            if (eventsPreventingCrollerChangeListener > 0) return@setOnProgressChangedListener
             selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, newValue) }
             selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, if (newValue > 0) 1 else 0) }
             applyOnOffHighlight(newValue > 0)
@@ -188,10 +185,10 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
 
     private fun withUiChangeListenersDisabled(actions: () -> Unit) {
         runOnUiThread {
-            ++eventsPreventingUiChangeListeners
+            ++eventsPreventingCrollerChangeListener
             actions()
             // Account for the delayed callback behaviour in Croller
-            Handler().postDelayed({ --eventsPreventingUiChangeListeners }, 1000)
+            Handler().postDelayed({ --eventsPreventingCrollerChangeListener }, 1000)
         }
     }
 
