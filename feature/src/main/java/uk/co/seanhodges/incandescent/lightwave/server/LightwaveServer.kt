@@ -15,12 +15,20 @@ import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.ArrayList
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLException
 
-private val LIGHTWAVE_VERSION = "1.8.12"
+private val LIGHTWAVE_VERSION: String = "1.8.12"
+private val MAX_IDLE_CONNECTIONS: Int = 5
+private val KEEP_ALIVE_DURATION_MINS: Long = 30
 
 class LightwaveServer : WebSocketListener() {
 
-    private val client = OkHttpClient.Builder().build()
+    private val client = OkHttpClient.Builder()
+            .retryOnConnectionFailure(true)
+            .connectionPool(ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION_MINS, TimeUnit.MINUTES))
+            .build()
+
     private val authenticatedAdapter: JsonAdapter<LWAuthenticatedResult>
     private val tokensAdapter: JsonAdapter<LWAuthenticatedTokens>
     private val operationAdapter: JsonAdapter<LWOperation>
@@ -28,6 +36,7 @@ class LightwaveServer : WebSocketListener() {
 
     private var webSocket: WebSocket? = null
     private var socketActive: Boolean = false
+    private var reconnectAttempted: Boolean = false
 
     private var accessToken: String? = null
     private var senderId: String = ""
@@ -111,6 +120,7 @@ class LightwaveServer : WebSocketListener() {
         operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
         command(operation)
         this.socketActive = true
+        this.reconnectAttempted = false
     }
 
     fun command(command: LWOperation) {
@@ -151,6 +161,13 @@ class LightwaveServer : WebSocketListener() {
 
     override fun onFailure(webSocket: WebSocket?, t: Throwable?, response: Response?) {
         super.onFailure(webSocket, t, response)
+        if (t is SSLException && t.message?.contains("Software caused connection abort") == true && !this.reconnectAttempted) {
+            // Likely the device network state changed and okhttp could not recover, try and reconnect once more
+            this.reconnectAttempted = true
+            connect(this.accessToken!!, this.senderId)
+            return
+        }
+
         val writer = StringWriter()
         val printWriter = PrintWriter(writer)
         t!!.printStackTrace(printWriter)
