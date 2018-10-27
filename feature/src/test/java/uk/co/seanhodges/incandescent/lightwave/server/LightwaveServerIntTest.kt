@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 import junit.framework.TestCase.*
+import org.junit.Assert
 import org.junit.Test
 import uk.co.seanhodges.incandescent.lightwave.event.*
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadFeature
@@ -20,6 +21,9 @@ class LightwaveServerIntTest {
     @Test
     @Throws(IOException::class)
     fun testAuthenticatesAndGetsAccessToken() {
+        if (!System.getProperties().containsKey("LW_ACCOUNT_USERNAME")) {
+            fail("Please add to run settings: -DLW_ACCOUNT_USERNAME=<username> -DLW_ACCOUNT_PASSWORD=<password>")
+        }
         val username = System.getProperty("LW_ACCOUNT_USERNAME")!!
         val password = System.getProperty("LW_ACCOUNT_PASSWORD")!!
         val result : LWAuthenticatedResult = server.authenticate(username, password)
@@ -27,10 +31,27 @@ class LightwaveServerIntTest {
     }
 
     private fun authenticate(): String {
+        if (!System.getProperties().containsKey("LW_ACCOUNT_USERNAME")) {
+            fail("Please add to run settings: -DLW_ACCOUNT_USERNAME=<username> -DLW_ACCOUNT_PASSWORD=<password>")
+        }
         val username = System.getProperty("LW_ACCOUNT_USERNAME")!!
         val password = System.getProperty("LW_ACCOUNT_PASSWORD")!!
         val result : LWAuthenticatedResult = server.authenticate(username, password)
         return result.tokens.accessToken
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testRefreshesAccessToken() {
+        if (!System.getProperties().containsKey("LW_ACCOUNT_USERNAME")) {
+            fail("Please add to run settings: -DLW_ACCOUNT_USERNAME=<username> -DLW_ACCOUNT_PASSWORD=<password>")
+        }
+        val username = System.getProperty("LW_ACCOUNT_USERNAME")!!
+        val password = System.getProperty("LW_ACCOUNT_PASSWORD")!!
+        val auth: LWAuthenticatedResult = server.authenticate(username, password)
+        val result: LWAuthenticatedTokens = server.refreshToken(auth.tokens.refreshToken)
+        assertNotSame(result.refreshToken, auth.tokens.refreshToken)
+        assertNotSame(result.accessToken, auth.tokens.accessToken)
     }
 
     @Test

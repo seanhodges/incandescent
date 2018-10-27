@@ -38,8 +38,7 @@ class EventsTest : DeviceChangeAware {
 
     @Test
     fun itHandlesAFeatureEvent() {
-        val payload = LWEventPayloadFeature(50, "success")
-        payload.featureId = "FEATURE1"
+        val payload = LWEventPayloadFeature(50, "success", "FEATURE1")
         eventHandler.onEvent(anEvent(payload, "feature"))
 
         assertTrue(called)

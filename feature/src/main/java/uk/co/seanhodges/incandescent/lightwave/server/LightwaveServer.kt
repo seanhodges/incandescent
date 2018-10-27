@@ -16,10 +16,13 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.ArrayList
 
+private val LIGHTWAVE_VERSION = "1.8.12"
+
 class LightwaveServer : WebSocketListener() {
 
     private val client = OkHttpClient.Builder().build()
     private val authenticatedAdapter: JsonAdapter<LWAuthenticatedResult>
+    private val tokensAdapter: JsonAdapter<LWAuthenticatedTokens>
     private val operationAdapter: JsonAdapter<LWOperation>
     private val eventAdapter: JsonAdapter<LWEvent>
 
@@ -37,6 +40,7 @@ class LightwaveServer : WebSocketListener() {
                 .add(EventPayloadTypeAdapter())
                 .build()
         authenticatedAdapter = moshi.adapter(LWAuthenticatedResult::class.java)
+        tokensAdapter = moshi.adapter(LWAuthenticatedTokens::class.java)
         operationAdapter = moshi.adapter(LWOperation::class.java)
         eventAdapter = moshi.adapter(LWEvent::class.java)
     }
@@ -47,7 +51,7 @@ class LightwaveServer : WebSocketListener() {
 
     @Throws(IOException::class)
     fun authenticate(username: String, password: String): LWAuthenticatedResult {
-        val json = "{\"email\":\"$username\",\"password\":\"$password\",\"version\":\"1.8.12\"}"
+        val json = "{\"email\":\"$username\",\"password\":\"$password\",\"version\":\"$LIGHTWAVE_VERSION\"}"
         val body = RequestBody.create(JSON_CONTENT_TYPE, json)
         val req = Request.Builder()
                 .url("https://auth.lightwaverf.com/v2/lightwaverf/autouserlogin/lwapps")
@@ -66,6 +70,28 @@ class LightwaveServer : WebSocketListener() {
 
         println("<<< $resultStr")
         return authenticatedAdapter.fromJson(resultStr)!!
+    }
+
+    fun refreshToken(refreshToken: String): LWAuthenticatedTokens  {
+        val json = "{\"grant_type\":\"refresh_token\",\"refresh_token\":\"$refreshToken\",\"version\":\"$LIGHTWAVE_VERSION\"}"
+        val body = RequestBody.create(JSON_CONTENT_TYPE, json)
+        val req = Request.Builder()
+                .url("https://auth.lightwaverf.com/v2/lightwaverf/autouserlogin/lwapps")
+                .addHeader("x-lwrf-platform", "android")
+                .addHeader("x-lwrf-appid", "android-01")
+                .addHeader("Accept", "*/*")
+                .addHeader("User-Agent", "LightwaveApp/107001 CFNetwork/901.1 Darwin/17.6.0")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Host", "auth.lightwaverf.com")
+                .addHeader("Accept-Language", "en-us")
+                .post(body)
+                .build()
+        val res = client.newCall(req).execute()
+        val resultStr = res.body()!!.string()
+        res.close()
+
+        println("<<< $resultStr")
+        return tokensAdapter.fromJson(resultStr)!!
     }
 
     fun connect(accessToken: String, senderId: String) {
