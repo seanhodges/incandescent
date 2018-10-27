@@ -1,6 +1,7 @@
 package uk.co.seanhodges.incandescent.client.auth
 
 import android.content.Context
+import android.util.Log
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedTokens
 import java.lang.ref.WeakReference
@@ -56,6 +57,7 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
         prefs.edit()
                 .putString("accessToken", tokens.accessToken)
                 .putString("refreshToken", tokens.refreshToken)
+                .putLong("createdOn", System.currentTimeMillis())
                 .apply()
     }
 
