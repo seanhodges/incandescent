@@ -30,7 +30,6 @@ class LightwaveServer : WebSocketListener() {
 
     private var accessToken: String? = null
     private var senderId: String = ""
-    private var transactionId: Int = 0
 
     private val listeners = ArrayList<LWEventListener>()
 
