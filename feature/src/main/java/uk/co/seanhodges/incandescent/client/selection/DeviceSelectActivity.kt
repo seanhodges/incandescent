@@ -55,8 +55,8 @@ class DeviceSelectActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.select_device_title)
     }
 
-    override fun onPostResume() {
-        super.onPostResume()
+    override fun onResume() {
+        super.onResume()
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
         if (!authRepository.isAuthenticated()) {
@@ -74,6 +74,20 @@ class DeviceSelectActivity : AppCompatActivity() {
 
             GetRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
         }
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.getItemId()) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onBackPressed() {
+        server.disconnect()
+        finish()
     }
 }
 

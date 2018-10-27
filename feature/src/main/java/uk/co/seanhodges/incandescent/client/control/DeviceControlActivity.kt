@@ -73,8 +73,8 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
-    override fun onPostResume() {
-        super.onPostResume()
+    override fun onResume() {
+        super.onResume()
 
         selectedDevice.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
         selectedDevice.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }

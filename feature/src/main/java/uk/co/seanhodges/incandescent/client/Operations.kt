@@ -43,7 +43,7 @@ class OperationExecutor(
             val refreshTask = RefreshTokenAndConnectToServerTask(authRepository, onComplete)
             refreshTask.execute(server)
         }
-        else if (senderId == "") {
+        else if (!server.socketActive) {
             val connectTask = ConnectToServerTask(authRepository, onComplete)
             connectTask.execute(server)
         }

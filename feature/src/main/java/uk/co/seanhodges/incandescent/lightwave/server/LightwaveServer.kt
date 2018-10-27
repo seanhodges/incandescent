@@ -35,7 +35,7 @@ class LightwaveServer : WebSocketListener() {
     private val eventAdapter: JsonAdapter<LWEvent>
 
     private var webSocket: WebSocket? = null
-    private var socketActive: Boolean = false
+    var socketActive: Boolean = false
     private var reconnectAttempted: Boolean = false
 
     private var accessToken: String? = null
