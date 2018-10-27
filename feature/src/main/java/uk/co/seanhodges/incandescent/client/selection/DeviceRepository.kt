@@ -49,7 +49,27 @@ class DeviceRepository(ctx: Context) {
     }
 
     fun getAllRooms(): List<RoomWithDevices> {
-        return db.roomDao().loadAllWithDevices()
+        val rooms = db.roomDao().loadAllWithDevices()
+        val result = rooms.toMutableList()
+        var devices = result[0].devices!!.toMutableList()
+        devices[0].title = "Main light"
+        devices.add(DeviceEntity("test1", "TV", "power", null, null, result[0].devices!![0].roomId))
+        devices.add(DeviceEntity("test2", "Record Player", "power", null, null, result[0].devices!![0].roomId))
+        devices.add(DeviceEntity("test3", "Power socket", "power", null, null, result[0].devices!![0].roomId))
+        result[0].devices = devices
+
+        devices = result[1].devices!!.toMutableList()
+        devices[0].title = "Main light"
+        devices.add(DeviceEntity("test4", "Bedside lamp", "power", null, null, result[1].devices!![0].roomId))
+        result[1].devices = devices
+
+        devices = result[2].devices!!.toMutableList()
+        devices[0].title = "Main light"
+        devices.add(DeviceEntity("test5", "Counter lights", "power", null, null, result[2].devices!![0].roomId))
+        devices.add(DeviceEntity("test6", "Kettle", "power", null, null, result[2].devices!![0].roomId))
+        result[2].devices = devices
+
+        return result
     }
 
     fun addRoomAndDevices(entry: RoomWithDevices) {
