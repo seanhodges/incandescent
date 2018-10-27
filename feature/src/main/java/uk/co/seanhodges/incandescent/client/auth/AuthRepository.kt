@@ -2,12 +2,13 @@ package uk.co.seanhodges.incandescent.client.auth
 
 import android.content.Context
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
+import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedTokens
 import java.lang.ref.WeakReference
 import java.util.*
 
 class AuthRepository(private val ctx: WeakReference<Context>) {
 
-    fun save(details: LWAuthenticatedResult, user: String? = null, pass: String? = null) {
+    fun save(details: LWAuthenticatedResult) {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit()
                 .putInt("prefsVersion", PREFS_VERSION)
@@ -19,8 +20,6 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
                 .putString("idToken", details.tokens.idToken)
                 .putString("refreshToken", details.tokens.refreshToken)
                 .putString("tokenType", details.tokens.tokenType)
-                .putString("user", user ?: prefs.getString("user", ""))
-                .putString("pass", pass ?: prefs.getString("pass", ""))
                 .putLong("expiresIn", details.tokens.expiresIn)
                 .putLong("createdOn", System.currentTimeMillis())
                 .apply()
@@ -28,9 +27,8 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
 
     fun isAuthenticated(): Boolean {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs != null && prefs.contains("accessToken")
+        return prefs != null && prefs.contains("accessToken") && prefs.contains("refreshToken")
     }
-
 
     fun isExpired(): Boolean {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -47,11 +45,18 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
     fun getCredentials(): Credentials {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return Credentials(
-            prefs.getString("user", "")!!,
-            prefs.getString("pass", "")!!,
             prefs.getString("accessToken", "")!!,
-            prefs.getString("deviceId", "")!!
+            prefs.getString("refreshToken", "")!!,
+            prefs.getString("deviceId", "")!! // Added for convenience
         )
+    }
+
+    fun updateCredentials(tokens: LWAuthenticatedTokens) {
+        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+                .putString("accessToken", tokens.accessToken)
+                .putString("refreshToken", tokens.refreshToken)
+                .apply()
     }
 
     fun getUserId(): String {
@@ -71,8 +76,7 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
 }
 
 data class Credentials(
-        val user: String,
-        val pass: String,
         val accessToken: String,
+        val refreshToken: String,
         val deviceId: String
 )

@@ -119,7 +119,7 @@ class AuthenticateActivity : AppCompatActivity() {
                 Log.d(javaClass.name, "Authenticating...")
                 val authResult : LWAuthenticatedResult = server[0].authenticate(emailStr, passwordStr)
                 Log.d(javaClass.name, "Access token is: ${authResult.tokens.accessToken}")
-                authRepository.save(authResult, emailStr, passwordStr)
+                authRepository.save(authResult)
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Authentication failed", e)
                 return false

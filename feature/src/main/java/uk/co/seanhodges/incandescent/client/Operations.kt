@@ -10,7 +10,7 @@ import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadFeature
-import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
+import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedTokens
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 
 
@@ -124,28 +124,27 @@ class OperationExecutor(
 class RefreshTokenAndConnectToServerTask(
         private val authRepository: AuthRepository,
         private val onComplete: (success: Boolean) -> Unit
-) : AsyncTask<LightwaveServer, Void, LWAuthenticatedResult>() {
+) : AsyncTask<LightwaveServer, Void, LWAuthenticatedTokens>() {
 
-    override fun doInBackground(vararg server: LightwaveServer): LWAuthenticatedResult? {
+    override fun doInBackground(vararg server: LightwaveServer): LWAuthenticatedTokens? {
         val auth: Credentials = authRepository.getCredentials()
         try {
-            // FIXME: We don't know the refresh token endpoint so we have to obtain a fresh token
             Log.d(javaClass.name, "Refreshing access token...")
-            val authResult: LWAuthenticatedResult = server[0].authenticate(auth.user, auth.pass)
-            Log.d(javaClass.name, "Access token is: ${authResult.tokens.accessToken}")
+            val tokens: LWAuthenticatedTokens = server[0].refreshToken(auth.refreshToken)
+            Log.d(javaClass.name, "Access token is: ${tokens.accessToken}")
             Log.d(javaClass.name, "Connecting...")
-            server[0].connect(authResult.tokens.accessToken, auth.deviceId)
-            return authResult
+            server[0].connect(tokens.accessToken, auth.deviceId)
+            return tokens
         } catch (e: Exception) {
             Log.e(javaClass.name, "Connection failed", e)
         }
         return null
     }
 
-    override fun onPostExecute(result: LWAuthenticatedResult?) {
+    override fun onPostExecute(result: LWAuthenticatedTokens?) {
         super.onPostExecute(result)
         if (result != null) {
-            authRepository.save(result)
+            authRepository.updateCredentials(result)
             onComplete(true)
         }
         else {
