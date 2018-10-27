@@ -20,9 +20,9 @@ object IconResolver {
     }
 
     fun getDeviceImage(name: String, type: String): Int = when {
-        name.containsOneOf("light") -> R.drawable.device_lightbulb
+        name.containsOneOf("light") -> R.drawable.device_light
         name.containsOneOf("lamp") -> R.drawable.device_table_lamp
-        name.containsOneOf("car", "tesla") -> R.drawable.device_car
+        name.containsOneOf("car", "tesla", "leaf", "prius") -> R.drawable.device_car
         name.containsOneOf("christmas", "xmas") -> R.drawable.device_christmas_tree
         name.containsOneOf("coffee") -> R.drawable.device_coffee_maker
         name.containsOneOf("fan", "aircon") -> R.drawable.device_fan
@@ -38,7 +38,7 @@ object IconResolver {
         name.containsOneOf("music", "stereo") -> R.drawable.device_music_player
         name.containsOneOf("office") -> R.drawable.device_office_lamp
 
-        type == "light" -> R.drawable.device_lightbulb
+        type == "light" -> R.drawable.device_light
         type == "socket" -> R.drawable.device_socket
         else -> R.drawable.device_unknown
     }

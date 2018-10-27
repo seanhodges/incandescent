@@ -9,4 +9,5 @@
     android:textSize="14sp"
     android:singleLine="true"
     android:background="@color/white"
-    tools:drawableTop="@drawable/device_lightbulb" />
+    android:drawableTintMode="src_in"
+    tools:drawableTop="@drawable/device_light" />
