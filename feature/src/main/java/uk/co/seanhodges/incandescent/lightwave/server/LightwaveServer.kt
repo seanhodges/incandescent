@@ -27,6 +27,7 @@ class LightwaveServer : WebSocketListener() {
     private val eventAdapter: JsonAdapter<LWEvent>
 
     private var webSocket: WebSocket? = null
+    private var socketActive: Boolean = false
 
     private var accessToken: String? = null
     private var senderId: String = ""
@@ -109,20 +110,26 @@ class LightwaveServer : WebSocketListener() {
         val operation = LWOperation("user", senderId, "authenticate")
         operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
         command(operation)
+        this.socketActive = true
     }
 
     fun command(command: LWOperation) {
-        if (webSocket == null) return
+        if (this.webSocket == null && this.socketActive) {
+            // We lost websocket connection unexpectedly, retry and wait for connection to open
+            connect(this.accessToken!!, this.senderId)
+            Thread.sleep(3000)
+        }
 
         val json = operationAdapter.toJson(command)
         println(">>> $json")
-        webSocket!!.send(json)
+        this.webSocket!!.send(json)
     }
 
     fun disconnect() {
         if (webSocket != null) {
             webSocket!!.close(SOCKET_CLOSE_STATUS, "")
         }
+        this.socketActive = false
     }
 
     override fun onMessage(webSocket: WebSocket?, text: String?) {
@@ -152,6 +159,11 @@ class LightwaveServer : WebSocketListener() {
         for (listener in listeners) {
             listener.onError(t)
         }
+    }
+
+    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+        super.onClosed(webSocket, code, reason)
+        this.webSocket = null
     }
 
     companion object {
