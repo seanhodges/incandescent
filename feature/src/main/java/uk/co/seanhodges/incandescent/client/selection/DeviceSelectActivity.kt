@@ -1,16 +1,18 @@
 package uk.co.seanhodges.incandescent.client.selection
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Handler
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.Window
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -25,8 +27,8 @@ import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 import java.util.concurrent.CountDownLatch
 
-
-private const val DEVICE_BUTTON_IMAGE_SIZE = 72
+private const val DEVICE_BUTTON_IMAGE_SIZE : Int = 72
+private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
 class DeviceSelectActivity : AppCompatActivity() {
 
@@ -164,14 +166,33 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun createNewDeviceView(device : DeviceEntity): View {
-        val button: TextView = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as TextView
+        val button: Button = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as Button
         button.text = device.title
         val image = parent.resources.getDrawable(IconResolver.getDeviceImage(device.title, device.type), null)
         val imageSizePx = (DEVICE_BUTTON_IMAGE_SIZE * parent.resources.displayMetrics.density).toInt()
         image.setBounds(0, 0, imageSizePx, imageSizePx)
         button.setCompoundDrawablesRelative(null, image, null, null)
+        button.setOnTouchListener(applyButtonPressEffect())
         return button
+    }
+
+    private fun applyButtonPressEffect() : View.OnTouchListener {
+        return View.OnTouchListener { it, event ->
+            val button : Button = it as Button
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    button.setTextColor(Color.parseColor("#FF6000"))
+                    button.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF6000"))
+                    Handler().postDelayed({
+                        button.setTextColor(Color.BLACK)
+                        button.compoundDrawableTintList = ColorStateList.valueOf(Color.BLACK)
+                    }, DEVICE_BUTTON_HIGHLIGHT_LENGTH)
+                }
+            }
+            return@OnTouchListener false
+        }
     }
 
     override fun getItemCount(): Int {
