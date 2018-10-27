@@ -94,12 +94,21 @@ class LightwaveServer : WebSocketListener() {
     }
 
     fun connect(accessToken: String, senderId: String) {
+        disconnect()
         this.accessToken = accessToken
         this.senderId = senderId
         val req = Request.Builder()
                 .url("wss://v1-linkplus-app.lightwaverf.com")
                 .build()
         webSocket = client.newWebSocket(req, this)
+        //note(sean): see onOpen() for the second auth phase for websocket
+    }
+
+    override fun onOpen(webSocket: WebSocket?, response: Response?) {
+        super.onOpen(webSocket, response)
+        val operation = LWOperation("user", senderId, "authenticate")
+        operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
+        command(operation)
     }
 
     fun command(command: LWOperation) {
@@ -114,13 +123,6 @@ class LightwaveServer : WebSocketListener() {
         if (webSocket != null) {
             webSocket!!.close(SOCKET_CLOSE_STATUS, "")
         }
-    }
-
-    override fun onOpen(webSocket: WebSocket?, response: Response?) {
-        super.onOpen(webSocket, response)
-        val operation = LWOperation("user", senderId, "authenticate")
-        operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
-        command(operation)
     }
 
     override fun onMessage(webSocket: WebSocket?, text: String?) {
