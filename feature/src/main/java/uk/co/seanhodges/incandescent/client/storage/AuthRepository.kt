@@ -1,7 +1,6 @@
-package uk.co.seanhodges.incandescent.client.auth
+package uk.co.seanhodges.incandescent.client.storage
 
 import android.content.Context
-import android.util.Log
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedResult
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedTokens
 import java.lang.ref.WeakReference
@@ -46,9 +45,9 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
     fun getCredentials(): Credentials {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return Credentials(
-            prefs.getString("accessToken", "")!!,
-            prefs.getString("refreshToken", "")!!,
-            prefs.getString("deviceId", "")!! // Added for convenience
+                prefs.getString("accessToken", "")!!,
+                prefs.getString("refreshToken", "")!!,
+                prefs.getString("deviceId", "")!! // Added for convenience
         )
     }
 

@@ -1,7 +1,7 @@
-package uk.co.seanhodges.incandescent.client.selection
+package uk.co.seanhodges.incandescent.client.storage
 
 import android.content.Context
-import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.room.Database
 import androidx.room.*
 import androidx.room.Embedded
@@ -9,8 +9,6 @@ import java.io.Serializable
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
 import androidx.room.Room
-
-
 
 const val DATABASE_NAME: String = "incandescent-device-register"
 
@@ -20,26 +18,6 @@ val MIGRATION_1_2: Migration = object : Migration(1, 2) {
         database.execSQL("ALTER TABLE device " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
         database.execSQL("CREATE INDEX idx_room_chosen_count ON  room(chosen_count)")
         database.execSQL("CREATE INDEX idx_device_chosen_count ON  device(chosen_count)")
-    }
-}
-
-class DeviceRepository(
-        private val ctx: Context,
-        private val db: AppDatabase = AppDatabase.getDatabase(ctx)
-) {
-
-    fun isNewDB() : Boolean {
-        return db.roomDao().count() < 1
-    }
-
-    fun getAllRooms(): List<RoomWithDevices> {
-        return db.roomDao().loadAllWithDevices()
-    }
-
-    fun addRoomAndDevices(entry: RoomWithDevices) {
-        if (entry.room == null) return
-        Log.d(javaClass.name, "Adding room ${entry.room?.title} with ${entry.devices?.size} devices")
-        db.roomDao().insertRoomAndDevices(entry.room!!, entry.devices ?: emptyList())
     }
 }
 
@@ -70,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
 interface RoomDao {
 
     @Query("SELECT * FROM room ORDER BY chosen_count DESC, id")
-    fun loadAllWithDevices(): List<RoomWithDevices>
+    fun loadAllWithDevices(): LiveData<List<RoomWithDevices>>
 
     @Query("SELECT count(id) FROM room")
     fun count(): Int
@@ -79,7 +57,7 @@ interface RoomDao {
     fun incChosenCount(id: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertRoomAndDevices(user: RoomEntity, devices: List<DeviceEntity>)
+    fun insertRoomAndDevices(room: RoomEntity, devices: List<DeviceEntity>)
 }
 
 @Dao
@@ -137,10 +115,10 @@ data class DeviceEntity(
 
 data class RoomWithDevices(
 
-    @Embedded
+        @Embedded
     var room: RoomEntity? = null,
 
-    @Relation(parentColumn = "id", entityColumn = "room_id", entity = DeviceEntity::class)
+        @Relation(parentColumn = "id", entityColumn = "room_id", entity = DeviceEntity::class)
     var devices: List<DeviceEntity>? = null
 ) {
 

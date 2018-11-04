@@ -4,12 +4,14 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Test
 
 import org.junit.Assert.*
-import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadFeature
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.RoomEntity
+import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroup
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroupFeature
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroupFeatureAttributes
 
-class LightwaveConfigParserTest {
+class LightwaveConfigTest {
 
     @Test
     fun itParsesTheHierarchyAndEmitsSeveralRooms() {

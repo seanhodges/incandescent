@@ -4,7 +4,9 @@ import android.app.Application
 import android.os.AsyncTask
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import uk.co.seanhodges.incandescent.client.selection.*
+import uk.co.seanhodges.incandescent.client.storage.AppDatabase
+import uk.co.seanhodges.incandescent.client.storage.DeviceDao
+import uk.co.seanhodges.incandescent.client.storage.RoomDao
 
 
 class DeviceControlViewModel(

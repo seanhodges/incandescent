@@ -1,21 +1,18 @@
 package uk.co.seanhodges.incandescent.client.selection
 
 import android.util.Log
-import androidx.room.Room
-import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonReader
 import okio.Buffer
-import okio.BufferedSource
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import uk.co.seanhodges.incandescent.lightwave.event.*
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadGetRootGroups
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadGroup
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
-import java.util.*
 
 class LightwaveConfigLoader(
-        private val server: LightwaveServer,
-        private val repository : DeviceRepository
+        private val server: LightwaveServer
 ) : LWEventListener {
 
     private lateinit var onComplete: (hierarchy: String, info: LWEventPayloadGroup) -> Unit

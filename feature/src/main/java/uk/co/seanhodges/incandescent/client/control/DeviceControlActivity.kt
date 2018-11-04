@@ -15,10 +15,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.sdsmdg.harjot.crollerTest.Croller
 import uk.co.seanhodges.incandescent.client.*
-import uk.co.seanhodges.incandescent.client.auth.AuthRepository
+import uk.co.seanhodges.incandescent.client.storage.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
-import uk.co.seanhodges.incandescent.client.selection.DeviceEntity
-import uk.co.seanhodges.incandescent.client.selection.RoomEntity
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import java.lang.ref.WeakReference
 import androidx.core.app.NavUtils
 import androidx.lifecycle.ViewModelProviders

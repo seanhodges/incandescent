@@ -1,11 +1,9 @@
 package uk.co.seanhodges.incandescent.client.selection
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
@@ -16,25 +14,29 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
-import uk.co.seanhodges.incandescent.client.auth.AuthRepository
+import uk.co.seanhodges.incandescent.client.storage.AuthRepository
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
-import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroup
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
-import java.util.concurrent.CountDownLatch
 
 private const val DEVICE_BUTTON_IMAGE_SIZE : Int = 72
 private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
-class DeviceSelectActivity : AppCompatActivity() {
+class DeviceSelectActivity(
+        private val server: LightwaveServer = Inject.server,
+        private val executor: OperationExecutor = Inject.executor
+) : AppCompatActivity() {
 
-    private val server = Inject.server
-    private val executor = Inject.executor
-
+    private lateinit var viewModel: DeviceSelectViewModel
     private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,9 +44,16 @@ class DeviceSelectActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
+        viewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
+
+        val contentAdapter = ContentAdapter()
         recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = ContentAdapter()
+        recyclerView.adapter = contentAdapter
+
+        viewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
+            roomsWithDevices -> contentAdapter.setData(roomsWithDevices)
+        })
     }
 
     private fun setupActionBar() {
@@ -65,14 +74,12 @@ class DeviceSelectActivity : AppCompatActivity() {
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (success) {
-                    LoadRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
+                    viewModel.initialiseRooms(server)
                 }
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
                 }
             })
-
-            GetRoomsTask(this, server, recyclerView.adapter as ContentAdapter).execute()
         }
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -88,60 +95,6 @@ class DeviceSelectActivity : AppCompatActivity() {
     override fun onBackPressed() {
         server.disconnect()
         finish()
-    }
-}
-
-private class GetRoomsTask(
-        ctx : Context,
-        private val server: LightwaveServer,
-        private val adapter: ContentAdapter
-) : AsyncTask<Void, Void, List<RoomWithDevices>>() {
-
-    private val ctxRef: WeakReference<Context> = WeakReference(ctx)
-
-    override fun doInBackground(vararg params: Void): List<RoomWithDevices>? {
-        val ctx = ctxRef.get() ?: return emptyList()
-        val repository = DeviceRepository(ctx)
-        return repository.getAllRooms()
-    }
-
-    override fun onPostExecute(result: List<RoomWithDevices>?) {
-        super.onPostExecute(result)
-        adapter.setData(result ?: emptyList())
-    }
-}
-
-private class LoadRoomsTask(
-        ctx : Context,
-        private val server: LightwaveServer,
-        private val adapter: ContentAdapter
-) : AsyncTask<Void, Void, List<RoomWithDevices>>() {
-
-    private val ctxRef: WeakReference<Context> = WeakReference(ctx)
-    private val doneSignal = CountDownLatch(1)
-
-    override fun doInBackground(vararg params: Void): List<RoomWithDevices>? {
-        val ctx = ctxRef.get() ?: return emptyList()
-
-        val repository = DeviceRepository(ctx)
-        if (repository.isNewDB()) {
-            LightwaveConfigLoader(server, repository).load { hierarchy: String, info: LWEventPayloadGroup ->
-                LightwaveConfigParser(hierarchy, info).parse { room, devices ->
-                    repository.addRoomAndDevices(RoomWithDevices(room, devices))
-                }
-                doneSignal.countDown();
-            }
-            doneSignal.await()
-            return repository.getAllRooms()
-        }
-        return emptyList()
-    }
-
-    override fun onPostExecute(result: List<RoomWithDevices>?) {
-        super.onPostExecute(result)
-        if (result != null && result.size > 0) {
-            adapter.setData(result)
-        }
     }
 }
 

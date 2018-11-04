@@ -4,8 +4,8 @@ import android.os.AsyncTask
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import uk.co.seanhodges.incandescent.client.auth.AuthRepository
-import uk.co.seanhodges.incandescent.client.auth.Credentials
+import uk.co.seanhodges.incandescent.client.storage.AuthRepository
+import uk.co.seanhodges.incandescent.client.storage.Credentials
 import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
