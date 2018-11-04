@@ -80,7 +80,7 @@ data class RoomEntity(
         var title: String,
 
         @ColumnInfo(name = "chosen_count")
-        var chosenCount: Int? = 0
+        var chosenCount: Int = 0
 ) : Serializable
 
 @Entity(tableName = "device", indices = arrayOf(
@@ -110,7 +110,7 @@ data class DeviceEntity(
         var roomId: String,
 
         @ColumnInfo(name = "chosen_count")
-        var chosenCount: Int? = 0
+        var chosenCount: Int = 0
 ) : Serializable
 
 data class RoomWithDevices(
