@@ -168,7 +168,7 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
 
         val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
         deviceList.removeAllViewsInLayout()
-        for (device in roomData[position].devices ?: emptyList()) {
+        for (device in roomData[position].getDevicesInOrder()) {
             val deviceView = createNewDeviceView(device)
             deviceView.setOnClickListener {
                 val intent = Intent(parent.context, DeviceControlActivity::class.java)

@@ -4,48 +4,32 @@ import android.content.Context
 import android.util.Log
 import androidx.room.Database
 import androidx.room.*
-import java.lang.ref.WeakReference
 import androidx.room.Embedded
 import java.io.Serializable
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.room.migration.Migration
+import androidx.room.Room
 
-class DeviceRepository(ctx: Context) {
 
-    private var db: AppDatabase
-    private val ctxRef: WeakReference<Context> = WeakReference(ctx)
 
-    private val DATABASE_NAME: String = "incandescent-device-register"
+const val DATABASE_NAME: String = "incandescent-device-register"
 
-    init {
-        db = Room.databaseBuilder(ctxRef.get()!!,
-                AppDatabase::class.java, DATABASE_NAME).build()
-//        db = Room.inMemoryDatabaseBuilder(ctxRef.get()!!, AppDatabase::class.java).build()
+val MIGRATION_1_2: Migration = object : Migration(1, 2) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE room " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE device " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE INDEX idx_room_chosen_count ON  room(chosen_count)")
+        database.execSQL("CREATE INDEX idx_device_chosen_count ON  device(chosen_count)")
     }
+}
+
+class DeviceRepository(
+        private val ctx: Context,
+        private val db: AppDatabase = AppDatabase.getDatabase(ctx)
+) {
 
     fun isNewDB() : Boolean {
         return db.roomDao().count() < 1
-    }
-
-    fun buildTestDb() {
-        db.roomDao().insertRoomAndDevices(RoomEntity("1", "Living room"), listOf(
-                DeviceEntity(
-                        "1",
-                        "Main light",
-                        "light",
-                        FEATURE_LIVING_ROOM_POWER_ID,
-                        FEATURE_LIVING_ROOM_DIM_ID,
-                        "1"
-                )
-        ))
-        db.roomDao().insertRoomAndDevices(RoomEntity("2", "Bedroom"), listOf(
-                DeviceEntity(
-                        "2",
-                        "Main light",
-                        "light",
-                        FEATURE_BEDROOM_POWER_ID,
-                        FEATURE_BEDROOM_DIM_ID,
-                        "2"
-                )
-        ))
     }
 
     fun getAllRooms(): List<RoomWithDevices> {
@@ -57,49 +41,73 @@ class DeviceRepository(ctx: Context) {
         Log.d(javaClass.name, "Adding room ${entry.room?.title} with ${entry.devices?.size} devices")
         db.roomDao().insertRoomAndDevices(entry.room!!, entry.devices ?: emptyList())
     }
-
-    companion object {
-        private val FEATURE_LIVING_ROOM_POWER_ID = "5b8aa9b4d36c330fd5b4e100-22-3157332334+1"
-        private val FEATURE_LIVING_ROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-23-3157332334+1"
-
-        private val FEATURE_BEDROOM_POWER_ID = "5b8aa9b4d36c330fd5b4e100-46-3157332334+1"
-        private val FEATURE_BEDROOM_DIM_ID = "5b8aa9b4d36c330fd5b4e100-47-3157332334+1"
-    }
 }
 
 @Database(entities = [
     RoomEntity::class,
     DeviceEntity::class
-], version = 1)
+], version = 2)
 abstract class AppDatabase : RoomDatabase() {
+
     abstract fun roomDao(): RoomDao
+    abstract fun deviceDao(): DeviceDao
+
+    companion object {
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            if (INSTANCE == null) {
+                INSTANCE = Room
+                        .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+                        .addMigrations(MIGRATION_1_2).build()
+            }
+            return INSTANCE!!
+        }
+    }
 }
 
 @Dao
 interface RoomDao {
 
-    @Query("SELECT * FROM room")
+    @Query("SELECT * FROM room ORDER BY chosen_count DESC, id")
     fun loadAllWithDevices(): List<RoomWithDevices>
 
     @Query("SELECT count(id) FROM room")
     fun count(): Int
 
+    @Query("UPDATE room SET chosen_count = chosen_count + 1 WHERE id = :id")
+    fun incChosenCount(id: String)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertRoomAndDevices(user: RoomEntity, devices: List<DeviceEntity>)
 }
 
+@Dao
+interface DeviceDao {
 
-@Entity(tableName = "room")
+    @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
+    fun incChosenCount(id: String)
+}
+
+
+@Entity(tableName = "room", indices = arrayOf(
+        Index("chosen_count", name = "idx_room_chosen_count")
+))
 data class RoomEntity(
 
         @PrimaryKey
         var id: String,
 
         @ColumnInfo(name = "title")
-        var title: String
+        var title: String,
+
+        @ColumnInfo(name = "chosen_count")
+        var chosenCount: Int? = 0
 ) : Serializable
 
-@Entity(tableName = "device")
+@Entity(tableName = "device", indices = arrayOf(
+        Index("chosen_count", name = "idx_device_chosen_count")
+))
 data class DeviceEntity(
 
         @PrimaryKey
@@ -121,7 +129,10 @@ data class DeviceEntity(
                 parentColumns = ["id"],
                 childColumns = ["room_id"])
         @ColumnInfo(name = "room_id")
-        var roomId: String
+        var roomId: String,
+
+        @ColumnInfo(name = "chosen_count")
+        var chosenCount: Int? = 0
 ) : Serializable
 
 data class RoomWithDevices(
@@ -131,4 +142,10 @@ data class RoomWithDevices(
 
     @Relation(parentColumn = "id", entityColumn = "room_id", entity = DeviceEntity::class)
     var devices: List<DeviceEntity>? = null
-)
+) {
+
+    // FIME: No way to sort a @Relation, sort devices in-memory
+    fun getDevicesInOrder(): List<DeviceEntity> {
+        return devices.orEmpty().sortedByDescending { it.chosenCount }
+    }
+}

@@ -19,6 +19,7 @@ android {
 
 dependencies {
     def room_version = "2.0.0"
+    def lifecycle_version = "2.0.0"
 
 //    implementation 'com.sdsmdg.harjot:croller:1.0.7'
     implementation files('libs/croller-1.1.0-SNAPSHOT.aar')
@@ -27,6 +28,7 @@ dependencies {
 
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

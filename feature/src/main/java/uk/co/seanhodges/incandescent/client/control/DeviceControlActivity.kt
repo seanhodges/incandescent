@@ -21,16 +21,15 @@ import uk.co.seanhodges.incandescent.client.selection.DeviceEntity
 import uk.co.seanhodges.incandescent.client.selection.RoomEntity
 import java.lang.ref.WeakReference
 import androidx.core.app.NavUtils
+import androidx.lifecycle.ViewModelProviders
 
 
+class DeviceControlActivity(
+        private val executor: OperationExecutor = Inject.executor,
+        private val deviceChangeHandler: DeviceChangeHandler = Inject.deviceChangeHandler
+) : AppCompatActivity(), DeviceChangeAware {
 
-
-class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
-
-    private val server = Inject.server
-    private val executor = Inject.executor
-    private val deviceChangeHandler = Inject.deviceChangeHandler
-
+    private lateinit var viewModel : DeviceControlViewModel
     private lateinit var selectedRoom: RoomEntity
     private lateinit var selectedDevice: DeviceEntity
 
@@ -40,6 +39,8 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
         setupActionBar()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_control)
+
+        viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -66,11 +67,17 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
                 hideDimmer()
             }
         }
+
+        incrementPopularityCounters()
     }
 
     private fun setupActionBar() {
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun incrementPopularityCounters() {
+        viewModel.incChosenCount(selectedRoom.id, selectedDevice.id)
     }
 
     override fun onResume() {
@@ -168,8 +175,6 @@ class DeviceControlActivity : AppCompatActivity(), DeviceChangeAware {
 
     override fun onDeviceChanged(featureId: String, newValue: Int) {
         Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
-        // FIXME(sean): for unsolicited changes the featureId is not returned in response,
-        //              so we just assume group read is always for dimmer :/
         if (featureId.equals(selectedDevice.dimCommand)) {
             withUiChangeListenersDisabled {
                 val croller = findViewById<View>(R.id.croller) as Croller
