@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="uk.co.seanhodges.incandescent.client.selection.DeviceSelectActivity">
+    <item
+        android:id="@+id/menu_item_report_device"
+        android:orderInCategory="100"
+        android:title="@string/menu_item_title_report_device"
+        app:showAsAction="never" />
+</menu>

@@ -36,7 +36,7 @@ class LightwaveConfigLoader(
             getGroupInfo(rootGroupId)
         }
         else if (event.clazz == "group" && event.operation == "hierarchy") {
-            groupHierarchy = event.json as String
+            groupHierarchy = event.json
         }
         else if (event.clazz == "group" && event.operation == "read") {
             groupInfo = event.items[0].payload as LWEventPayloadGroup
@@ -130,11 +130,11 @@ class LightwaveConfigParser(
         })
 
         // Build room and device entities
-        rooms.forEach { room ->
+        rooms.forEach rooms@{ room ->
             val roomEntity = RoomEntity(room.id, room.name)
             val deviceEntities = mutableListOf<DeviceEntity>()
-            room.featureSets.forEach { featureSetId ->
-                if (!featureSets.containsKey(featureSetId)) return@forEach
+            room.featureSets.forEach features@{ featureSetId ->
+                if (!featureSets.containsKey(featureSetId)) return@features
                 val featureSet = featureSets[featureSetId]!!
                 val powerCommand = findCommand(featureSet.features, "switch")
                 val dimCommand = findCommand(featureSet.features, "dimLevel")

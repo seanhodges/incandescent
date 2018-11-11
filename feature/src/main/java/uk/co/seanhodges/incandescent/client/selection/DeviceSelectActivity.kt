@@ -25,6 +25,7 @@ import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
+import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
@@ -54,6 +55,11 @@ class DeviceSelectActivity(
         viewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
             roomsWithDevices -> contentAdapter.setData(roomsWithDevices)
         })
+
+        executor.reportHandler = { packet ->
+            //@see OperationExecutor.onRawEvent()
+            GatherDeviceReport(this).saveReport(packet)
+        }
     }
 
     private fun setupActionBar() {

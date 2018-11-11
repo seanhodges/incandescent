@@ -25,6 +25,8 @@ class OperationExecutor(
 
     private var senderId: String = ""
 
+    var reportHandler: (packet: String) -> Unit? = {}
+
     init {
         server.addListener(this)
     }
@@ -59,6 +61,12 @@ class OperationExecutor(
         }
 
         start()
+    }
+
+    override fun onRawEvent(packet: String) {
+        // TODO(sean): This is hacky, we should decouple all the report gathering stuff
+        // TODO(sean): This indirection is only necessary to get active activity context to save the reports
+        reportHandler?.invoke(packet)
     }
 
     override fun onError(error: Throwable) {

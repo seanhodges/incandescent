@@ -114,7 +114,7 @@ class LightwaveServer : WebSocketListener() {
         //note(sean): see onOpen() for the second auth phase for websocket
     }
 
-    override fun onOpen(webSocket: WebSocket?, response: Response?) {
+    override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)
         val operation = LWOperation("user", senderId, "authenticate")
         operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
@@ -142,13 +142,17 @@ class LightwaveServer : WebSocketListener() {
         this.socketActive = false
     }
 
-    override fun onMessage(webSocket: WebSocket?, text: String?) {
+    override fun onMessage(webSocket: WebSocket, text: String) {
         super.onMessage(webSocket, text)
-        println("<<< " + text!!)
+        println("<<< $text")
 
         try {
+            for (listener in listeners) {
+                listener.onRawEvent(text)
+            }
+
             val event = eventAdapter.fromJson(text)
-            event?.json = text ?: ""
+            event?.json = text
 
             for (listener in listeners) {
                 listener.onEvent(event!!)
@@ -159,7 +163,7 @@ class LightwaveServer : WebSocketListener() {
 
     }
 
-    override fun onFailure(webSocket: WebSocket?, t: Throwable?, response: Response?) {
+    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
         if (t is SSLException && t.message?.contains("Software caused connection abort") == true && !this.reconnectAttempted) {
             // Likely the device network state changed and okhttp could not recover, try and reconnect once more

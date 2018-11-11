@@ -6,9 +6,7 @@ import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.MenuItem
-import android.view.View
-import android.view.Window
+import android.view.*
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
@@ -22,6 +20,8 @@ import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import java.lang.ref.WeakReference
 import androidx.core.app.NavUtils
 import androidx.lifecycle.ViewModelProviders
+import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
+import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
 
 
 class DeviceControlActivity(
@@ -69,6 +69,11 @@ class DeviceControlActivity(
         }
 
         incrementPopularityCounters()
+
+        executor.reportHandler = { packet ->
+            //@see OperationExecutor.onRawEvent()
+            GatherDeviceReport(this).saveReport(packet)
+        }
     }
 
     private fun setupActionBar() {
@@ -106,11 +111,21 @@ class DeviceControlActivity(
         deviceChangeHandler.removeListener(this)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu_device_control, menu)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.getItemId()) {
             android.R.id.home -> {
                 NavUtils.navigateUpFromSameTask(this)
                 return true
+            }
+            R.id.menu_item_report_device -> {
+                val intent = Intent(this, ReportDeviceActivity::class.java)
+                startActivity(intent)
             }
         }
         return super.onOptionsItemSelected(item)

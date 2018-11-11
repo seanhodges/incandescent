@@ -2,4 +2,5 @@
     <string name="application_name">Incandescent</string>
     <string name="control_device_title">Control device</string>
     <string name="authenticate_title">Authenticate with Lightwave</string>
+    <string name="title_activity_report_device">Report device</string>
 </resources>

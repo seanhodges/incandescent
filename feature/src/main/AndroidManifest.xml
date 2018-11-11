@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="uk.co.seanhodges.incandescent.client">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application>
+    <application tools:ignore="GoogleAppIndexingWarning">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="uk.co.seanhodges.incandescent.reports"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths"/>
+        </provider>
+
         <activity
             android:name=".selection.DeviceSelectActivity"
             android:label="@string/application_name"
@@ -25,7 +36,11 @@
         </activity>
         <activity
             android:name=".auth.AuthenticateActivity"
-            android:label="@string/authenticate_title"></activity>
+            android:label="@string/authenticate_title" />
+        <activity
+            android:name=".support.ReportDeviceActivity"
+            android:label="@string/title_activity_report_device"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
