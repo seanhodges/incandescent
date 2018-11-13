@@ -29,7 +29,7 @@ import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
-private const val DEVICE_BUTTON_IMAGE_SIZE : Int = 72
+private var buttonSize = ButtonSize.SMALL
 private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
 class DeviceSelectActivity(
@@ -39,6 +39,7 @@ class DeviceSelectActivity(
 
     private lateinit var viewModel: DeviceSelectViewModel
     private lateinit var recyclerView: RecyclerView
+    private lateinit var contentAdapter: ContentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setupActionBar()
@@ -47,7 +48,7 @@ class DeviceSelectActivity(
 
         viewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
 
-        val contentAdapter = ContentAdapter()
+        contentAdapter = ContentAdapter()
         recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
@@ -88,11 +89,26 @@ class DeviceSelectActivity(
             })
         }
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu_device_select, menu)
+        val compactView = menu.findItem(R.id.compact_view)
+        compactView?.isChecked = buttonSize == ButtonSize.SMALL
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.getItemId()) {
             android.R.id.home -> {
                 onBackPressed()
                 return true
+            }
+            R.id.compact_view -> {
+                buttonSize = if (item.isChecked) ButtonSize.LARGE else ButtonSize.SMALL
+                item.isChecked = buttonSize == ButtonSize.SMALL
+                recyclerView.adapter = contentAdapter
+                return true;
             }
         }
         return super.onOptionsItemSelected(item)
@@ -143,12 +159,38 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
     private fun createNewDeviceView(device : DeviceEntity): View {
         val button: Button = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as Button
         button.text = device.title
+        button.textSize = getButtonTextSize()
+        button.width = getButtonSize()
         val image = parent.resources.getDrawable(IconResolver.getDeviceImage(device.title, device.type), null)
-        val imageSizePx = (DEVICE_BUTTON_IMAGE_SIZE * parent.resources.displayMetrics.density).toInt()
-        image.setBounds(0, 0, imageSizePx, imageSizePx)
+        val imageSize = getButtonImageSize()
+        image.setBounds(0, 0, imageSize, imageSize)
         button.setCompoundDrawablesRelative(null, image, null, null)
         button.setOnTouchListener(applyButtonPressEffect())
         return button
+    }
+
+    private fun getButtonSize(): Int {
+        val dim : Int = when(buttonSize) {
+            ButtonSize.SMALL -> R.dimen.select_device_button_size_small
+            else -> R.dimen.select_device_button_size_large
+        }
+        return parent.resources.getDimension(dim).toInt()
+    }
+
+    private fun getButtonImageSize(): Int {
+        val dim : Int = when(buttonSize) {
+            ButtonSize.SMALL -> R.dimen.select_device_image_size_small
+            else -> R.dimen.select_device_image_size_large
+        }
+        return parent.resources.getDimension(dim).toInt()
+    }
+
+    private fun getButtonTextSize(): Float {
+        val dim : Int = when(buttonSize) {
+            ButtonSize.SMALL -> R.dimen.select_device_text_size_small
+            else -> R.dimen.select_device_text_size_large
+        }
+        return parent.resources.getDimension(dim) / parent.resources.displayMetrics.density
     }
 
     private fun applyButtonPressEffect() : View.OnTouchListener {
@@ -171,6 +213,11 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
     override fun getItemCount(): Int {
         return roomData.size
     }
+}
+
+enum class ButtonSize {
+    SMALL,
+    LARGE
 }
 
 class RoomViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)

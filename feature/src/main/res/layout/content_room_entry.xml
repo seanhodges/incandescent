@@ -9,10 +9,9 @@
 
     <TextView
         android:id="@+id/roomTitle"
-        android:paddingTop="5dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
+        android:layout_margin="5dp"
         android:textSize="18sp"
         tools:text="Living room" />
 
@@ -26,8 +25,8 @@
         android:layout_gravity="center_horizontal">
 
             <HorizontalScrollView
-                android:layout_marginLeft="@dimen/text_margin"
-                android:layout_marginRight="@dimen/text_margin"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
                 android:layout_width="match_parent"
                 android:scrollbars="none"
                 android:layout_height="wrap_content">
@@ -36,17 +35,10 @@
                     android:id="@+id/deviceList"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="10dp"
+                    android:paddingBottom="0dp"
                     android:orientation="horizontal">
 
-                    <Button
-                        android:layout_width="140dp"
-                        android:layout_height="140dp"
-                        tools:text="Example device"
-                        android:textSize="14sp"
-                        android:singleLine="true"
-                        android:background="@color/white"
-                        tools:drawableTop="@drawable/device_unknown" />
+                    <include layout="@layout/content_device_entry" />
 
                 </LinearLayout>
             </HorizontalScrollView>
