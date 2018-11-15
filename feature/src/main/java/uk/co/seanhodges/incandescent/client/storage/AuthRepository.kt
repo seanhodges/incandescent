@@ -6,6 +6,9 @@ import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedTokens
 import java.lang.ref.WeakReference
 import java.util.*
 
+private const val PREFS_NAME : String = "Incandescent.Prefs.Auth"
+private const val PREFS_VERSION : Int = 2
+
 class AuthRepository(private val ctx: WeakReference<Context>) {
 
     fun save(details: LWAuthenticatedResult) {
@@ -68,11 +71,6 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
     fun getDeviceId(): String {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getString("deviceId", null)!!
-    }
-
-    companion object {
-        private const val PREFS_NAME : String = "Incandescent.Prefs.Auth"
-        private const val PREFS_VERSION : Int = 2
     }
 }
 
