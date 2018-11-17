@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.Database
 import androidx.room.*
-import androidx.room.Embedded
 import java.io.Serializable
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
