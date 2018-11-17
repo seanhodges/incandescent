@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import androidx.lifecycle.Observer
 
 import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.storage.SceneWithActions
 
 class SceneFragment : Fragment() {
 
@@ -29,12 +30,16 @@ class SceneFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(SceneViewModel::class.java)
         val sceneList: LinearLayout? = view?.findViewById(R.id.sceneList)
 
-        viewModel.getAllScenes().observe(this, Observer<List<Scene>> { roomsWithDevices ->
-            val item = ListEntry.Builder(sceneList!!)
-                    .title("Test")
-                    .type("")
-                    .build()
-            sceneList.addView(item)
+        viewModel.getAllScenes().observe(this, Observer<List<SceneWithActions>> { scenesWithActions ->
+            for (sceneWithActions in scenesWithActions) {
+                val item = ListEntry.Builder(sceneList!!)
+                        .title(sceneWithActions.scene?.title ?: "")
+                        .type("scene")
+                        .build()
+                sceneList.addView(item)
+            }
+
+            //TODO: include the [Add] button
         })
 
 

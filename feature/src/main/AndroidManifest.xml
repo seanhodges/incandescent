@@ -15,7 +15,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_provider_paths"/>
         </provider>
-
         <activity
             android:name=".selection.DeviceSelectActivity"
             android:label="@string/application_name"
@@ -40,7 +39,7 @@
         <activity
             android:name=".support.ReportDeviceActivity"
             android:label="@string/title_activity_report_device"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
