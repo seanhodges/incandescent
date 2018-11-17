@@ -14,7 +14,7 @@ const val DATABASE_NAME: String = "incandescent-device-register"
     DeviceEntity::class,
     SceneEntity::class,
     SceneActionEntity::class
-], version = 2)
+], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun roomDao(): RoomDao

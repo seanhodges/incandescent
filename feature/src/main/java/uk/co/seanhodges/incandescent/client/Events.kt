@@ -26,6 +26,7 @@ class DeviceChangeHandler(server: LightwaveServer,
         listeners.remove(listener)
     }
 
+    @Suppress("SENSELESS_COMPARISON")
     override fun onEvent(event: LWEvent) {
         if (!(event.clazz.equals("feature") && (event.operation.equals("event") || event.operation.equals("read")))) {
             return // Filter only feature change events
@@ -37,7 +38,7 @@ class DeviceChangeHandler(server: LightwaveServer,
         }
 
         val payload : LWEventPayloadFeature = event.items[0].payload as LWEventPayloadFeature
-        if (payload.featureId.isNullOrEmpty()) {
+        if (payload.featureId == null || payload.featureId.isEmpty()) {
             payload.featureId = loadItemIdToFeatureId[event.items[0].itemId]!!
         }
         val featureId : String = payload.featureId
