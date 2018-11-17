@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/room_background"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
@@ -38,7 +37,7 @@
                     android:paddingBottom="0dp"
                     android:orientation="horizontal">
 
-                    <include layout="@layout/content_device_entry" />
+                    <include layout="@layout/content_list_entry" />
 
                 </LinearLayout>
             </HorizontalScrollView>

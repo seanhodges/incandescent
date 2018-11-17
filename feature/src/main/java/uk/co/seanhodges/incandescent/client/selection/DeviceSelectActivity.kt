@@ -1,22 +1,16 @@
 package uk.co.seanhodges.incandescent.client.selection
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
@@ -26,8 +20,6 @@ import uk.co.seanhodges.incandescent.client.storage.*
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
-
-private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
 class DeviceSelectActivity(
         private val server: LightwaveServer = Inject.server,
@@ -145,7 +137,7 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
         val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
         deviceList.removeAllViewsInLayout()
         for (device in roomData[position].getDevicesInOrder()) {
-            val deviceView = createNewDeviceView(device)
+            val deviceView = ListEntry.Builder(this.parent).title(device.title).type(device.type).build()
             deviceView.setOnClickListener {
                 val intent = Intent(parent.context, DeviceControlActivity::class.java)
                 intent.putExtra("selectedRoom", room)
@@ -153,63 +145,6 @@ class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
                 parent.context.startActivity(intent)
             }
             deviceList.addView(deviceView)
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun createNewDeviceView(device : DeviceEntity): View {
-        val settingsRepository = SettingsRepository(WeakReference(parent.context))
-        val settings = settingsRepository.get()
-        val button: Button = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as Button
-        button.text = device.title
-        button.textSize = getButtonTextSize(settings.deviceListSize)
-        button.width = getButtonSize(settings.deviceListSize)
-        val image = parent.resources.getDrawable(IconResolver.getDeviceImage(device.title, device.type), null)
-        val imageSize = getButtonImageSize(settings.deviceListSize)
-        image.setBounds(0, 0, imageSize, imageSize)
-        button.setCompoundDrawablesRelative(null, image, null, null)
-        button.setOnTouchListener(applyButtonPressEffect())
-        return button
-    }
-
-    private fun getButtonSize(deviceListSize: DeviceListSize): Int {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_button_size_small
-            else -> R.dimen.select_device_button_size_large
-        }
-        return parent.resources.getDimension(dim).toInt()
-    }
-
-    private fun getButtonImageSize(deviceListSize: DeviceListSize): Int {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_image_size_small
-            else -> R.dimen.select_device_image_size_large
-        }
-        return parent.resources.getDimension(dim).toInt()
-    }
-
-    private fun getButtonTextSize(deviceListSize: DeviceListSize): Float {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_text_size_small
-            else -> R.dimen.select_device_text_size_large
-        }
-        return parent.resources.getDimension(dim) / parent.resources.displayMetrics.density
-    }
-
-    private fun applyButtonPressEffect() : View.OnTouchListener {
-        return View.OnTouchListener { it, event ->
-            val button : Button = it as Button
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    button.setTextColor(Color.parseColor("#FF6000"))
-                    button.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF6000"))
-                    Handler().postDelayed({
-                        button.setTextColor(Color.BLACK)
-                        button.compoundDrawableTintList = ColorStateList.valueOf(Color.BLACK)
-                    }, DEVICE_BUTTON_HIGHLIGHT_LENGTH)
-                }
-            }
-            return@OnTouchListener false
         }
     }
 
