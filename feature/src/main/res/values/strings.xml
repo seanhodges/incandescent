@@ -19,4 +19,5 @@
     <string name="report_device_problem">Please describe the device and the problems you\'re having:</string>
     <string name="report_device_name">Please enter your name:</string>
     <string name="compact_view">Compact view</string>
+    <string name="scenesTitle">Scenes</string>
 </resources>

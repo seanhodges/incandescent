@@ -6,6 +6,7 @@ import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -26,7 +27,8 @@ class DeviceSelectActivity(
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity() {
 
-    private lateinit var viewModel: DeviceSelectViewModel
+    private lateinit var sceneViewModel: SceneViewModel
+    private lateinit var deviceViewModel: DeviceSelectViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
 
@@ -35,15 +37,18 @@ class DeviceSelectActivity(
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
-        viewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
-
         contentAdapter = ContentAdapter()
         recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
-        viewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
-            roomsWithDevices -> contentAdapter.setData(roomsWithDevices)
+        sceneViewModel = ViewModelProviders.of(this).get(SceneViewModel::class.java)
+        sceneViewModel.getAllScenes().observe(this, Observer<List<SceneWithActions>> {
+            scenesWithActions -> contentAdapter.setSceneData(scenesWithActions)
+        })
+        deviceViewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
+        deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
+            roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
 
         executor.reportHandler = { packet ->
@@ -70,7 +75,7 @@ class DeviceSelectActivity(
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (success) {
-                    viewModel.initialiseRooms(server)
+                    deviceViewModel.initialiseRooms(server)
                 }
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
@@ -113,44 +118,82 @@ class DeviceSelectActivity(
     }
 }
 
-class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
+class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
 
+    private var sceneData: List<SceneWithActions> = emptyList()
     private var roomData: List<RoomWithDevices> = emptyList()
-    private lateinit var parent: ViewGroup
+    private lateinit var parentView: ViewGroup
 
-    fun setData(newData: List<RoomWithDevices>) {
+    fun setSceneData(newData: List<SceneWithActions>) {
+        this.sceneData = newData
+        notifyDataSetChanged()
+    }
+
+    fun setDeviceData(newData: List<RoomWithDevices>) {
         this.roomData = newData
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        this.parent = parent
+    // FIXME: Use content_scene_entry view
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
+        this.parentView = parent
         val view = LayoutInflater.from(parent.context).inflate(R.layout.content_room_entry, parent, false)
-        return RoomViewHolder(view)
+        return SectionViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: SectionViewHolder, position: Int) {
+        if (position == 0) {
+            // Always draw scenes at the top
+            renderScenes(holder)
+        } else {
+            renderDevices(holder, position - 1)
+        }
+    }
+
+    private fun renderScenes(holder: SectionViewHolder) {
+        val sceneTitle : TextView = holder.containerView.findViewById(R.id.roomTitle)
+        sceneTitle.text = "Scenes" // FIXME: Use content_scene_entry view
+
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
+        buttonList.removeAllViewsInLayout()
+
+        for (sceneWithActions in sceneData) {
+            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+            val item = ListEntryDecorator(button, this.parentView)
+                    .title(sceneWithActions.scene?.title ?: "")
+                    .type("scene")
+                    .build()
+            buttonList.addView(item)
+        }
+    }
+
+    private fun renderDevices(holder: SectionViewHolder, position: Int) {
         val room = roomData[position].room
         val roomTitle : TextView = holder.containerView.findViewById(R.id.roomTitle)
         roomTitle.text = room?.title
 
-        val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
-        deviceList.removeAllViewsInLayout()
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
+        buttonList.removeAllViewsInLayout()
+
         for (device in roomData[position].getDevicesInOrder()) {
-            val deviceView = ListEntry.Builder(this.parent).title(device.title).type(device.type).build()
-            deviceView.setOnClickListener {
-                val intent = Intent(parent.context, DeviceControlActivity::class.java)
+            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+            val item = ListEntryDecorator(button, this.parentView)
+                    .title(device.title)
+                    .type(device.type)
+                    .build()
+            item.setOnClickListener {
+                val intent = Intent(this.parentView.context, DeviceControlActivity::class.java)
                 intent.putExtra("selectedRoom", room)
                 intent.putExtra("selectedDevice", device)
-                parent.context.startActivity(intent)
+                this.parentView.context.startActivity(intent)
             }
-            deviceList.addView(deviceView)
+            buttonList.addView(item)
         }
     }
 
     override fun getItemCount(): Int {
-        return roomData.size
+        return roomData.size + 1
     }
 }
 
-class RoomViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)
+class SectionViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)
