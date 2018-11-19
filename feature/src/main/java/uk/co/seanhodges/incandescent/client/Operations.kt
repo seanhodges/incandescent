@@ -66,7 +66,7 @@ class OperationExecutor(
     override fun onRawEvent(packet: String) {
         // TODO(sean): This is hacky, we should decouple all the report gathering stuff
         // TODO(sean): This indirection is only necessary to get active activity context to save the reports
-        reportHandler?.invoke(packet)
+        reportHandler.invoke(packet)
     }
 
     override fun onError(error: Throwable) {
