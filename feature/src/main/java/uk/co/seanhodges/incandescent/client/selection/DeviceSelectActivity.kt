@@ -17,6 +17,7 @@ import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
+import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
 import uk.co.seanhodges.incandescent.client.storage.*
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
@@ -38,7 +39,7 @@ class DeviceSelectActivity(
         setContentView(R.layout.activity_room_select)
 
         contentAdapter = ContentAdapter()
-        recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
+        recyclerView = this.findViewById<RecyclerView>(R.id.room_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
@@ -151,10 +152,10 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
     }
 
     private fun renderScenes(holder: SectionViewHolder) {
-        val sceneTitle : TextView = holder.containerView.findViewById(R.id.roomTitle)
+        val sceneTitle : TextView = holder.containerView.findViewById(R.id.room_title)
         sceneTitle.text = "Scenes" // FIXME: Use content_scene_entry view
 
-        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
 
         for (sceneWithActions in sceneData) {
@@ -172,14 +173,18 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
                 .type("add")
                 .build()
         buttonList.addView(item)
+        item.setOnClickListener {
+            val intent = Intent(this.parentView.context, AddSceneActivity::class.java)
+            this.parentView.context.startActivity(intent)
+        }
     }
 
     private fun renderDevices(holder: SectionViewHolder, position: Int) {
         val room = roomData[position].room
-        val roomTitle : TextView = holder.containerView.findViewById(R.id.roomTitle)
+        val roomTitle : TextView = holder.containerView.findViewById(R.id.room_title)
         roomTitle.text = room?.title
 
-        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
 
         for (device in roomData[position].getDevicesInOrder()) {

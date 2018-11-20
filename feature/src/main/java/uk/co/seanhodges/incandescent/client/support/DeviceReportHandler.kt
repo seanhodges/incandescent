@@ -23,7 +23,7 @@ private const val REPORT_FEATURE_READ_FILENAME = "feature_read_report.txt"
 fun reportFilePath(ctx: Context, filename: String): File? = File(ctx.filesDir, "reports/$filename")
 fun uriOf(ctx: Context, file: File?): Uri = FileProvider.getUriForFile(ctx, FILE_PROVIDER_AUTHORITY, file!!)
 
-        class GatherDeviceReport(ctx: Context) {
+class GatherDeviceReport(ctx: Context) {
     private val ctxRef = WeakReference<Context>(ctx)
 
     fun saveReport(packet: String) {

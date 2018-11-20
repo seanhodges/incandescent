@@ -29,7 +29,7 @@ class DeviceSelectActivityTest {
 
     @Test
     fun itShowsAListOfRoomsWithDeviceButtons() {
-        onView(allOf(withId(R.id.deviceList), isDescendantOfA(withId(R.id.roomList))))
+        onView(allOf(withId(R.id.device_list), isDescendantOfA(withId(R.id.room_list))))
                 .check(matches(isDisplayed()))
     }
 

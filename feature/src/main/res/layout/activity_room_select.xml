@@ -9,7 +9,7 @@
     tools:context=".selection.DeviceSelectActivity">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/roomList"
+        android:id="@+id/room_list"
         android:nestedScrollingEnabled="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
