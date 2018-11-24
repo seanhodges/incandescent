@@ -115,7 +115,8 @@ class OperationExecutor(
                 val newValue: Int? = changeQueue[featureId]
                 val operation = LWOperation("feature", senderId, "write")
                 operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
-                server.command(operation)}
+                server.command(operation)
+            }
             catch (e: Throwable) {
                 Log.e(javaClass.name, "Server error while processing change operation", e)
             }

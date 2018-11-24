@@ -29,8 +29,17 @@ interface RoomDao {
 @Dao
 interface DeviceDao {
 
+    @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
+    fun findByCommandId(commandId: String): LiveData<DeviceEntity>
+
     @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)
+
+    @Query("UPDATE device SET last_value_dim = :value WHERE id = :deviceId")
+    fun setLastDimValue(deviceId: String, value : Int)
+
+    @Query("UPDATE device SET last_value_power = :value WHERE id = :deviceId")
+    fun setLastPowerValue(deviceId: String, value : Int)
 }
 
 
@@ -77,7 +86,16 @@ data class DeviceEntity(
 
         @ColumnInfo(name = "chosen_count")
         var chosenCount: Int = 0
-) : Serializable
+
+) : Serializable {
+
+    @ColumnInfo(name = "last_value_power")
+    var lastPowerValue: Int = 0
+
+    @ColumnInfo(name = "last_value_dim")
+    var lastDimValue: Int = 0
+
+}
 
 data class RoomWithDevices(
 

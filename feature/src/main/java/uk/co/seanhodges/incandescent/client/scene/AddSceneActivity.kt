@@ -13,7 +13,6 @@ import uk.co.seanhodges.incandescent.client.R
 
 import kotlinx.android.synthetic.main.activity_add_scene.*
 import uk.co.seanhodges.incandescent.client.selection.DeviceSelectViewModel
-import uk.co.seanhodges.incandescent.client.selection.SceneViewModel
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
 class AddSceneActivity : AppCompatActivity() {

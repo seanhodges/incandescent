@@ -1,29 +1,24 @@
 package uk.co.seanhodges.incandescent.client
 
 import android.util.Log
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import uk.co.seanhodges.incandescent.client.storage.DeviceDao
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadFeature
-import java.util.*
-import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 
-
-class DeviceChangeHandler(server: LightwaveServer,
-                          private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf()
+class LastValueChangeListener(
+        private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf()
 ) : LWEventListener {
 
-    private val listeners = ArrayList<DeviceChangeAware>()
+    private var owner : LifecycleOwner? = null
+    private var deviceDao : DeviceDao? = null
 
-    init {
-        server.addListener(this)
-    }
-
-    fun addListener(listener: DeviceChangeAware) {
-        listeners.add(listener)
-    }
-
-    fun removeListener(listener: DeviceChangeAware) {
-        listeners.remove(listener)
+    fun setRepository(owner : LifecycleOwner, deviceDao : DeviceDao) {
+        this.owner = owner
+        this.deviceDao = deviceDao
     }
 
     @Suppress("SENSELESS_COMPARISON")
@@ -43,17 +38,16 @@ class DeviceChangeHandler(server: LightwaveServer,
         }
         val featureId : String = payload.featureId
 
-        listeners.forEach {
-            it.onDeviceChanged(featureId, payload.value)
-        }
+        deviceDao?.findByCommandId(featureId)?.observe(owner!!, Observer<DeviceEntity> { device ->
+            if (featureId == device.dimCommand) {
+                deviceDao?.setLastDimValue(device.id, payload.value)
+            }
+            else if (featureId == device.powerCommand) {
+                deviceDao?.setLastPowerValue(device.id, payload.value)
+            }
+        })
     }
 
-    override fun onError(error: Throwable) {
-        //TODO(sean): implement proper in-app error handling
-        Log.e(javaClass.name, "Server error: " + error.message)
-    }
-}
+    override fun onError(error: Throwable) {}
 
-interface DeviceChangeAware {
-    fun onDeviceChanged(featureId: String, newValue: Int)
 }
