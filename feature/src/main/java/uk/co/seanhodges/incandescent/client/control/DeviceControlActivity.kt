@@ -41,6 +41,7 @@ class DeviceControlActivity(
         setContentView(R.layout.activity_device_control)
 
         viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
+        viewModel.listenForValueChanges(this)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -202,9 +203,6 @@ class DeviceControlActivity(
                 applyOnOffHighlight(newValue == 1)
             }
         }
-
-//        deviceDao.setLastValue()
-//        viewModel.setLastValue(selectedDevice.id, )
     }
 
     private fun withUiChangeListenersDisabled(actions: () -> Unit) {

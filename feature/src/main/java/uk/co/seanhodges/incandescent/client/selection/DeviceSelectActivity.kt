@@ -48,6 +48,7 @@ class DeviceSelectActivity(
             scenesWithActions -> contentAdapter.setSceneData(scenesWithActions)
         })
         deviceViewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
+        deviceViewModel.listenForValueChanges(this)
         deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
             roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
