@@ -176,8 +176,7 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
                 .build()
         buttonList.addView(item)
         item.setOnClickListener {
-            val intent = Intent(this.parentView.context, AddSceneActivity::class.java)
-            this.parentView.context.startActivity(intent)
+            this.parentView.context.startActivity(Intent(this.parentView.context, AddSceneActivity::class.java))
         }
     }
 

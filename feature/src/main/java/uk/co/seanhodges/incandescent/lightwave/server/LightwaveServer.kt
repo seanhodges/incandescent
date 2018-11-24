@@ -74,7 +74,7 @@ class LightwaveServer : WebSocketListener() {
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
-        val resultStr = res.body()!!.source()
+        val resultStr = res.body()!!.string()
         res.close()
 
         println("<<< $resultStr")
@@ -96,7 +96,7 @@ class LightwaveServer : WebSocketListener() {
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
-        val resultStr = res.body()!!.source()
+        val resultStr = res.body()!!.string()
         res.close()
 
         println("<<< $resultStr")

@@ -138,7 +138,7 @@ class RefreshTokenAndConnectToServerTask(
     override fun doInBackground(vararg server: LightwaveServer): LWAuthenticatedTokens? {
         val auth: Credentials = authRepository.getCredentials()
         try {
-            Log.d(javaClass.name, "Refreshing access token...")
+            Log.d(javaClass.name, "Refreshing access token using refresh token $auth.refreshToken...")
             val tokens: LWAuthenticatedTokens = server[0].refreshToken(auth.refreshToken)
             if (tokens.refreshToken == null) {
                 return null

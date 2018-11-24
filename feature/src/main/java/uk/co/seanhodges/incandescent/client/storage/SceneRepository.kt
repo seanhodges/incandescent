@@ -19,7 +19,20 @@ interface SceneDao {
     fun incChosenCount(id: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSceneWithActions(room: SceneEntity, devices: List<SceneActionEntity>)
+    fun insertScene(scene: SceneEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAction(action: SceneActionEntity)
+
+    @Transaction
+    fun insertSceneWithActions(scene: SceneEntity, actions: List<SceneActionEntity>) {
+        insertScene(scene)
+
+        actions.forEach { action ->
+            action.sceneId = scene.id
+            insertAction(action)
+        }
+    }
 }
 
 @Entity(tableName = "scene", indices = arrayOf(
@@ -28,31 +41,33 @@ interface SceneDao {
 ))
 data class SceneEntity(
 
-        @PrimaryKey(autoGenerate = true)
-        var id: Int,
-
         @ColumnInfo(name = "title")
-        var title: String,
+        val title: String
+) : Serializable {
 
-        @ColumnInfo(name = "chosen_count")
-        var chosenCount: Int = 0
-) : Serializable
+    @PrimaryKey(autoGenerate = true)
+    var id: Int? = -1
+
+    @ColumnInfo(name = "chosen_count")
+    var chosenCount: Int = 0
+}
 
 @Entity(tableName = "scene_action")
 data class SceneActionEntity(
 
         @PrimaryKey
-        var id: String,
+        val id: String,
 
         @ColumnInfo(name = "feature_value")
-        var type: String,
+        val value: Int
+) : Serializable {
 
-        @ForeignKey(entity = SceneEntity::class,
-                parentColumns = ["id"],
-                childColumns = ["scene_id"])
-        @ColumnInfo(name = "scene_id")
-        var sceneId: Int
-) : Serializable
+    @ForeignKey(entity = SceneEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["scene_id"])
+    @ColumnInfo(name = "scene_id")
+    var sceneId: Int? = -1
+}
 
 data class SceneWithActions(
 

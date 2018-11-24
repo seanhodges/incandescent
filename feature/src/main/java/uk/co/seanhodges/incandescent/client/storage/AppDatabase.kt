@@ -14,7 +14,7 @@ const val DATABASE_NAME: String = "incandescent-device-register"
     DeviceEntity::class,
     SceneEntity::class,
     SceneActionEntity::class
-], version = 2, exportSchema = false)
+], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun roomDao(): RoomDao
@@ -29,6 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE = Room
                         .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
                         .addMigrations(MIGRATION_1_2)
+                        .addMigrations(MIGRATION_2_3)
                         .build()
             }
             return INSTANCE!!
@@ -38,9 +39,16 @@ abstract class AppDatabase : RoomDatabase() {
 
 val MIGRATION_1_2: Migration = object : Migration(1, 2) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE room " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("ALTER TABLE device " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("CREATE INDEX idx_room_chosen_count ON  room(chosen_count)")
-        database.execSQL("CREATE INDEX idx_device_chosen_count ON  device(chosen_count)")
+        database.execSQL("ALTER TABLE room ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE device ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("CREATE INDEX idx_room_chosen_count ON room(chosen_count)")
+        database.execSQL("CREATE INDEX idx_device_chosen_count ON device(chosen_count)")
+    }
+}
+
+val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE device ADD COLUMN last_value_power INTEGER NOT NULL DEFAULT 0")
+        database.execSQL("ALTER TABLE device ADD COLUMN last_value_dim INTEGER NOT NULL DEFAULT 0")
     }
 }
