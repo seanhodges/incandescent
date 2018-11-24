@@ -99,6 +99,7 @@ class DeviceControlActivity(
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (!success) {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, AuthenticateActivity::class.java))
                 }
             })
         }
@@ -201,6 +202,9 @@ class DeviceControlActivity(
                 applyOnOffHighlight(newValue == 1)
             }
         }
+
+//        deviceDao.setLastValue()
+//        viewModel.setLastValue(selectedDevice.id, )
     }
 
     private fun withUiChangeListenersDisabled(actions: () -> Unit) {

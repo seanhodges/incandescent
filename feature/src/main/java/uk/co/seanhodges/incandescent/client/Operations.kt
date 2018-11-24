@@ -139,6 +139,9 @@ class RefreshTokenAndConnectToServerTask(
         try {
             Log.d(javaClass.name, "Refreshing access token...")
             val tokens: LWAuthenticatedTokens = server[0].refreshToken(auth.refreshToken)
+            if (tokens.refreshToken == null) {
+                return null
+            }
             Log.d(javaClass.name, "Access token is: ${tokens.accessToken}")
             Log.d(javaClass.name, "Connecting...")
             server[0].connect(tokens.accessToken, auth.deviceId)

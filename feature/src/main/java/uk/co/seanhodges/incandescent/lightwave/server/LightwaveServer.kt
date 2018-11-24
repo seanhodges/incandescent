@@ -18,9 +18,9 @@ import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLException
 
-private val LIGHTWAVE_VERSION: String = "1.8.12"
-private val MAX_IDLE_CONNECTIONS: Int = 5
-private val KEEP_ALIVE_DURATION_MINS: Long = 30
+private const val LIGHTWAVE_VERSION: String = "1.8.12"
+private const val MAX_IDLE_CONNECTIONS: Int = 5
+private const val KEEP_ALIVE_DURATION_MINS: Long = 30
 
 class LightwaveServer : WebSocketListener() {
 
@@ -74,7 +74,7 @@ class LightwaveServer : WebSocketListener() {
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
-        val resultStr = res.body()!!.string()
+        val resultStr = res.body()!!.source()
         res.close()
 
         println("<<< $resultStr")
@@ -96,7 +96,7 @@ class LightwaveServer : WebSocketListener() {
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
-        val resultStr = res.body()!!.string()
+        val resultStr = res.body()!!.source()
         res.close()
 
         println("<<< $resultStr")
@@ -174,7 +174,7 @@ class LightwaveServer : WebSocketListener() {
 
         val writer = StringWriter()
         val printWriter = PrintWriter(writer)
-        t!!.printStackTrace(printWriter)
+        t.printStackTrace(printWriter)
 
         println("[ERROR!] " + t.toString() + "\n" + writer.toString())
         for (listener in listeners) {

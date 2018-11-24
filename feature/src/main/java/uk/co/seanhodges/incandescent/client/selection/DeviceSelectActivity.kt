@@ -80,6 +80,7 @@ class DeviceSelectActivity(
                 }
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, AuthenticateActivity::class.java))
                 }
             })
         }
