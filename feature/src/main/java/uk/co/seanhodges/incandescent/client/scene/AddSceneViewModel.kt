@@ -41,11 +41,14 @@ class AddSceneViewModel(
             val addSceneForm = params[0]
             val scene = SceneEntity(addSceneForm.name)
             val actions = mutableListOf<SceneActionEntity>()
+            Log.d(javaClass.name, "Saving scene as ${addSceneForm.name}")
             addSceneForm.settings.forEach {setting ->
                 setting.device.powerCommand?.apply {
+                    Log.d(javaClass.name, "Saving ${this} as ${setting.device.lastPowerValue}")
                     actions.add(SceneActionEntity(this, setting.device.lastPowerValue))
                 }
                 setting.device.dimCommand?.apply {
+                    Log.d(javaClass.name, "Saving ${this} as ${setting.device.lastDimValue}")
                     actions.add(SceneActionEntity(this, setting.device.lastDimValue))
                 }
             }

@@ -12,8 +12,9 @@ interface SceneDao {
     @Query("SELECT * FROM scene ORDER BY chosen_count DESC, id")
     fun loadAllWithActions(): LiveData<List<SceneWithActions>>
 
+    @Transaction
     @Query("SELECT * FROM scene WHERE id = :id")
-    fun findSceneById(id: Int): SceneWithActions
+    fun findSceneById(id: Long): SceneWithActions
 
     @Query("SELECT count(id) FROM scene")
     fun count(): Int
@@ -22,17 +23,17 @@ interface SceneDao {
     fun incChosenCount(id: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertScene(scene: SceneEntity)
+    fun insertScene(scene: SceneEntity) : Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAction(action: SceneActionEntity)
+    fun insertAction(action: SceneActionEntity) : Long
 
     @Transaction
     fun insertSceneWithActions(scene: SceneEntity, actions: List<SceneActionEntity>) {
-        insertScene(scene)
+        val newId = insertScene(scene)
 
         actions.forEach { action ->
-            action.sceneId = scene.id
+            action.sceneId = newId
             insertAction(action)
         }
     }
@@ -49,7 +50,7 @@ data class SceneEntity(
 ) : Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    var id: Int? = -1
+    var id: Long? = null
 
     @ColumnInfo(name = "chosen_count")
     var chosenCount: Int = 0
@@ -69,7 +70,7 @@ data class SceneActionEntity(
             parentColumns = ["id"],
             childColumns = ["scene_id"])
     @ColumnInfo(name = "scene_id")
-    var sceneId: Int? = -1
+    var sceneId: Long? = null
 }
 
 data class SceneWithActions(

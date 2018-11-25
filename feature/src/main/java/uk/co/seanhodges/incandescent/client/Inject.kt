@@ -9,6 +9,6 @@ object Inject {
     val server = LightwaveServer()
     val executor = OperationExecutor(server, loadItemIdToFeatureId)
     val deviceChangeHandler = DeviceChangeHandler(server, loadItemIdToFeatureId)
-    val lastValueChangeListener = LastValueChangeListener(loadItemIdToFeatureId)
+    val lastValueChangeListener = LastValueChangeListener(server, loadItemIdToFeatureId)
 
 }

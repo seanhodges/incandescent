@@ -1,7 +1,6 @@
 package uk.co.seanhodges.incandescent.client.scene
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,10 +37,17 @@ class AddSceneActivity : AppCompatActivity() {
             roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
 
+        val sceneName = findViewById<EditText>(R.id.scene_name)
+
         fab.setOnClickListener { view ->
             // Create the new scene and close
-            val name = "Test Scene 1"
-            sceneViewModel.save(name, contentAdapter.getDeviceData())
+            val name = sceneName.text.toString()
+            if (name.isEmpty()) {
+                Toast.makeText(this, "Please give the scene a name", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            sceneViewModel.save(name, contentAdapter.getEnabledDeviceData())
             finish()
         }
     }
@@ -78,8 +84,8 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
         notifyDataSetChanged()
     }
 
-    fun getDeviceData(): List<FlatDeviceRow> {
-        return deviceData
+    fun getEnabledDeviceData(): List<FlatDeviceRow> {
+        return deviceData.filter { it.enabled }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {

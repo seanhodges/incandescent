@@ -30,7 +30,7 @@ interface RoomDao {
 interface DeviceDao {
 
     @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
-    fun findByCommandId(commandId: String): LiveData<DeviceEntity>
+    fun findByCommandId(commandId: String): DeviceEntity
 
     @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)
