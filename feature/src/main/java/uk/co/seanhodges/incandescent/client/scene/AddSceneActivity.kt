@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import uk.co.seanhodges.incandescent.client.R
 
 import kotlinx.android.synthetic.main.activity_add_scene.*
+import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
@@ -69,12 +71,18 @@ class AddSceneActivity : AppCompatActivity() {
 
 }
 
-class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
+class ContentAdapter(
+        private val executor: OperationExecutor = Inject.executor
+) : RecyclerView.Adapter<SectionViewHolder>() {
 
     private var deviceData: MutableList<FlatDeviceRow> = mutableListOf()
     private lateinit var parentView: ViewGroup
 
     fun setDeviceData(newData: List<RoomWithDevices>) {
+        if (this.deviceData.size > 0) {
+            return // FIXME: Ignoring device data updates to avoid rebuilding list
+        }
+        this.deviceData.clear()
         newData.forEach { room ->
             room.devices?.forEach { device ->
                 val title = "${room.room?.title} > ${device.title}"
@@ -102,6 +110,12 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
 
         holder.containerView.findViewById<Switch>(R.id.use_device).setOnCheckedChangeListener { _, checked ->
             device.enabled = checked
+
+            // Update the values if the device is enabled
+            if (checked) {
+                device.device.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
+                device.device.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
+            }
         }
     }
 
