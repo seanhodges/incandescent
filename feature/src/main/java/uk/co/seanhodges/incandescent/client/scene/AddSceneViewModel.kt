@@ -30,16 +30,32 @@ class AddSceneViewModel(
     }
 
     fun save(name: String, settings: List<FlatDeviceRow>) {
-        val actions = mutableListOf<SceneActionEntity>()
-        settings.forEach {setting ->
-            setting.device.powerCommand?.apply {
-                actions.add(SceneActionEntity(this, setting.device.lastPowerValue))
+        SaveSceneTask(sceneDao).execute(AddSceneForm(name, settings))
+    }
+
+    private class SaveSceneTask(
+            private val sceneDao: SceneDao
+    ) : AsyncTask<AddSceneForm, Void, Void>() {
+
+        override fun doInBackground(vararg params: AddSceneForm): Void? {
+            val addSceneForm = params[0]
+            val scene = SceneEntity(addSceneForm.name)
+            val actions = mutableListOf<SceneActionEntity>()
+            addSceneForm.settings.forEach {setting ->
+                setting.device.powerCommand?.apply {
+                    actions.add(SceneActionEntity(this, setting.device.lastPowerValue))
+                }
+                setting.device.dimCommand?.apply {
+                    actions.add(SceneActionEntity(this, setting.device.lastDimValue))
+                }
             }
-            setting.device.dimCommand?.apply {
-                actions.add(SceneActionEntity(this, setting.device.lastDimValue))
-            }
+            sceneDao.insertSceneWithActions(scene, actions)
+            return null
         }
-        val scene = SceneEntity(name)
-        sceneDao.insertSceneWithActions(scene, actions)
     }
 }
+
+data class AddSceneForm (
+        val name: String,
+        val settings: List<FlatDeviceRow>
+)
