@@ -13,11 +13,13 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.Inject.executor
 import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
+import uk.co.seanhodges.incandescent.client.scene.ApplyScene
 import uk.co.seanhodges.incandescent.client.storage.*
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
@@ -167,6 +169,10 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
                     .type("scene")
                     .build()
             buttonList.addView(item)
+            item.setOnClickListener {
+                ApplyScene(this.parentView.context, executor)
+                        .execute(sceneWithActions.scene?.id!!)
+            }
         }
 
         val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button

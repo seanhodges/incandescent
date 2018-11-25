@@ -12,6 +12,9 @@ interface SceneDao {
     @Query("SELECT * FROM scene ORDER BY chosen_count DESC, id")
     fun loadAllWithActions(): LiveData<List<SceneWithActions>>
 
+    @Query("SELECT * FROM scene WHERE id = :id")
+    fun findSceneById(id: Int): SceneWithActions
+
     @Query("SELECT count(id) FROM scene")
     fun count(): Int
 
