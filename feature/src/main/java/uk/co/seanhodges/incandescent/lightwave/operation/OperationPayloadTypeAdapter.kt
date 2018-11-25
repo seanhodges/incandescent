@@ -27,7 +27,7 @@ class OperationPayloadTypeAdapter {
 
     @FromJson
     @Throws(IOException::class)
-    internal fun fromJson(reader: JsonReader): LWOperationPayload? {
+    internal fun fromJson(@Suppress("UNUSED_PARAMETER") reader: JsonReader): LWOperationPayload? {
         return null
     }
 

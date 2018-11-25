@@ -15,7 +15,7 @@ class ReportDeviceActivity : AppCompatActivity() {
         setContentView(R.layout.activity_report_device)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
+        fab.setOnClickListener { _ ->
             SendDeviceReport(this).send(buildBody())
             finish()
         }

@@ -66,7 +66,7 @@ class OperationExecutor(
     override fun onRawEvent(packet: String) {
         // TODO(sean): This is hacky, we should decouple all the report gathering stuff
         // TODO(sean): This indirection is only necessary to get active activity context to save the reports
-        reportHandler?.invoke(packet)
+        reportHandler.invoke(packet)
     }
 
     override fun onError(error: Throwable) {
@@ -115,7 +115,8 @@ class OperationExecutor(
                 val newValue: Int? = changeQueue[featureId]
                 val operation = LWOperation("feature", senderId, "write")
                 operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
-                server.command(operation)}
+                server.command(operation)
+            }
             catch (e: Throwable) {
                 Log.e(javaClass.name, "Server error while processing change operation", e)
             }
@@ -137,8 +138,11 @@ class RefreshTokenAndConnectToServerTask(
     override fun doInBackground(vararg server: LightwaveServer): LWAuthenticatedTokens? {
         val auth: Credentials = authRepository.getCredentials()
         try {
-            Log.d(javaClass.name, "Refreshing access token...")
+            Log.d(javaClass.name, "Refreshing access token using refresh token $auth.refreshToken...")
             val tokens: LWAuthenticatedTokens = server[0].refreshToken(auth.refreshToken)
+            if (tokens.refreshToken == null) {
+                return null
+            }
             Log.d(javaClass.name, "Access token is: ${tokens.accessToken}")
             Log.d(javaClass.name, "Connecting...")
             server[0].connect(tokens.accessToken, auth.deviceId)

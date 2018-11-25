@@ -4,49 +4,15 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.Database
 import androidx.room.*
-import androidx.room.Embedded
 import java.io.Serializable
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
 import androidx.room.Room
 
-const val DATABASE_NAME: String = "incandescent-device-register"
-
-val MIGRATION_1_2: Migration = object : Migration(1, 2) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE room " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("ALTER TABLE device " + " ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("CREATE INDEX idx_room_chosen_count ON  room(chosen_count)")
-        database.execSQL("CREATE INDEX idx_device_chosen_count ON  device(chosen_count)")
-    }
-}
-
-@Database(entities = [
-    RoomEntity::class,
-    DeviceEntity::class
-], version = 2)
-abstract class AppDatabase : RoomDatabase() {
-
-    abstract fun roomDao(): RoomDao
-    abstract fun deviceDao(): DeviceDao
-
-    companion object {
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            if (INSTANCE == null) {
-                INSTANCE = Room
-                        .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
-                        .addMigrations(MIGRATION_1_2).build()
-            }
-            return INSTANCE!!
-        }
-    }
-}
-
 @Dao
 interface RoomDao {
 
+    @Transaction
     @Query("SELECT * FROM room ORDER BY chosen_count DESC, id")
     fun loadAllWithDevices(): LiveData<List<RoomWithDevices>>
 
@@ -63,8 +29,17 @@ interface RoomDao {
 @Dao
 interface DeviceDao {
 
+    @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
+    fun findByCommandId(commandId: String): DeviceEntity
+
     @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)
+
+    @Query("UPDATE device SET last_value_dim = :value WHERE id = :deviceId")
+    fun setLastDimValue(deviceId: String, value : Int)
+
+    @Query("UPDATE device SET last_value_power = :value WHERE id = :deviceId")
+    fun setLastPowerValue(deviceId: String, value : Int)
 }
 
 
@@ -111,7 +86,16 @@ data class DeviceEntity(
 
         @ColumnInfo(name = "chosen_count")
         var chosenCount: Int = 0
-) : Serializable
+
+) : Serializable {
+
+    @ColumnInfo(name = "last_value_power")
+    var lastPowerValue: Int = 0
+
+    @ColumnInfo(name = "last_value_dim")
+    var lastDimValue: Int = 0
+
+}
 
 data class RoomWithDevices(
 

@@ -4,11 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/room_background"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/roomTitle"
+        android:id="@+id/room_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
@@ -32,13 +31,13 @@
                 android:layout_height="wrap_content">
 
                 <LinearLayout
-                    android:id="@+id/deviceList"
+                    android:id="@+id/device_list"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:paddingBottom="0dp"
                     android:orientation="horizontal">
 
-                    <include layout="@layout/content_device_entry" />
+                    <include layout="@layout/content_list_entry" />
 
                 </LinearLayout>
             </HorizontalScrollView>

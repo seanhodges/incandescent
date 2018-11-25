@@ -1,11 +1,7 @@
 package uk.co.seanhodges.incandescent.client.selection
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,25 +12,26 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.Inject.executor
 import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
+import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
+import uk.co.seanhodges.incandescent.client.scene.ApplyScene
 import uk.co.seanhodges.incandescent.client.storage.*
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
-
-private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
 class DeviceSelectActivity(
         private val server: LightwaveServer = Inject.server,
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity() {
 
-    private lateinit var viewModel: DeviceSelectViewModel
+    private lateinit var sceneViewModel: SceneViewModel
+    private lateinit var deviceViewModel: DeviceSelectViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
 
@@ -43,15 +40,19 @@ class DeviceSelectActivity(
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_select)
 
-        viewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
-
         contentAdapter = ContentAdapter()
-        recyclerView = this.findViewById<RecyclerView>(R.id.roomList)
+        recyclerView = this.findViewById<RecyclerView>(R.id.room_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
-        viewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
-            roomsWithDevices -> contentAdapter.setData(roomsWithDevices)
+        sceneViewModel = ViewModelProviders.of(this).get(SceneViewModel::class.java)
+        sceneViewModel.getAllScenes().observe(this, Observer<List<SceneWithActions>> {
+            scenesWithActions -> contentAdapter.setSceneData(scenesWithActions)
+        })
+        deviceViewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
+        deviceViewModel.listenForValueChanges(this)
+        deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
+            roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
 
         executor.reportHandler = { packet ->
@@ -78,10 +79,11 @@ class DeviceSelectActivity(
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (success) {
-                    viewModel.initialiseRooms(server)
+                    deviceViewModel.initialiseRooms(server)
                 }
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, AuthenticateActivity::class.java))
                 }
             })
         }
@@ -121,101 +123,96 @@ class DeviceSelectActivity(
     }
 }
 
-class ContentAdapter() : RecyclerView.Adapter<RoomViewHolder>() {
+class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
 
+    private var sceneData: List<SceneWithActions> = emptyList()
     private var roomData: List<RoomWithDevices> = emptyList()
-    private lateinit var parent: ViewGroup
+    private lateinit var parentView: ViewGroup
 
-    fun setData(newData: List<RoomWithDevices>) {
+    fun setSceneData(newData: List<SceneWithActions>) {
+        this.sceneData = newData
+        notifyDataSetChanged()
+    }
+
+    fun setDeviceData(newData: List<RoomWithDevices>) {
         this.roomData = newData
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RoomViewHolder {
-        this.parent = parent
+    // FIXME: Use content_scene_entry view
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
+        this.parentView = parent
         val view = LayoutInflater.from(parent.context).inflate(R.layout.content_room_entry, parent, false)
-        return RoomViewHolder(view)
+        return SectionViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: SectionViewHolder, position: Int) {
+        if (position == 0) {
+            // Always draw scenes at the top
+            renderScenes(holder)
+        } else {
+            renderDevices(holder, position - 1)
+        }
+    }
+
+    private fun renderScenes(holder: SectionViewHolder) {
+        val sceneTitle : TextView = holder.containerView.findViewById(R.id.room_title)
+        sceneTitle.text = "Scenes" // FIXME: Use content_scene_entry view
+
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
+        buttonList.removeAllViewsInLayout()
+
+        for (sceneWithActions in sceneData) {
+            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+            val item = ListEntryDecorator(button, this.parentView)
+                    .title(sceneWithActions.scene?.title ?: "")
+                    .type("scene")
+                    .build()
+            buttonList.addView(item)
+            item.setOnClickListener {
+                ApplyScene(this.parentView.context, executor)
+                        .execute(sceneWithActions.scene?.id!!)
+            }
+        }
+
+        val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+        val item = ListEntryDecorator(button, this.parentView)
+                .title("Add New Scene")
+                .type("add")
+                .build()
+        buttonList.addView(item)
+        item.setOnClickListener {
+            this.parentView.context.startActivity(Intent(this.parentView.context, AddSceneActivity::class.java))
+        }
+    }
+
+    private fun renderDevices(holder: SectionViewHolder, position: Int) {
         val room = roomData[position].room
-        val roomTitle : TextView = holder.containerView.findViewById(R.id.roomTitle)
+        val roomTitle : TextView = holder.containerView.findViewById(R.id.room_title)
         roomTitle.text = room?.title
 
-        val deviceList : LinearLayout = holder.containerView.findViewById(R.id.deviceList)
-        deviceList.removeAllViewsInLayout()
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
+        buttonList.removeAllViewsInLayout()
+
         for (device in roomData[position].getDevicesInOrder()) {
-            val deviceView = createNewDeviceView(device)
-            deviceView.setOnClickListener {
-                val intent = Intent(parent.context, DeviceControlActivity::class.java)
+            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+            val item = ListEntryDecorator(button, this.parentView)
+                    .title(device.title)
+                    .type(device.type)
+                    .build()
+            item.setOnClickListener {
+                val intent = Intent(this.parentView.context, DeviceControlActivity::class.java)
                 intent.putExtra("selectedRoom", room)
                 intent.putExtra("selectedDevice", device)
-                parent.context.startActivity(intent)
+                this.parentView.context.startActivity(intent)
             }
-            deviceList.addView(deviceView)
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun createNewDeviceView(device : DeviceEntity): View {
-        val settingsRepository = SettingsRepository(WeakReference(parent.context))
-        val settings = settingsRepository.get()
-        val button: Button = LayoutInflater.from(parent.context).inflate(R.layout.content_device_entry, parent, false) as Button
-        button.text = device.title
-        button.textSize = getButtonTextSize(settings.deviceListSize)
-        button.width = getButtonSize(settings.deviceListSize)
-        val image = parent.resources.getDrawable(IconResolver.getDeviceImage(device.title, device.type), null)
-        val imageSize = getButtonImageSize(settings.deviceListSize)
-        image.setBounds(0, 0, imageSize, imageSize)
-        button.setCompoundDrawablesRelative(null, image, null, null)
-        button.setOnTouchListener(applyButtonPressEffect())
-        return button
-    }
-
-    private fun getButtonSize(deviceListSize: DeviceListSize): Int {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_button_size_small
-            else -> R.dimen.select_device_button_size_large
-        }
-        return parent.resources.getDimension(dim).toInt()
-    }
-
-    private fun getButtonImageSize(deviceListSize: DeviceListSize): Int {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_image_size_small
-            else -> R.dimen.select_device_image_size_large
-        }
-        return parent.resources.getDimension(dim).toInt()
-    }
-
-    private fun getButtonTextSize(deviceListSize: DeviceListSize): Float {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_text_size_small
-            else -> R.dimen.select_device_text_size_large
-        }
-        return parent.resources.getDimension(dim) / parent.resources.displayMetrics.density
-    }
-
-    private fun applyButtonPressEffect() : View.OnTouchListener {
-        return View.OnTouchListener { it, event ->
-            val button : Button = it as Button
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    button.setTextColor(Color.parseColor("#FF6000"))
-                    button.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF6000"))
-                    Handler().postDelayed({
-                        button.setTextColor(Color.BLACK)
-                        button.compoundDrawableTintList = ColorStateList.valueOf(Color.BLACK)
-                    }, DEVICE_BUTTON_HIGHLIGHT_LENGTH)
-                }
-            }
-            return@OnTouchListener false
+            buttonList.addView(item)
         }
     }
 
     override fun getItemCount(): Int {
-        return roomData.size
+        return roomData.size + 1
     }
 }
 
-class RoomViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)
+class SectionViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)

@@ -13,7 +13,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_provider_paths"/>
+                android:resource="@xml/file_provider_paths" />
         </provider>
 
         <activity
@@ -40,7 +40,15 @@
         <activity
             android:name=".support.ReportDeviceActivity"
             android:label="@string/title_activity_report_device"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".scene.AddSceneActivity"
+            android:label="@string/title_activity_add_scene"
+            android:parentActivityName=".selection.DeviceSelectActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".selection.DeviceSelectActivity" />
+        </activity>
     </application>
 
 </manifest>

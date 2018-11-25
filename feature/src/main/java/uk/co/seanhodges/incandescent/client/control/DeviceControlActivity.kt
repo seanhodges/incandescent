@@ -41,6 +41,7 @@ class DeviceControlActivity(
         setContentView(R.layout.activity_device_control)
 
         viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
+        viewModel.listenForValueChanges(this)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -99,6 +100,7 @@ class DeviceControlActivity(
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (!success) {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
+                    startActivity(Intent(this, AuthenticateActivity::class.java))
                 }
             })
         }

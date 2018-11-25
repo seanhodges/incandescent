@@ -48,9 +48,9 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
     fun getCredentials(): Credentials {
         val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return Credentials(
-                prefs.getString("accessToken", "")!!,
-                prefs.getString("refreshToken", "")!!,
-                prefs.getString("deviceId", "")!! // Added for convenience
+                prefs.getString("accessToken", null)!!,
+                prefs.getString("refreshToken", null)!!,
+                prefs.getString("deviceId", null)!! // Added for convenience
         )
     }
 

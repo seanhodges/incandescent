@@ -8,6 +8,7 @@ class EventPayloadTypeAdapter {
 
     @ToJson
     @Throws(IOException::class)
+    @Suppress("UNUSED_PARAMETER")
     internal fun toJson(writer: JsonWriter, value: LWEventPayload) {
     }
 

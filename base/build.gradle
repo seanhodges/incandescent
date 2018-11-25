@@ -21,6 +21,7 @@ dependencies {
     api 'androidx.appcompat:appcompat:1.0.0'
     api 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
     api 'com.google.android.material:material:1.0.0'
+    api 'androidx.legacy:legacy-support-v4:1.0.0-alpha1'
     application project(':app')
     feature project(':feature')
 }
