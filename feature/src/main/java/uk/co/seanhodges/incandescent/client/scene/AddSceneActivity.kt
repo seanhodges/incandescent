@@ -42,16 +42,20 @@ class AddSceneActivity : AppCompatActivity() {
         val sceneName = findViewById<EditText>(R.id.scene_name)
 
         fab.setOnClickListener { view ->
-            // Create the new scene and close
-            val name = sceneName.text.toString()
-            if (name.isEmpty()) {
-                Toast.makeText(this, "Please give the scene a name", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            sceneViewModel.save(name, contentAdapter.getEnabledDeviceData())
-            finish()
+            doAddScene(sceneName)
         }
+    }
+
+    private fun doAddScene(sceneName: EditText) {
+        // Create the new scene and close
+        val name = sceneName.text.toString()
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Please give the scene a name", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        sceneViewModel.save(name, contentAdapter.getEnabledDeviceData())
+        finish()
     }
 
     private fun setupActionBar() {
@@ -85,11 +89,25 @@ class ContentAdapter(
         this.deviceData.clear()
         newData.forEach { room ->
             room.devices?.forEach { device ->
-                val title = "${room.room?.title} > ${device.title}"
+                val title = buildLabel(device, room)
                 this.deviceData.add(FlatDeviceRow(title, device))
             }
         }
         notifyDataSetChanged()
+    }
+
+    private fun buildLabel(device: DeviceEntity, room: RoomWithDevices): String {
+        val status = when (device.lastPowerValue) {
+            1 -> {
+                if (device.lastDimValue > 0) {
+                    "On, ${device.lastDimValue}%"
+                } else {
+                    "On"
+                }
+            }
+            else -> "Off"
+        }
+        return "${room.room?.title} > ${device.title} ($status)"
     }
 
     fun getEnabledDeviceData(): List<FlatDeviceRow> {
