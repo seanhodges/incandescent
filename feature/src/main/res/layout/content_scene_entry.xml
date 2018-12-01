@@ -7,12 +7,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/room_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:textSize="18sp"
-        tools:text="Living room" />
+        android:text="@string/scenes_title" />
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -20,7 +19,7 @@
         app:cardCornerRadius="4dp"
         android:layout_margin="0dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/select_room_background"
+        app:cardBackgroundColor="@color/select_scene_background"
         android:layout_gravity="center_horizontal">
 
             <HorizontalScrollView

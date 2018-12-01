@@ -123,6 +123,10 @@ class DeviceSelectActivity(
     }
 }
 
+
+private const val VIEW_TYPE_SCENE = 0
+private const val VIEW_TYPE_ROOM = 1
+
 class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
 
     private var sceneData: List<SceneWithActions> = emptyList()
@@ -139,10 +143,17 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
         notifyDataSetChanged()
     }
 
-    // FIXME: Use content_scene_entry view
+    override fun getItemViewType(position: Int) : Int = when(position) {
+        0 -> VIEW_TYPE_SCENE
+        else -> VIEW_TYPE_ROOM
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
         this.parentView = parent
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.content_room_entry, parent, false)
+        val view = when(viewType) {
+            VIEW_TYPE_SCENE -> LayoutInflater.from(parent.context).inflate(R.layout.content_scene_entry, parent, false)
+            else -> LayoutInflater.from(parent.context).inflate(R.layout.content_room_entry, parent, false)
+        }
         return SectionViewHolder(view)
     }
 
@@ -156,9 +167,6 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
     }
 
     private fun renderScenes(holder: SectionViewHolder) {
-        val sceneTitle : TextView = holder.containerView.findViewById(R.id.room_title)
-        sceneTitle.text = "Scenes" // FIXME: Use content_scene_entry view
-
         val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
 
