@@ -50,7 +50,7 @@ data class SceneEntity(
 ) : Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    var id: Long? = null
+    var id: Long = 0
 
     @ColumnInfo(name = "chosen_count")
     var chosenCount: Int = 0
