@@ -13,11 +13,12 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <!-- Room selection -->
-    <string name="select_device_title">Rooms and appliances</string>
+    <string name="select_device_title">Appliances</string>
     <string name="action_settings">Settings</string>
     <string name="menu_item_title_report_device">Report problem with device</string>
     <string name="report_device_problem">Please describe the device and the problems you\'re having:</string>
     <string name="report_device_name">Please enter your name:</string>
     <string name="compact_view">Compact view</string>
     <string name="scenes_title">Scenes</string>
+    <string name="show_only_active">Show On only</string>
 </resources>

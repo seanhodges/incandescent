@@ -4,7 +4,13 @@
     tools:context="uk.co.seanhodges.incandescent.client.selection.DeviceSelectActivity">
 
     <item
-        android:id="@+id/compact_view"
+        android:id="@+id/action_show_only_active"
+        android:title=""
+        app:showAsAction="withText|always"
+        app:actionLayout="@layout/actionbar_toggle" />
+
+    <item
+        android:id="@+id/action_compact_view"
         android:checkable="true"
         android:title="@string/compact_view" />
 </menu>

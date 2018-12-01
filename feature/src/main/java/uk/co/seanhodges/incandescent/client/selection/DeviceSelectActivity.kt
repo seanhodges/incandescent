@@ -94,7 +94,7 @@ class DeviceSelectActivity(
         val settings = settingsRepository.get()
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.menu_device_select, menu)
-        val compactView = menu.findItem(R.id.compact_view)
+        val compactView = menu.findItem(R.id.action_compact_view)
         compactView?.isChecked = settings.deviceListSize == DeviceListSize.SMALL
         return true
     }
@@ -105,7 +105,7 @@ class DeviceSelectActivity(
                 onBackPressed()
                 return true
             }
-            R.id.compact_view -> {
+            R.id.action_compact_view -> {
                 val deviceListSize = if (item.isChecked) DeviceListSize.LARGE else DeviceListSize.SMALL
                 item.isChecked = deviceListSize == DeviceListSize.SMALL
                 recyclerView.adapter = contentAdapter
