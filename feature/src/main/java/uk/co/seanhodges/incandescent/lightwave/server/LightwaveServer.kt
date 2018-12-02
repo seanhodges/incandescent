@@ -74,7 +74,7 @@ class LightwaveServer : WebSocketListener() {
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
-        val resultStr = res.body()!!.string()
+        val resultStr = res.body()?.string()
         res.close()
 
         println("<<< $resultStr")
@@ -96,7 +96,7 @@ class LightwaveServer : WebSocketListener() {
                 .post(body)
                 .build()
         val res = client.newCall(req).execute()
-        val resultStr = res.body()!!.string()
+        val resultStr = res.body()?.string()
         res.close()
 
         println("<<< $resultStr")
@@ -117,7 +117,9 @@ class LightwaveServer : WebSocketListener() {
     override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)
         val operation = LWOperation("user", senderId, "authenticate")
-        operation.addPayload(LWOperationPayloadConnect(accessToken!!, senderId))
+        accessToken?.let { token ->
+            operation.addPayload(LWOperationPayloadConnect(token, senderId))
+        }
         command(operation)
         this.socketActive = true
         this.reconnectAttempted = false
@@ -126,19 +128,19 @@ class LightwaveServer : WebSocketListener() {
     fun command(command: LWOperation) {
         if (this.webSocket == null && this.socketActive) {
             // We lost websocket connection unexpectedly, retry and wait for connection to open
-            connect(this.accessToken!!, this.senderId)
+            accessToken?.let { token ->
+                connect(token, this.senderId)
+            }
             Thread.sleep(3000)
         }
 
         val json = operationAdapter.toJson(command)
         println(">>> $json")
-        this.webSocket!!.send(json)
+        this.webSocket?.send(json)
     }
 
     fun disconnect() {
-        if (webSocket != null) {
-            webSocket!!.close(SOCKET_CLOSE_STATUS, "")
-        }
+        webSocket?.close(SOCKET_CLOSE_STATUS, "")
         this.socketActive = false
     }
 
@@ -155,7 +157,9 @@ class LightwaveServer : WebSocketListener() {
             event?.json = text
 
             for (listener in listeners) {
-                listener.onEvent(event!!)
+                event?.let {
+                    listener.onEvent(it)
+                }
             }
         } catch (e: IOException) {
             this.onFailure(webSocket, e, null)
@@ -168,7 +172,9 @@ class LightwaveServer : WebSocketListener() {
         if (t is SSLException && t.message?.contains("Software caused connection abort") == true && !this.reconnectAttempted) {
             // Likely the device network state changed and okhttp could not recover, try and reconnect once more
             this.reconnectAttempted = true
-            connect(this.accessToken!!, this.senderId)
+            this.accessToken?.let { token ->
+                connect(token, this.senderId)
+            }
             return
         }
 
