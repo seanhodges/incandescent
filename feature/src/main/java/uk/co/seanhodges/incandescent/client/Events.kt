@@ -39,7 +39,9 @@ class DeviceChangeHandler(server: LightwaveServer,
 
         val payload : LWEventPayloadFeature = event.items[0].payload as LWEventPayloadFeature
         if (payload.featureId == null || payload.featureId.isEmpty()) {
-            payload.featureId = loadItemIdToFeatureId[event.items[0].itemId]!!
+            loadItemIdToFeatureId[event.items[0].itemId]?.let { itemId ->
+                payload.featureId = itemId
+            }
         }
         val featureId : String = payload.featureId
 

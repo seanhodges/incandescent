@@ -9,32 +9,34 @@ import java.util.*
 private const val PREFS_NAME : String = "Incandescent.Prefs.Auth"
 private const val PREFS_VERSION : Int = 2
 
-class AuthRepository(private val ctx: WeakReference<Context>) {
+class AuthRepository(private val ctxRef: WeakReference<Context>) {
 
     fun save(details: LWAuthenticatedResult) {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-                .putInt("prefsVersion", PREFS_VERSION)
-                .putString("userId", details._id)
-                .putString("deviceId", UUID.randomUUID().toString())
-                .putString("givenName", details.givenName)
-                .putString("familyName", details.familyName)
-                .putString("accessToken", details.tokens.accessToken)
-                .putString("idToken", details.tokens.idToken)
-                .putString("refreshToken", details.tokens.refreshToken)
-                .putString("tokenType", details.tokens.tokenType)
-                .putLong("expiresIn", details.tokens.expiresIn)
-                .putLong("createdOn", System.currentTimeMillis())
-                .apply()
+        ctxRef.get()?.let { ctx ->
+            val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                    .putInt("prefsVersion", PREFS_VERSION)
+                    .putString("userId", details._id)
+                    .putString("deviceId", UUID.randomUUID().toString())
+                    .putString("givenName", details.givenName)
+                    .putString("familyName", details.familyName)
+                    .putString("accessToken", details.tokens.accessToken)
+                    .putString("idToken", details.tokens.idToken)
+                    .putString("refreshToken", details.tokens.refreshToken)
+                    .putString("tokenType", details.tokens.tokenType)
+                    .putLong("expiresIn", details.tokens.expiresIn)
+                    .putLong("createdOn", System.currentTimeMillis())
+                    .apply()
+        }
     }
 
     fun isAuthenticated(): Boolean {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs != null && prefs.contains("accessToken") && prefs.contains("refreshToken")
     }
 
     fun isExpired(): Boolean {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         if (!prefs.contains("accessToken")) {
             return true
         }
@@ -46,7 +48,7 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
     }
 
     fun getCredentials(): Credentials {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return Credentials(
                 prefs.getString("accessToken", null)!!,
                 prefs.getString("refreshToken", null)!!,
@@ -55,21 +57,23 @@ class AuthRepository(private val ctx: WeakReference<Context>) {
     }
 
     fun updateCredentials(tokens: LWAuthenticatedTokens) {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-                .putString("accessToken", tokens.accessToken)
-                .putString("refreshToken", tokens.refreshToken)
-                .putLong("createdOn", System.currentTimeMillis())
-                .apply()
+        ctxRef.get()?.let { ctx ->
+            val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                    .putString("accessToken", tokens.accessToken)
+                    .putString("refreshToken", tokens.refreshToken)
+                    .putLong("createdOn", System.currentTimeMillis())
+                    .apply()
+        }
     }
 
     fun getUserId(): String {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getString("userId", null)!!
     }
 
     fun getDeviceId(): String {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getString("deviceId", null)!!
     }
 }

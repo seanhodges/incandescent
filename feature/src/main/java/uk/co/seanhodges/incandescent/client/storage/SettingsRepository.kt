@@ -11,18 +11,20 @@ enum class DeviceListSize {
     LARGE
 }
 
-class SettingsRepository(private val ctx: WeakReference<Context>) {
+class SettingsRepository(private val ctxRef: WeakReference<Context>) {
 
     fun save(settings: AppSettings) {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit()
-                .putInt("prefsVersion", PREFS_VERSION)
-                .putString("deviceListSize", settings.deviceListSize.name)
-                .apply()
+        ctxRef.get()?.let { ctx ->
+            val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                    .putInt("prefsVersion", PREFS_VERSION)
+                    .putString("deviceListSize", settings.deviceListSize.name)
+                    .apply()
+        }
     }
 
     fun get(): AppSettings {
-        val prefs = ctx.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val deviceSizeList = prefs.getString("deviceListSize", DeviceListSize.SMALL.name)!!
         return AppSettings(DeviceListSize.valueOf(deviceSizeList))
     }

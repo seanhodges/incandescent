@@ -73,7 +73,7 @@ class AuthenticateActivity : AppCompatActivity() {
             showProgress(true)
             val authRepository = AuthRepository(WeakReference(applicationContext))
             authTask = AuthenticateTask(authRepository, emailStr, passwordStr)
-            authTask!!.execute(server)
+            authTask?.execute(server)
         }
     }
 
@@ -132,7 +132,7 @@ class AuthenticateActivity : AppCompatActivity() {
             authTask = null
             showProgress(false)
 
-            if (success!!) {
+            if (success == true) {
                 finish()
             } else {
                 password.error = getString(R.string.error_incorrect_password)
