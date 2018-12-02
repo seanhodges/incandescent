@@ -115,7 +115,9 @@ class DeviceSelectActivity(
             // Forward custom actionbar controls to the normal options item handler
             val item = menu.getItem(i)
             if (item.itemId == R.id.action_show_only_active) {
-                val switch = item.actionView.findViewById<Switch>(R.id.show_only_active_switch)
+                val switch: Switch = item.actionView.findViewById(R.id.show_only_active_switch)
+                switch.isChecked = settings.showOnlyActiveDevices
+                contentAdapter.setFilters(switch.isChecked)
                 switch.setOnClickListener {
                     when (it) {
                         is Switch -> item.isChecked = it.isChecked
@@ -137,6 +139,8 @@ class DeviceSelectActivity(
             R.id.action_show_only_active -> {
                 Log.d(javaClass.name, "Setting active only filter to ${item.isChecked}")
                 contentAdapter.setFilters(item.isChecked)
+                val settingsRepository = SettingsRepository(WeakReference(applicationContext))
+                settingsRepository.updateShowOnlyActiveDevices(item.isChecked)
                 return true;
             }
             R.id.action_compact_view -> {
@@ -144,7 +148,7 @@ class DeviceSelectActivity(
                 item.isChecked = deviceListSize == DeviceListSize.SMALL
                 recyclerView.adapter = contentAdapter
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
-                settingsRepository.save(AppSettings(deviceListSize))
+                settingsRepository.updateDeviceListSize(deviceListSize)
                 return true;
             }
         }
