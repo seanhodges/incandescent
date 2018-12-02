@@ -2,14 +2,12 @@ package uk.co.seanhodges.incandescent.client.selection
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import uk.co.seanhodges.incandescent.client.Inject
@@ -112,6 +110,21 @@ class DeviceSelectActivity(
         inflater.inflate(R.menu.menu_device_select, menu)
         val compactView = menu.findItem(R.id.action_compact_view)
         compactView?.isChecked = settings.deviceListSize == DeviceListSize.SMALL
+
+        for (i in 0.until(menu.size())) {
+            // Forward custom actionbar controls to the normal options item handler
+            val item = menu.getItem(i)
+            if (item.itemId == R.id.action_show_only_active) {
+                val switch = item.actionView.findViewById<Switch>(R.id.show_only_active_switch)
+                switch.setOnClickListener {
+                    when (it) {
+                        is Switch -> item.isChecked = it.isChecked
+                    }
+                    onOptionsItemSelected(item)
+                }
+            }
+        }
+
         return true
     }
 
@@ -120,6 +133,11 @@ class DeviceSelectActivity(
             android.R.id.home -> {
                 onBackPressed()
                 return true
+            }
+            R.id.action_show_only_active -> {
+                Log.d(javaClass.name, "Setting active only filter to ${item.isChecked}")
+                contentAdapter.setFilters(item.isChecked)
+                return true;
             }
             R.id.action_compact_view -> {
                 val deviceListSize = if (item.isChecked) DeviceListSize.LARGE else DeviceListSize.SMALL
@@ -148,6 +166,7 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
     private var sceneData: List<SceneWithActions> = emptyList()
     private var roomData: List<RoomWithDevices> = emptyList()
     private lateinit var parentView: ViewGroup
+    private var activeOnly = false
 
     fun setSceneData(newData: List<SceneWithActions>) {
         this.sceneData = newData
@@ -156,6 +175,11 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
 
     fun setDeviceData(newData: List<RoomWithDevices>) {
         this.roomData = newData
+        notifyDataSetChanged()
+    }
+
+    fun setFilters(activeOnly: Boolean) {
+        this.activeOnly = activeOnly
         notifyDataSetChanged()
     }
 
@@ -218,7 +242,11 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
         val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
 
-        for (device in roomData[position].getDevicesInOrder()) {
+        roomData[position].getDevicesInOrder().forEach { device ->
+            if (activeOnly && device.lastPowerValue == 0) {
+                return@forEach
+            }
+
             val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
             val item = ListEntryDecorator(button, this.parentView)
                     .title(device.title)
@@ -232,6 +260,15 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
                 this.parentView.context.startActivity(intent)
             }
             buttonList.addView(item)
+        }
+
+        // If there are no devices, collapse the row
+        setVisibility(if (buttonList.childCount == 0) View.GONE else View.VISIBLE, roomTitle, buttonList)
+    }
+
+    private fun setVisibility(visibility: Int, vararg views: View) {
+        views.forEach {
+            it.visibility = visibility
         }
     }
 
