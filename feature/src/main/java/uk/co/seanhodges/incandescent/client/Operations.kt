@@ -12,6 +12,8 @@ import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadFeature
 import uk.co.seanhodges.incandescent.lightwave.server.LWAuthenticatedTokens
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.LinkedBlockingDeque
 
 
 class OperationExecutor(
@@ -20,8 +22,8 @@ class OperationExecutor(
 ) : LWEventListener {
 
     private val handlerThread = HandlerThread(EXECUTOR_NAME)
-    private val loadQueue = arrayListOf<String>()
-    private val changeQueue = mutableMapOf<String, Int>()
+    private val loadQueue = LinkedBlockingDeque<String>()
+    private val changeQueue = ConcurrentHashMap<String, Int>()
 
     private var senderId: String = ""
 
@@ -33,6 +35,10 @@ class OperationExecutor(
 
     fun enqueueLoad(featureId : String) {
         loadQueue.add(featureId)
+    }
+
+    fun enqueueLoadAll(featureIds : List<String>) {
+        loadQueue.addAll(featureIds)
     }
 
     fun enqueueChange(featureId : String, newValue : Int) {
@@ -91,37 +97,44 @@ class OperationExecutor(
     }
 
     fun processOperations() {
-        loadQueue.forEach { featureId: String ->
-            try {
-                val operation = LWOperation("feature", senderId, "read")
-                operation.addPayload(LWOperationPayloadFeature(featureId))
-
-                // We're forcing the transaction ID into the itemId field to handle an API bug:
-                // LW doesn't return any reliable reference back for these events, so we don't know which feature the value is for.
-                // Using the itemId we can map feature read events back to the feature that originally requested them
-                operation.items[0].itemId = operation.transactionId
-                loadItemIdToFeatureId[operation.items[0].itemId] = featureId
-
-                server.command(operation)
-            }
-            catch (e: Throwable) {
-                Log.e(javaClass.name, "Server error while processing load operation", e)
-            }
+        while (!loadQueue.isEmpty()) {
+            val featureId = loadQueue.take()
+            doProcessLoad(featureId)
         }
-        loadQueue.clear()
 
-        changeQueue.keys.forEach { featureId: String ->
-            try {
-                val newValue: Int? = changeQueue[featureId]
-                val operation = LWOperation("feature", senderId, "write")
-                operation.addPayload(LWOperationPayloadFeature(featureId, newValue!!))
-                server.command(operation)
-            }
-            catch (e: Throwable) {
-                Log.e(javaClass.name, "Server error while processing change operation", e)
-            }
+        changeQueue.entries.forEach { entry ->
+            doProcessChange(entry.key, entry.value)
         }
         changeQueue.clear()
+    }
+
+    private fun doProcessLoad(featureId: String) {
+        try {
+            val operation = LWOperation("feature", senderId, "read")
+            operation.addPayload(LWOperationPayloadFeature(featureId))
+
+            // We're forcing the transaction ID into the itemId field to handle an API bug:
+            // LW doesn't return any reliable reference back for these events, so we don't know which feature the value is for.
+            // Using the itemId we can map feature read events back to the feature that originally requested them
+            operation.items[0].itemId = operation.transactionId
+            loadItemIdToFeatureId[operation.items[0].itemId] = featureId
+
+            server.command(operation)
+        }
+        catch (e: Throwable) {
+            Log.e(javaClass.name, "Server error while processing load operation", e)
+        }
+    }
+
+    private fun doProcessChange(featureId: String, value: Int) {
+        try {
+            val operation = LWOperation("feature", senderId, "write")
+            operation.addPayload(LWOperationPayloadFeature(featureId, value))
+            server.command(operation)
+        }
+        catch (e: Throwable) {
+            Log.e(javaClass.name, "Server error while processing change operation", e)
+        }
     }
 
     companion object {

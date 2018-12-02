@@ -75,9 +75,7 @@ class AddSceneActivity : AppCompatActivity() {
 
 }
 
-class ContentAdapter(
-        private val executor: OperationExecutor = Inject.executor
-) : RecyclerView.Adapter<SectionViewHolder>() {
+class ContentAdapter : RecyclerView.Adapter<SectionViewHolder>() {
 
     private var deviceData: MutableList<FlatDeviceRow> = mutableListOf()
     private lateinit var parentView: ViewGroup
@@ -128,12 +126,6 @@ class ContentAdapter(
 
         holder.containerView.findViewById<Switch>(R.id.use_device).setOnCheckedChangeListener { _, checked ->
             device.enabled = checked
-
-            // Update the values if the device is enabled
-            if (checked) {
-                device.device.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
-                device.device.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
-            }
         }
     }
 

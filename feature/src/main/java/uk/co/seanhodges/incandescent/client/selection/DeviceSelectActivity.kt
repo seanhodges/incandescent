@@ -35,6 +35,10 @@ class DeviceSelectActivity(
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
 
+    // FIXME: Avoids an infinite loop when the DB observer is triggered by the device refresh commands
+    // Ideally we fetch the devices outside the observer and trigger observe only after they've finished
+    private var firstTimeLoad = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setupActionBar()
         super.onCreate(savedInstanceState)
@@ -51,13 +55,25 @@ class DeviceSelectActivity(
         })
         deviceViewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
         deviceViewModel.listenForValueChanges(this)
-        deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
-            roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
+        deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
+            contentAdapter.setDeviceData(roomsWithDevices)
+            if (firstTimeLoad) {
+                firstTimeLoad = false
+                refreshDeviceValues(roomsWithDevices)
+            }
         })
 
         executor.reportHandler = { packet ->
             //@see OperationExecutor.onRawEvent()
             GatherDeviceReport(this).saveReport(packet)
+        }
+    }
+
+    private fun refreshDeviceValues(roomsWithDevices: List<RoomWithDevices>) {
+        roomsWithDevices.forEach { room ->
+            executor.enqueueLoadAll(room.devices!!.flatMap {
+                arrayOf(it.powerCommand, it.dimCommand).filterNotNull()
+            })
         }
     }
 
