@@ -201,7 +201,7 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
 
         val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
         val item = ListEntryDecorator(button, this.parentView)
-                .title("Add New Scene")
+                .title(parentView.resources.getString(R.string.add_new_scene_label))
                 .type("add")
                 .build()
         buttonList.addView(item)

@@ -20,5 +20,6 @@
     <string name="report_device_name">Please enter your name:</string>
     <string name="compact_view">Compact view</string>
     <string name="scenes_title">Scenes</string>
+    <string name="add_new_scene_label">Add New Scene</string>
     <string name="show_only_active">Show On only</string>
 </resources>
