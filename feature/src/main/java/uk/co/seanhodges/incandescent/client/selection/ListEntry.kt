@@ -17,10 +17,15 @@ import java.lang.ref.WeakReference
 
 private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
+private const val ENTRY_DEFAULT_COLOUR = "#000000"
+private const val ENTRY_SELECTED_COLOUR = "#00927C"
+private const val ENTRY_ACTIVE_COLOUR = "#FF6000"
+
 class ListEntryDecorator(private val button: Button, private val parent: ViewGroup) {
 
     private var title: String = ""
     private var type: String = ""
+    private var active: Boolean = false
 
     fun title(title: String) = apply {
         this.title = title
@@ -28,6 +33,10 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
 
     fun type(type: String) = apply {
         this.type = type
+    }
+
+    fun active(active: Boolean) = apply {
+        this.active = active
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -42,6 +51,9 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
         image.setBounds(0, 0, imageSize, imageSize)
         button.setCompoundDrawablesRelative(null, image, null, null)
         button.setOnTouchListener(applyButtonPressEffect())
+        if (active) {
+            setButtonColour(ENTRY_ACTIVE_COLOUR)
+        }
         return button
     }
 
@@ -82,15 +94,20 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
             val button : Button = it as Button
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    button.setTextColor(Color.parseColor("#FF6000"))
-                    button.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor("#FF6000"))
+                    setButtonColour(ENTRY_SELECTED_COLOUR)
                     Handler().postDelayed({
-                        button.setTextColor(Color.BLACK)
-                        button.compoundDrawableTintList = ColorStateList.valueOf(Color.BLACK)
+                        setButtonColour(if (active) ENTRY_ACTIVE_COLOUR else ENTRY_DEFAULT_COLOUR)
                     }, DEVICE_BUTTON_HIGHLIGHT_LENGTH)
                 }
             }
             return@OnTouchListener false
         }
     }
+
+    private fun setButtonColour(colour: String) {
+        button.setTextColor(Color.parseColor(colour))
+        button.compoundDrawableTintList = ColorStateList.valueOf(Color.parseColor(colour))
+    }
+
+
 }

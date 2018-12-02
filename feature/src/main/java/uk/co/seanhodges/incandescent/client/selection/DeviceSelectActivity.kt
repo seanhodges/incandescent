@@ -223,6 +223,7 @@ class ContentAdapter() : RecyclerView.Adapter<SectionViewHolder>() {
             val item = ListEntryDecorator(button, this.parentView)
                     .title(device.title)
                     .type(device.type)
+                    .active(device.lastPowerValue == 1)
                     .build()
             item.setOnClickListener {
                 val intent = Intent(this.parentView.context, DeviceControlActivity::class.java)
