@@ -15,8 +15,8 @@
     <!-- Room selection -->
     <string name="select_device_title">Appliances</string>
     <string name="action_settings">Settings</string>
-    <string name="menu_item_title_report_device">Report problem with device</string>
-    <string name="report_device_problem">Please describe the device and the problems you\'re having:</string>
+    <string name="menu_item_title_report_device">Report problem with appliance</string>
+    <string name="report_device_problem">Please describe the applicance and the problems you\'re having:</string>
     <string name="report_device_name">Please enter your name:</string>
     <string name="compact_view">Compact view</string>
     <string name="scenes_title">Scenes</string>
