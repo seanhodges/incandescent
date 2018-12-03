@@ -49,6 +49,17 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".selection.DeviceSelectActivity" />
         </activity>
+
+        <receiver
+            android:name=".receive.LocaleReceiver"
+            android:exported="true"
+            android:process=":background"
+            tools:ignore="ExportedReceiver">
+
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

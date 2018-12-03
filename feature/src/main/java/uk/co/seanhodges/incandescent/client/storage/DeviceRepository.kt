@@ -39,6 +39,9 @@ interface DeviceDao {
     @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
     fun findByCommandId(commandId: String): DeviceEntity?
 
+    @Query("SELECT * FROM device INNER JOIN room ON room.id = device.room_id WHERE room.title = :roomName AND device.title = :deviceName")
+    fun findByRoomAndDeviceName(roomName: String, deviceName: String) : DeviceEntity
+
     @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)
 
