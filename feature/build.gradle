@@ -21,6 +21,10 @@ dependencies {
     def room_version = "2.0.0"
     def lifecycle_version = "2.0.0"
 
+
+    implementation "com.twofortyfouram:android-plugin-api-for-locale:1.0.4"
+    implementation "com.twofortyfouram:android-plugin-client-sdk-for-locale:1.0.1"
+
 //    implementation 'com.sdsmdg.harjot:croller:1.0.7'
     implementation files('libs/croller-1.1.0-SNAPSHOT.aar')
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
