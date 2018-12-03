@@ -90,8 +90,7 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
     }
 
     private fun applyButtonPressEffect() : View.OnTouchListener {
-        return View.OnTouchListener { it, event ->
-            val button : Button = it as Button
+        return View.OnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     setButtonColour(ENTRY_SELECTED_COLOUR)

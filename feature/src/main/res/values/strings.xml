@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="application_name">Incandescent</string>
     <!-- Device control -->
     <string name="switch_off">Off</string>
     <string name="switch_on">On</string>
@@ -27,4 +28,8 @@
     <string name="alert_title_no_internet">No internet connection</string>
     <string name="alert_title_delete_scene">Delete scene</string>
     <string name="alert_message_delete_scene">Are you sure?</string>
+    <!-- Receiver -->
+    <string name="menu_cancel">Cancel</string>
+    <string name="room_name_hint">Room name</string>
+    <string name="appliance_name_hint">Appliance name</string>
 </resources>

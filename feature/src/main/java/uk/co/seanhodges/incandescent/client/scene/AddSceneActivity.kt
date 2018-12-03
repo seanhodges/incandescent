@@ -46,7 +46,7 @@ class AddSceneActivity : AppCompatActivity() {
 
         val sceneName = findViewById<EditText>(R.id.scene_name)
 
-        fab.setOnClickListener {
+        fab.setOnClickListener { _ ->
             doAddScene(sceneName)
         }
     }

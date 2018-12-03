@@ -82,7 +82,7 @@ class LightwaveServer : WebSocketListener() {
         res.close()
 
         println("<<< $resultStr")
-        return authenticatedAdapter.fromJson(resultStr)!!
+        return authenticatedAdapter.fromJson(resultStr!!)!!
     }
 
     fun refreshToken(refreshToken: String): LWAuthenticatedTokens  {
@@ -104,7 +104,7 @@ class LightwaveServer : WebSocketListener() {
         res.close()
 
         println("<<< $resultStr")
-        return tokensAdapter.fromJson(resultStr)!!
+        return tokensAdapter.fromJson(resultStr!!)!!
     }
 
     fun connect(accessToken: String, senderId: String) {

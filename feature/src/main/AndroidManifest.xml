@@ -51,8 +51,29 @@
                 android:value=".selection.DeviceSelectActivity" />
         </activity>
 
+        <!-- Intent API for Locale and similar automation apps -->
+        <activity
+            android:name=".receive.MakeBundleActivity"
+            android:exported="false"
+            android:label="@string/application_name"
+            android:theme="@style/Theme.AppCompat"
+            android:uiOptions="splitActionBarWhenNarrow"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="UnusedAttribute">
+        </activity>
+        <activity-alias
+            android:name=".receive.PluginActivity"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/application_name"
+            android:targetActivity=".receive.MakeBundleActivity"
+            tools:ignore="ExportedActivity">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING"/>
+            </intent-filter>
+        </activity-alias>
         <receiver
-            android:name=".receive.LocaleReceiver"
+            android:name=".receive.OperationReceiver"
             android:exported="true"
             android:process=":background"
             tools:ignore="ExportedReceiver">
