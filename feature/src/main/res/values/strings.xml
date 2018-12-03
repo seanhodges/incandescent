@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="application_name">Incandescent</string>
     <!-- Device control -->
     <string name="switch_off">Off</string>
     <string name="switch_on">On</string>
@@ -23,4 +24,7 @@
     <string name="show_only_active_label">Hide switched off appliances</string>
     <string name="compact_view_label">Compact view</string>
     <string name="refresh_appliances_label">Refresh appliance list</string>
+    <string name="menu_cancel">Cancel</string>
+    <string name="room_name_hint">Room name</string>
+    <string name="appliance_name_hint">Appliance name</string>
 </resources>
