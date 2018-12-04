@@ -56,10 +56,26 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
 
 val MIGRATION_3_4: Migration = object : Migration(3, 4) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE scene ADD COLUMN id INTEGER NOT NULL")
-        database.execSQL("ALTER TABLE scene ADD COLUMN title TEXT NOT NULL")
-        database.execSQL("ALTER TABLE scene ADD COLUMN chosen_count INTEGER NOT NULL DEFAULT 0")
-        database.execSQL("CREATE INDEX idx_scene_chosen_count ON scene(chosen_count)")
-        database.execSQL("CREATE INDEX idx_scene_title ON scene(title)")
+        // A funny thing happened for this migration; for some upgrading devices
+        // Room had created empty scene tables, but for others these didn't exist.
+        // For this migration we force the tables to be recreated
+        database.execSQL("DROP TABLE IF EXISTS scene")
+        database.execSQL(
+        """
+            CREATE TABLE scene(
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                chosen_count INTEGER NOT NULL)
+            """)
+        database.execSQL("DROP TABLE IF EXISTS scene_action")
+        database.execSQL(
+            """
+            CREATE TABLE scene_action (
+                scene_id INTEGER,
+                id TEXT NOT NULL PRIMARY KEY,
+                feature_value INTEGER NOT NULL)
+            """)
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_scene_chosen_count ON scene(chosen_count)")
+        database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_scene_title ON scene(title)")
     }
 }
