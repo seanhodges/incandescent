@@ -17,12 +17,12 @@ interface RoomDao {
     fun loadAllWithDevices(): LiveData<List<RoomWithDevices>>
 
     @Query("SELECT count(id) FROM room")
-    fun count(): Int
+    fun count(): LiveData<Int>
 
     @Query("UPDATE room SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertRoomAndDevices(room: RoomEntity, devices: List<DeviceEntity>)
 }
 
@@ -30,7 +30,7 @@ interface RoomDao {
 interface DeviceDao {
 
     @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
-    fun findByCommandId(commandId: String): DeviceEntity
+    fun findByCommandId(commandId: String): DeviceEntity?
 
     @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)

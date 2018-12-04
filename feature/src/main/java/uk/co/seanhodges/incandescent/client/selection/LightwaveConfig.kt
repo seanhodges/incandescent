@@ -53,10 +53,11 @@ class LightwaveConfigLoader(
         Log.e(javaClass.name, "Failed to load group data from server", error)
     }
 
-    fun load(onComplete: (hierarchy: String, info: LWEventPayloadGroup) -> Unit) {
+    fun load(preAuthenticated: Boolean, onComplete: (hierarchy: String, info: LWEventPayloadGroup) -> Unit) {
         this.onComplete = onComplete
-
-        // Must wait for authentication before loading group info, see onEvent()
+        if (preAuthenticated) {
+            getRootGroupId()
+        }
     }
 
     private fun getRootGroupId() {

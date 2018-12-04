@@ -1,11 +1,14 @@
 package uk.co.seanhodges.incandescent.client.selection
 
+import android.app.Activity
 import android.app.Application
 import android.os.AsyncTask
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.LastValueChangeListener
 import uk.co.seanhodges.incandescent.client.storage.AppDatabase
@@ -14,6 +17,7 @@ import uk.co.seanhodges.incandescent.client.storage.RoomDao
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroup
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
+import java.lang.ref.WeakReference
 
 
 class DeviceSelectViewModel(
@@ -23,6 +27,7 @@ class DeviceSelectViewModel(
     private val roomDao: RoomDao = AppDatabase.getDatabase(application).roomDao()
     private val deviceDao: DeviceDao = AppDatabase.getDatabase(application).deviceDao()
     private val roomsWithDevices: LiveData<List<RoomWithDevices>> = roomDao.loadAllWithDevices()
+    private val server: LightwaveServer = Inject.server
     private val lastValueChangeListener: LastValueChangeListener = Inject.lastValueChangeListener
 
     fun listenForValueChanges(owner: LifecycleOwner) {
@@ -33,25 +38,28 @@ class DeviceSelectViewModel(
         return roomsWithDevices
     }
 
-    fun initialiseRooms(server: LightwaveServer) {
-        InitialiseRoomsTask(roomDao, server).execute()
+    fun initialiseList(owner: LifecycleOwner) {
+        Log.i(javaClass.name, "Initialising list")
+        roomDao.count().observe(owner, Observer<Int>{ count: Int ->
+            if (count <= 0) {
+                RefreshListTask(roomDao, server) {
+                    Log.i(javaClass.name, "Complete")
+                }.execute(false)
+            }
+        })
     }
 
-    private class InitialiseRoomsTask(
-            private val roomDao: RoomDao,
-            private val server: LightwaveServer
-    ) : AsyncTask<Void, Void, Void>() {
+    fun refreshList(activity: Activity) {
+        val activityRef = WeakReference(activity)
 
-        override fun doInBackground(vararg params: Void): Void? {
-            if (roomDao.count() < 1) {
-                LightwaveConfigLoader(server).load { hierarchy: String, info: LWEventPayloadGroup ->
-                    LightwaveConfigParser(hierarchy, info).parse { room, devices ->
-                        Log.d(javaClass.name, "Adding room ${room.title} with ${devices.size} devices")
-                        roomDao.insertRoomAndDevices(room, devices)
-                    }
+        Log.i(javaClass.name, "Refreshing list")
+        RefreshListTask(roomDao, server) {
+            Log.i(javaClass.name, "Complete")
+            activityRef.get()?.let { activity ->
+                activity.runOnUiThread {
+                    Toast.makeText(activity, "Appliance list updated", Toast.LENGTH_SHORT).show()
                 }
             }
-            return null
-        }
+        }.execute(true)
     }
 }

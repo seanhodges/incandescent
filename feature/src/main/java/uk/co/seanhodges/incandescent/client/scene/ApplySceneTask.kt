@@ -10,7 +10,7 @@ import uk.co.seanhodges.incandescent.client.storage.AppDatabase
 import uk.co.seanhodges.incandescent.client.storage.SceneDao
 import java.lang.ref.WeakReference
 
-class ApplyScene(
+class ApplySceneTask(
         ctx: Context,
         private val executor: OperationExecutor = Inject.executor
 ) : AsyncTask<Long, Void, String>() {
