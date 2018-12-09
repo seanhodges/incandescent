@@ -1,16 +1,14 @@
 package uk.co.seanhodges.incandescent.client.storage
 
-import android.content.Context
 import androidx.lifecycle.LiveData
-import androidx.room.Database
 import androidx.room.*
 import java.io.Serializable
-import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.room.migration.Migration
-import androidx.room.Room
 
 @Dao
 interface RoomDao {
+
+    @Query("SELECT * FROM room WHERE id = :id")
+    fun findById(id: String): RoomEntity?
 
     @Transaction
     @Query("SELECT * FROM room ORDER BY chosen_count DESC, id")
@@ -24,10 +22,19 @@ interface RoomDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertRoomAndDevices(room: RoomEntity, devices: List<DeviceEntity>)
+
+    @Query("UPDATE room SET title = :title WHERE id = :id")
+    fun updateRoom(id: String, title: String)
+
+    @Query("DELETE FROM room WHERE id NOT IN (:ids)")
+    fun deleteRoomsNotInList(ids: List<String>)
 }
 
 @Dao
 interface DeviceDao {
+
+    @Query("SELECT * FROM device WHERE id = :id")
+    fun findById(id: String): DeviceEntity?
 
     @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
     fun findByCommandId(commandId: String): DeviceEntity?
@@ -40,6 +47,12 @@ interface DeviceDao {
 
     @Query("UPDATE device SET last_value_power = :value WHERE id = :deviceId")
     fun setLastPowerValue(deviceId: String, value : Int)
+
+    @Query("UPDATE device SET title = :title, room_id = :roomId WHERE id = :id")
+    fun updateDevice(id: String, title: String, roomId: String)
+
+    @Query("DELETE FROM device WHERE id NOT IN (:ids)")
+    fun deleteDevicesNotInList(ids: List<String>)
 }
 
 

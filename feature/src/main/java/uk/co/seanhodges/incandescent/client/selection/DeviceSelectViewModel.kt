@@ -42,7 +42,7 @@ class DeviceSelectViewModel(
         Log.i(javaClass.name, "Initialising list")
         roomDao.count().observe(owner, Observer<Int>{ count: Int ->
             if (count <= 0) {
-                RefreshListTask(roomDao, server) {
+                RefreshListTask(roomDao, deviceDao, server) {
                     Log.i(javaClass.name, "Complete")
                 }.execute(false)
             }
@@ -53,7 +53,7 @@ class DeviceSelectViewModel(
         val activityRef = WeakReference(activity)
 
         Log.i(javaClass.name, "Refreshing list")
-        RefreshListTask(roomDao, server) {
+        RefreshListTask(roomDao, deviceDao, server) {
             Log.i(javaClass.name, "Complete")
             activityRef.get()?.let { activity ->
                 activity.runOnUiThread {
