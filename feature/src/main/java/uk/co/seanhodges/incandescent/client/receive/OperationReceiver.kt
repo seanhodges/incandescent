@@ -25,6 +25,8 @@ class OperationReceiver(
 
         val deviceDao = AppDatabase.getDatabase(context).deviceDao()
         val device = deviceDao.findByRoomAndDeviceName(operation.roomName, operation.applianceName)
+
+        //TODO: Authenticate if necessary
         applyPowerValue(operation, device)
         applyDimValue(operation, device)
     }

@@ -9,8 +9,14 @@ import android.widget.EditText
 
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractLocalePluginActivity
 import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.storage.AppDatabase
+import uk.co.seanhodges.incandescent.client.storage.DeviceDao
+import uk.co.seanhodges.incandescent.client.storage.RoomDao
 
 class MakeBundleActivity : AbstractLocalePluginActivity() {
+
+    private val roomDao: RoomDao = AppDatabase.getDatabase(application).roomDao()
+    private val deviceDao: DeviceDao = AppDatabase.getDatabase(application).deviceDao()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,11 +44,14 @@ class MakeBundleActivity : AbstractLocalePluginActivity() {
     }
 
     override fun getResultBundle(): Bundle? {
-        val operation = OperationBundle(
-                findViewById<EditText>(R.id.room_name).text.toString(),
-                findViewById<EditText>(R.id.appliance_name).text.toString(),
-                null, null // TODO
-        )
+        val roomName = findViewById<EditText>(R.id.room_name).text.toString()
+        val deviceName = findViewById<EditText>(R.id.appliance_name).text.toString()
+
+        val device = deviceDao.findByRoomAndDeviceName(roomName, deviceName)
+        executor.enqueueLoadAll(arrayOf(device.powerCommand, device.dimCommand).filterNotNull())
+
+        // FIXME: run executor first, then build bundle
+        val operation = OperationBundle(roomName, deviceName, device.lastPowerValue == 1, device.lastDimValue)
         if (!TextUtils.isEmpty(operation.roomName) && !TextUtils.isEmpty(operation.applianceName)) {
             return BundleUtils.generateBundle(operation)
         }
@@ -80,7 +89,7 @@ class MakeBundleActivity : AbstractLocalePluginActivity() {
             finish()
         }
         else if (R.id.menu_cancel == item.itemId) {
-            mIsCancelled = true // Signal to AbstractAppCompatPluginActivity that the user canceled.
+            mIsCancelled = true // Signal to AbstractAppCompatPluginActivity that the user cancelled.
             finish()
             return true
         }
