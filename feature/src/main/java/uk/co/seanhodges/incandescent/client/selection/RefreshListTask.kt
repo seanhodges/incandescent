@@ -14,9 +14,9 @@ class RefreshListTask(
         private val deviceDao: DeviceDao,
         private val server: LightwaveServer,
         private val callback: () -> Unit
-) : AsyncTask<Boolean, Void, Void>() {
+) {
 
-    override fun doInBackground(vararg params: Boolean?): Void? {
+    fun execute(vararg params: Boolean?): Void? {
         Log.d(javaClass.name, "Loading config")
         LightwaveConfigLoader(server).load(params[0] == true) { hierarchy: String, info: LWEventPayloadGroup ->
             val existingRoomRefs = mutableListOf<String>()
@@ -26,8 +26,8 @@ class RefreshListTask(
             LightwaveConfigParser(hierarchy, info).parse { room, devices ->
                 updateExistingRoom(room)
 
-                val existingDevicesInRoom = devices.mapNotNull { device ->
-                    deviceDao.findById(device.id)
+                val existingDevicesInRoom = devices.filter { device ->
+                    deviceDao.findById(device.id) != null
                 }
 
                 Log.d(javaClass.name, "Inserting room ${room.title} with ${devices.size} devices")

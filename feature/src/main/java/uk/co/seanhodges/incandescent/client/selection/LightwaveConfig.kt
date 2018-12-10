@@ -44,7 +44,9 @@ class LightwaveConfigLoader(
 
         if (groupHierarchy != null && groupInfo != null) {
             // Loading complete
+            server.removeListener(this)
             onComplete(groupHierarchy!!, groupInfo!!)
+            RUNNING = false
         }
     }
 
@@ -54,6 +56,9 @@ class LightwaveConfigLoader(
     }
 
     fun load(preAuthenticated: Boolean, onComplete: (hierarchy: String, info: LWEventPayloadGroup) -> Unit) {
+        if (RUNNING) return
+        RUNNING = true
+
         this.onComplete = onComplete
         if (preAuthenticated) {
             getRootGroupId()
@@ -76,6 +81,10 @@ class LightwaveConfigLoader(
         val operation = LWOperation("group", "1", "read")
         operation.addPayload(LWOperationPayloadGroup(rootId))
         server.command(operation)
+    }
+
+    companion object {
+        @Volatile private var RUNNING = false
     }
 }
 
@@ -120,7 +129,7 @@ class LightwaveConfigParser(
 
     fun parse(onRoomFound: (room: RoomEntity, devices: List<DeviceEntity>) -> Unit) {
         val reader = JsonReader.of(Buffer().writeUtf8(groupHierarchy))
-        findPayload(reader, {
+        findPayload(reader) {
             reader.readObject {
                 when (reader.selectName(JsonReader.Options.of("room", "featureSet"))) {
                     0 -> rooms = parseRooms(reader)
@@ -128,7 +137,7 @@ class LightwaveConfigParser(
                     else -> reader.skipNameAndValue()
                 }
             }
-        })
+        }
 
         // Build room and device entities
         rooms.forEach rooms@{ room ->
@@ -139,7 +148,8 @@ class LightwaveConfigParser(
                 val featureSet = featureSets[featureSetId]!!
                 val powerCommand = findCommand(featureSet.features, "switch")
                 val dimCommand = findCommand(featureSet.features, "dimLevel")
-                val deviceEntity = DeviceEntity(
+
+                var deviceEntity = DeviceEntity(
                         featureSet.id,
                         featureSet.name,
                         inferTypeFromCommands(powerCommand, dimCommand),
@@ -147,6 +157,18 @@ class LightwaveConfigParser(
                         dimCommand,
                         room.id
                 )
+
+//                // TEST
+//                if (featureSet.name == "Christmas tree") {
+//                    deviceEntity = DeviceEntity(
+//                            featureSet.id,
+//                            "Kettle",
+//                            inferTypeFromCommands(powerCommand, dimCommand),
+//                            powerCommand,
+//                            dimCommand,
+//                            room.id
+//                    )
+//                }
                 deviceEntities.add(deviceEntity)
             }
             onRoomFound(roomEntity, deviceEntities)

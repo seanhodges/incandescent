@@ -58,6 +58,10 @@ class LightwaveServer : WebSocketListener() {
         listeners.add(listener)
     }
 
+    fun removeListener(listener: LWEventListener) {
+        listeners.remove(listener)
+    }
+
     @Throws(IOException::class)
     fun authenticate(username: String, password: String): LWAuthenticatedResult {
         val json = "{\"email\":\"$username\",\"password\":\"$password\",\"version\":\"$LIGHTWAVE_VERSION\"}"

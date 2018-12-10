@@ -39,9 +39,9 @@ class DeviceSelectViewModel(
     }
 
     fun initialiseList(owner: LifecycleOwner) {
-        Log.i(javaClass.name, "Initialising list")
         roomDao.count().observe(owner, Observer<Int>{ count: Int ->
             if (count <= 0) {
+                Log.i(javaClass.name, "Initialising list")
                 RefreshListTask(roomDao, deviceDao, server) {
                     Log.i(javaClass.name, "Complete")
                 }.execute(false)
