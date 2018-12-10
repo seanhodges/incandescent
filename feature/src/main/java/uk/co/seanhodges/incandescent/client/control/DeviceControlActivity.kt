@@ -41,7 +41,6 @@ class DeviceControlActivity(
         setContentView(R.layout.activity_device_control)
 
         viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
-        viewModel.listenForValueChanges(this)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -88,9 +87,17 @@ class DeviceControlActivity(
 
     override fun onResume() {
         super.onResume()
+        eventsPreventingCrollerChangeListener = 0
 
+        withUiChangeListenersDisabled {
+            Log.d(javaClass.name, "Setting initial device values")
+            val croller = findViewById<View>(R.id.croller) as Croller
+            croller.value = selectedDevice.lastDimValue
+            applyOnOffHighlight(selectedDevice.lastPowerValue == 1)
+        }
         selectedDevice.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
         selectedDevice.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
+        viewModel.listenForValueChanges(this)
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
         if (!authRepository.isAuthenticated()) {
@@ -111,6 +118,12 @@ class DeviceControlActivity(
     override fun onPause() {
         super.onPause()
         deviceChangeHandler.removeListener(this)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putSerializable("selectedRoom", selectedRoom)
+        outState?.putSerializable("selectedDevice", selectedDevice)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -193,12 +206,14 @@ class DeviceControlActivity(
     override fun onDeviceChanged(featureId: String, newValue: Int) {
         Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
         if (featureId.equals(selectedDevice.dimCommand)) {
+            selectedDevice.lastDimValue = newValue
             withUiChangeListenersDisabled {
                 val croller = findViewById<View>(R.id.croller) as Croller
                 croller.value = newValue
             }
         }
         else if (featureId.equals(selectedDevice.powerCommand)) {
+            selectedDevice.lastPowerValue = newValue
             withUiChangeListenersDisabled {
                 applyOnOffHighlight(newValue == 1)
             }
@@ -210,7 +225,11 @@ class DeviceControlActivity(
             ++eventsPreventingCrollerChangeListener
             actions()
             // Account for the delayed callback behaviour in Croller
-            Handler().postDelayed({ --eventsPreventingCrollerChangeListener }, 1000)
+            Handler().postDelayed({
+                if (--eventsPreventingCrollerChangeListener < 0) {
+                    eventsPreventingCrollerChangeListener = 0
+                }
+            }, 1000)
         }
     }
 
