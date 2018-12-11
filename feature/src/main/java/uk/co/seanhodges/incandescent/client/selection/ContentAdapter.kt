@@ -4,15 +4,15 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
 import uk.co.seanhodges.incandescent.client.scene.ApplySceneTask
+import uk.co.seanhodges.incandescent.client.scene.DeleteSceneTask
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.client.storage.SceneWithActions
 
@@ -76,9 +76,26 @@ class ContentAdapter(
                     .type("scene")
                     .build()
             buttonList.addView(item)
+            item.isLongClickable = true
+            item.isClickable = true
             item.setOnClickListener {
                 ApplySceneTask(this.parentView.context, Inject.executor)
                         .execute(sceneWithActions.scene?.id!!)
+            }
+            item.setOnLongClickListener {
+                val builder = AlertDialog.Builder(this.parentView.context, android.R.style.Theme_Material_Dialog_Alert)
+                builder.setTitle(this.parentView.resources.getString(R.string.alert_title_delete_scene))
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setCancelable(false)
+                        .setMessage(this.parentView.resources.getString(R.string.alert_message_delete_scene))
+                        .setNegativeButton(android.R.string.no) { dialog, _ ->
+                            dialog.cancel()
+                        }
+                        .setPositiveButton(android.R.string.yes) { _, _ ->
+                            DeleteSceneTask(this.parentView.context).execute(sceneWithActions.scene?.id)
+                        }
+                        .show()
+                false
             }
         }
 

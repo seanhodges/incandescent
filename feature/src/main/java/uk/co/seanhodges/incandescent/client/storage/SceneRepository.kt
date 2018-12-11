@@ -37,6 +37,9 @@ interface SceneDao {
             insertAction(action)
         }
     }
+
+    @Delete
+    fun delete(scene: SceneEntity?, actions: List<SceneActionEntity>?)
 }
 
 @Entity(tableName = "scene", indices = arrayOf(
