@@ -11,6 +11,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.Window
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -89,7 +90,19 @@ class DeviceSelectActivity(
 
     override fun onResume() {
         super.onResume()
-        checkNetworkState()
+        if (isNetworkDown()) {
+            val builder = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+            builder.setTitle(resources.getString(R.string.alert_title_no_internet))
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setCancelable(false)
+                    .setMessage(resources.getString(R.string.alert_message_no_internet))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        finish()
+                        startActivity(intent)
+                    }
+                    .show()
+            return
+        }
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
         if (!authRepository.isAuthenticated()) {
@@ -108,13 +121,10 @@ class DeviceSelectActivity(
         }
     }
 
-    private fun checkNetworkState() {
+    private fun isNetworkDown(): Boolean {
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        if (activeNetwork?.isConnectedOrConnecting != true) {
-            Toast.makeText(this, "No network connection available", Toast.LENGTH_SHORT).show()
-            finish()
-        }
+        return activeNetwork?.isConnectedOrConnecting != true
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

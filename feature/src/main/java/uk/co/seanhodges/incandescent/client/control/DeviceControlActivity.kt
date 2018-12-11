@@ -13,6 +13,7 @@ import android.view.*
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.sdsmdg.harjot.crollerTest.Croller
 import uk.co.seanhodges.incandescent.client.*
@@ -90,7 +91,18 @@ class DeviceControlActivity(
 
     override fun onResume() {
         super.onResume()
-        checkNetworkState()
+        if (isNetworkDown()) {
+            val builder = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+            builder.setTitle(resources.getString(R.string.alert_title_no_internet))
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage(resources.getString(R.string.alert_message_no_internet))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        finish()
+                        startActivity(intent)
+                    }
+                    .show()
+            return
+        }
 
         eventsPreventingCrollerChangeListener = 0
 
@@ -120,13 +132,10 @@ class DeviceControlActivity(
         deviceChangeHandler.addListener(this)
     }
 
-    private fun checkNetworkState() {
+    private fun isNetworkDown(): Boolean {
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        if (activeNetwork?.isConnectedOrConnecting != true) {
-            Toast.makeText(this, "No network connection available", Toast.LENGTH_SHORT).show()
-            finish()
-        }
+        return activeNetwork?.isConnectedOrConnecting != true
     }
 
     override fun onPause() {

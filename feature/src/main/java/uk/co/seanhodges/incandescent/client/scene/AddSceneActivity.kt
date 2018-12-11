@@ -1,8 +1,10 @@
 package uk.co.seanhodges.incandescent.client.scene
 
 import android.content.Context
+import android.content.DialogInterface
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.Window
@@ -17,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_add_scene.*
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
+import androidx.appcompat.app.AlertDialog
+
 
 class AddSceneActivity : AppCompatActivity() {
 
@@ -42,23 +46,31 @@ class AddSceneActivity : AppCompatActivity() {
 
         val sceneName = findViewById<EditText>(R.id.scene_name)
 
-        fab.setOnClickListener { view ->
+        fab.setOnClickListener {
             doAddScene(sceneName)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        checkNetworkState()
+        if (isNetworkDown()) {
+            val builder = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+            builder.setTitle(resources.getString(R.string.alert_title_no_internet))
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage(resources.getString(R.string.alert_message_no_internet))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        finish()
+                        startActivity(intent)
+                    }
+                    .show()
+            return
+        }
     }
 
-    private fun checkNetworkState() {
+    private fun isNetworkDown(): Boolean {
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        if (activeNetwork?.isConnectedOrConnecting != true) {
-            Toast.makeText(this, "No network connection available", Toast.LENGTH_SHORT).show()
-            finish()
-        }
+        return activeNetwork?.isConnectedOrConnecting != true
     }
 
     private fun doAddScene(sceneName: EditText) {
