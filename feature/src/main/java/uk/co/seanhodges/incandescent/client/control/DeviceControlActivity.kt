@@ -1,8 +1,11 @@
 package uk.co.seanhodges.incandescent.client.control
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -87,6 +90,8 @@ class DeviceControlActivity(
 
     override fun onResume() {
         super.onResume()
+        checkNetworkState()
+
         eventsPreventingCrollerChangeListener = 0
 
         withUiChangeListenersDisabled {
@@ -113,6 +118,15 @@ class DeviceControlActivity(
         }
 
         deviceChangeHandler.addListener(this)
+    }
+
+    private fun checkNetworkState() {
+        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        if (activeNetwork?.isConnectedOrConnecting != true) {
+            Toast.makeText(this, "No network connection available", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 
     override fun onPause() {
