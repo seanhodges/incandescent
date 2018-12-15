@@ -6,19 +6,19 @@ import java.lang.ref.WeakReference
 private const val PREFS_NAME : String = "Incandescent.Prefs.Settings"
 private const val PREFS_VERSION : Int = 1
 
-enum class DeviceListSize {
-    SMALL,
-    LARGE
+enum class DeviceViewMode {
+    GRID,
+    LIST
 }
 
 class SettingsRepository(private val ctxRef: WeakReference<Context>) {
 
-    fun updateDeviceListSize(deviceListSize: DeviceListSize) {
+    fun updateDeviceViewMode(deviceViewMode: DeviceViewMode) {
         ctxRef.get()?.let { ctx ->
             val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit()
                     .putInt("prefsVersion", PREFS_VERSION)
-                    .putString("deviceListSize", deviceListSize.name)
+                    .putString("deviceViewMode", deviceViewMode.name)
                     .apply()
         }
     }
@@ -35,13 +35,13 @@ class SettingsRepository(private val ctxRef: WeakReference<Context>) {
 
     fun get(): AppSettings {
         val prefs = ctxRef.get()!!.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val deviceSizeList = prefs.getString("deviceListSize", DeviceListSize.SMALL.name) ?: DeviceListSize.SMALL.name
+        val deviceViewMode = prefs.getString("deviceViewMode", DeviceViewMode.GRID.name) ?: DeviceViewMode.GRID.name
         val showOnlyActiveDevices = prefs.getBoolean("showOnlyActiveDevices", false)
-        return AppSettings(DeviceListSize.valueOf(deviceSizeList), showOnlyActiveDevices)
+        return AppSettings(DeviceViewMode.valueOf(deviceViewMode), showOnlyActiveDevices)
     }
 }
 
 data class AppSettings(
-        val deviceListSize: DeviceListSize,
+        val deviceViewMode: DeviceViewMode,
         val showOnlyActiveDevices: Boolean
 )

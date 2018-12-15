@@ -22,7 +22,7 @@
     <string name="scenes_title">Scenes</string>
     <string name="add_new_scene_label">Add New Scene</string>
     <string name="show_only_active_label">Hide switched off appliances</string>
-    <string name="compact_view_label">Compact view</string>
+    <string name="list_view_label">Show as list</string>
     <string name="refresh_appliances_label">Refresh appliance list</string>
     <string name="alert_message_no_internet">Please check your signal / wifi settings and press OK to try again...</string>
     <string name="alert_title_no_internet">No internet connection</string>

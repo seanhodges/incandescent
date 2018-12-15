@@ -8,9 +8,9 @@
         android:title="@string/show_only_active_label" />
 
     <item
-        android:id="@+id/action_compact_view"
+        android:id="@+id/action_view_mode"
         android:checkable="true"
-        android:title="@string/compact_view_label" />
+        android:title="@string/list_view_label" />
 
     <item
         android:id="@+id/refresh_appliances"

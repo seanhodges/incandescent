@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.R
-import uk.co.seanhodges.incandescent.client.storage.DeviceListSize
 import uk.co.seanhodges.incandescent.client.storage.SettingsRepository
 import java.lang.ref.WeakReference
 
@@ -44,10 +43,10 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
         val settingsRepository = SettingsRepository(WeakReference(parent.context))
         val settings = settingsRepository.get()
         button.text = title
-        button.textSize = getButtonTextSize(settings.deviceListSize)
-        button.width = getButtonSize(settings.deviceListSize)
+        button.textSize = getButtonTextSize()
+        button.width = getButtonSize()
         val image = calculateImage()
-        val imageSize = getButtonImageSize(settings.deviceListSize)
+        val imageSize = getButtonImageSize()
         image.setBounds(0, 0, imageSize, imageSize)
         button.setCompoundDrawablesRelative(null, image, null, null)
         button.setOnTouchListener(applyButtonPressEffect())
@@ -65,27 +64,18 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
         return parent.resources.getDrawable(IconResolver.getDeviceImage(title, type), null)
     }
 
-    private fun getButtonSize(deviceListSize: DeviceListSize): Int {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_button_size_small
-            else -> R.dimen.select_device_button_size_large
-        }
+    private fun getButtonSize(): Int {
+        val dim : Int = R.dimen.select_device_button_size_small
         return parent.resources.getDimension(dim).toInt()
     }
 
-    private fun getButtonImageSize(deviceListSize: DeviceListSize): Int {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_image_size_small
-            else -> R.dimen.select_device_image_size_large
-        }
+    private fun getButtonImageSize(): Int {
+        val dim : Int = R.dimen.select_device_image_size_small
         return parent.resources.getDimension(dim).toInt()
     }
 
-    private fun getButtonTextSize(deviceListSize: DeviceListSize): Float {
-        val dim : Int = when(deviceListSize) {
-            DeviceListSize.SMALL -> R.dimen.select_device_text_size_small
-            else -> R.dimen.select_device_text_size_large
-        }
+    private fun getButtonTextSize(): Float {
+        val dim : Int = R.dimen.select_device_text_size_small
         return parent.resources.getDimension(dim) / parent.resources.displayMetrics.density
     }
 

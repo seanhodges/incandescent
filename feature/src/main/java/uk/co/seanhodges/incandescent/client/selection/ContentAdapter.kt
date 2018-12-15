@@ -11,14 +11,13 @@ import androidx.recyclerview.widget.RecyclerView
 import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.scene.ApplySceneTask
 import uk.co.seanhodges.incandescent.client.scene.DeleteSceneTask
+import uk.co.seanhodges.incandescent.client.storage.DeviceViewMode
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.client.storage.SceneWithActions
 
 private const val VIEW_TYPE_SCENE = 0
 private const val VIEW_TYPE_GRID = 1
 private const val VIEW_TYPE_LIST = 2
-
-private const val USE_GRID_LAYOUT = true
 
 class ContentAdapter(
         private val launch: LaunchActivity = Inject.launch,
@@ -29,6 +28,7 @@ class ContentAdapter(
     private var sceneData: List<SceneWithActions> = emptyList()
     private var roomData: List<RoomWithDevices> = emptyList()
     private lateinit var parentView: ViewGroup
+    private var viewMode = DeviceViewMode.GRID
 
     fun setSceneData(newData: List<SceneWithActions>) {
         this.sceneData = newData
@@ -45,9 +45,14 @@ class ContentAdapter(
         notifyDataSetChanged()
     }
 
+    fun setViewMode(viewMode: DeviceViewMode) {
+        this.viewMode = viewMode
+        notifyDataSetChanged()
+    }
+
     override fun getItemViewType(position: Int) : Int = when(position) {
         0 -> VIEW_TYPE_SCENE
-        else -> if (USE_GRID_LAYOUT) VIEW_TYPE_GRID else VIEW_TYPE_LIST
+        else -> if (viewMode == DeviceViewMode.GRID) VIEW_TYPE_GRID else VIEW_TYPE_LIST
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
@@ -129,7 +134,7 @@ class ContentAdapter(
                 return@forEach
             }
 
-            if (USE_GRID_LAYOUT) {
+            if (viewMode == DeviceViewMode.GRID) {
                 val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_grid_entry, this.parentView, false) as Button
                 val item = ListEntryDecorator(button, this.parentView)
                         .title(device.title)

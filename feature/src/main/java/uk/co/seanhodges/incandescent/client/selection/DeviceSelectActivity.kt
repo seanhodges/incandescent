@@ -134,8 +134,8 @@ class DeviceSelectActivity(
         val settings = settingsRepository.get()
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.menu_device_select, menu)
-        var item = menu.findItem(R.id.action_compact_view)
-        item?.isChecked = settings.deviceListSize == DeviceListSize.SMALL
+        var item = menu.findItem(R.id.action_view_mode)
+        item?.isChecked = settings.deviceViewMode == DeviceViewMode.LIST
         item = menu.findItem(R.id.action_show_only_active)
         item?.isChecked = settings.showOnlyActiveDevices
         return true
@@ -159,12 +159,12 @@ class DeviceSelectActivity(
                 deviceViewModel.refreshList(this)
                 return true
             }
-            R.id.action_compact_view -> {
+            R.id.action_view_mode -> {
                 item.isChecked = !item.isChecked()
-                val deviceListSize = if (item.isChecked) DeviceListSize.SMALL else DeviceListSize.LARGE
-                recyclerView.adapter = contentAdapter
+                val deviceViewMode = if (item.isChecked) DeviceViewMode.LIST else DeviceViewMode.GRID
+                contentAdapter.setViewMode(deviceViewMode)
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
-                settingsRepository.updateDeviceListSize(deviceListSize)
+                settingsRepository.updateDeviceViewMode(deviceViewMode)
                 return true;
             }
         }
