@@ -6,23 +6,28 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Spinner
+import android.widget.*
 import androidx.lifecycle.Observer
 
 import uk.co.seanhodges.incandescent.client.R
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractFragmentPluginActivity
+import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.LaunchActivity
 import uk.co.seanhodges.incandescent.client.storage.*
 
 
-class MakeBundleActivity : AbstractFragmentPluginActivity() {
+class MakeBundleActivity(
+        private val launch: LaunchActivity = Inject.launch
+) : AbstractFragmentPluginActivity() {
 
     private val roomDao: RoomDao = AppDatabase.getDatabase(this).roomDao()
     private val deviceDao: DeviceDao = AppDatabase.getDatabase(this).deviceDao()
 
     private val roomValues = mutableMapOf<String, RoomEntity>()
     private val deviceValues = mutableMapOf<String, DeviceEntity>()
+
+    private var selectedRoom: RoomEntity? = null
+    private var selectedDevice: DeviceEntity? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +43,40 @@ class MakeBundleActivity : AbstractFragmentPluginActivity() {
         actionBar?.setSubtitle(R.string.application_name)
         actionBar?.setDisplayHomeAsUpEnabled(true)
 
+
+        val controlButton = this.findViewById<ImageButton>(R.id.control_button)
+        controlButton.setOnClickListener {
+            if (selectedRoom != null && selectedDevice != null) {
+                launch.deviceControl(this, selectedRoom, selectedDevice)
+            }
+        }
+
         showRooms()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.putSerializable("selectedRoom", selectedRoom)
+        outState?.putSerializable("selectedDevice", selectedDevice)
+
+        var spinner: Spinner = this.findViewById(R.id.room_name)
+        outState?.putSerializable("selectedRoomId", spinner.selectedItemPosition)
+        spinner = this.findViewById(R.id.appliance_name)
+        outState?.putSerializable("selectedDeviceId", spinner.selectedItemPosition)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if (savedInstanceState != null) {
+            selectedRoom = savedInstanceState.get("selectedRoom") as RoomEntity
+            selectedDevice = savedInstanceState.get("selectedDevice") as DeviceEntity
+
+            var spinner: Spinner = this.findViewById(R.id.room_name)
+            spinner.setSelection(savedInstanceState.get("selectedRoomId") as Int)
+            spinner = this.findViewById(R.id.appliance_name)
+            spinner.setSelection(savedInstanceState.get("selectedDeviceId") as Int)
+            showChosenDeviceInfo()
+        }
     }
 
     private fun showRooms() {
@@ -56,27 +94,47 @@ class MakeBundleActivity : AbstractFragmentPluginActivity() {
 
                     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                         val selectedItem = parent?.getItemAtPosition(position)
-                        showDevicesForRoom(roomValues[selectedItem]?.id)
+                        selectedRoom = roomValues[selectedItem]
+                        showDevicesForChosenRoom()
                     }
 
                     override fun onNothingSelected(parent: AdapterView<*>?) {}
                 }
-                showDevicesForRoom(rooms[0].id)
+                selectedRoom = rooms[0]
+                showDevicesForChosenRoom()
             }
         })
     }
 
-    private fun showDevicesForRoom(roomId : String?) {
-        if (roomId.isNullOrEmpty()) return
+    private fun showDevicesForChosenRoom() {
+        if (selectedRoom?.id.isNullOrEmpty()) return
         val spinner = this.findViewById<Spinner>(R.id.appliance_name)
         deviceValues.clear()
-        deviceDao.findByRoom(roomId!!).observe(this, Observer<List<DeviceEntity>> { devices ->
+        deviceDao.findByRoom(selectedRoom?.id!!).observe(this, Observer<List<DeviceEntity>> { devices ->
             spinner.adapter = ArrayAdapter<String>(this,
                     android.R.layout.simple_spinner_item, devices.map {
                 deviceValues[it.title] = it
                 it.title
             })
+            spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    val selectedItem = parent?.getItemAtPosition(position)
+                    selectedDevice = deviceValues[selectedItem]
+                    showChosenDeviceInfo()
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+
+            selectedDevice = devices[0]
+            showChosenDeviceInfo()
         })
+    }
+
+    private fun showChosenDeviceInfo() {
+        val deviceInfo = this.findViewById<TextView>(R.id.device_info)
+        deviceInfo.text = buildLabel(selectedRoom, selectedDevice)
     }
 
     override fun onPostCreateWithPreviousResult(previousBundle: Bundle, previousBlurb: String) {
@@ -125,12 +183,18 @@ class MakeBundleActivity : AbstractFragmentPluginActivity() {
         return blurb
     }
 
-    private fun buildLabel(operation: OperationBundle): String {
-        val status = when (operation.power) {
-            true -> if (operation.dim ?: 0 > 0) "On, ${operation.dim}%" else "On"
+    private fun buildLabel(roomEntity: RoomEntity?, deviceEntity: DeviceEntity?): String =
+            buildLabel(roomEntity?.title, deviceEntity?.title, deviceEntity?.lastPowerValue == 1, deviceEntity?.lastDimValue)
+
+    private fun buildLabel(operation: OperationBundle): String =
+            buildLabel(operation.roomName, operation.applianceName, operation.power, operation.dim)
+
+    private fun buildLabel(roomName: String?, applianceName: String?, power: Boolean?, dim: Int?): String {
+        val status = when (power) {
+            true -> if (dim ?: 0 > 0) "On, ${dim}%" else "On"
             else -> "Off"
         }
-        return "${operation.roomName} > ${operation.applianceName} ($status)"
+        return "${roomName} > ${applianceName} ($status)"
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
