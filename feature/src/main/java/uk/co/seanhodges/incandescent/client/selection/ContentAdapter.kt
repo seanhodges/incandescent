@@ -8,6 +8,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.LaunchActivity
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
@@ -20,6 +21,7 @@ private const val VIEW_TYPE_SCENE = 0
 private const val VIEW_TYPE_ROOM = 1
 
 class ContentAdapter(
+        private val launch: LaunchActivity = Inject.launch,
         private var activeOnly: Boolean = false
 ) : RecyclerView.Adapter<SectionViewHolder>() {
 
@@ -106,7 +108,7 @@ class ContentAdapter(
                 .build()
         buttonList.addView(item)
         item.setOnClickListener {
-            this.parentView.context.startActivity(Intent(this.parentView.context, AddSceneActivity::class.java))
+            launch.addScene(this.parentView.context)
         }
     }
 
@@ -130,10 +132,7 @@ class ContentAdapter(
                     .active(device.lastPowerValue == 1)
                     .build()
             item.setOnClickListener {
-                val intent = Intent(this.parentView.context, DeviceControlActivity::class.java)
-                intent.putExtra("selectedRoom", room)
-                intent.putExtra("selectedDevice", device)
-                this.parentView.context.startActivity(intent)
+                launch.deviceControl(this.parentView.context, room, device)
             }
             buttonList.addView(item)
         }

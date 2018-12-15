@@ -29,6 +29,7 @@ import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
 
 
 class DeviceControlActivity(
+        private val launch: LaunchActivity = Inject.launch,
         private val executor: OperationExecutor = Inject.executor,
         private val deviceChangeHandler: DeviceChangeHandler = Inject.deviceChangeHandler
 ) : AppCompatActivity(), DeviceChangeAware {
@@ -118,13 +119,13 @@ class DeviceControlActivity(
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
         if (!authRepository.isAuthenticated()) {
-            startActivity(Intent(this, AuthenticateActivity::class.java))
+            launch.authenticate(this)
         }
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
                 if (!success) {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
-                    startActivity(Intent(this, AuthenticateActivity::class.java))
+                    launch.authenticate(this)
                 }
             })
         }

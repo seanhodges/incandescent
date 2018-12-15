@@ -6,6 +6,7 @@ object Inject {
 
     private val loadItemIdToFeatureId = mutableMapOf<Int, String>()
 
+    val launch = LaunchActivity()
     val server = LightwaveServer()
     val executor = OperationExecutor(server, loadItemIdToFeatureId)
     val deviceChangeHandler = DeviceChangeHandler(server, loadItemIdToFeatureId)

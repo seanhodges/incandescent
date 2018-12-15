@@ -18,6 +18,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.LaunchActivity
 import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
@@ -27,6 +28,7 @@ import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
 class DeviceSelectActivity(
+        private val launch: LaunchActivity = Inject.launch,
         private val server: LightwaveServer = Inject.server,
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity() {
@@ -46,7 +48,7 @@ class DeviceSelectActivity(
         setContentView(R.layout.activity_room_select)
 
         val settingsRepository = SettingsRepository(WeakReference(applicationContext))
-        contentAdapter = ContentAdapter(settingsRepository.get().showOnlyActiveDevices)
+        contentAdapter = ContentAdapter(launch, settingsRepository.get().showOnlyActiveDevices)
 
         recyclerView = this.findViewById(R.id.room_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -106,7 +108,7 @@ class DeviceSelectActivity(
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
         if (!authRepository.isAuthenticated()) {
-            startActivity(Intent(this, AuthenticateActivity::class.java))
+            launch.authenticate(this)
         }
         else {
             executor.connectToServer(authRepository, onComplete = { success: Boolean ->
@@ -115,10 +117,12 @@ class DeviceSelectActivity(
                 }
                 else {
                     Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
-                    startActivity(Intent(this, AuthenticateActivity::class.java))
+                    launch.authenticate(this)
                 }
             })
         }
+
+        firstTimeLoad = true
     }
 
     private fun isNetworkDown(): Boolean {
