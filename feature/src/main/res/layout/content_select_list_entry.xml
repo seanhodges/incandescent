@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginTop="5dp"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView android:id="@+id/room_image"
+        android:layout_alignBaseline="@id/control_button"
+        android:layout_centerVertical="true"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/room_lounge" />
+
+    <TextView android:id="@+id/room_name"
+        android:layout_toEndOf="@id/room_image"
+        tools:text="Living room"
+        android:layout_alignBaseline="@id/control_button"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="5dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <ImageView android:id="@+id/device_image"
+        android:layout_toEndOf="@id/room_name"
+        android:layout_alignBaseline="@id/control_button"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="5dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/device_light" />
+
+    <TextView android:id="@+id/device_name"
+        tools:text="Bear lamp"
+        android:layout_alignBaseline="@id/control_button"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/device_image"
+        android:layout_marginStart="5dp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <ImageButton
+        android:id="@+id/control_button"
+        android:layout_marginEnd="10dp"
+        android:layout_toStartOf="@id/action_enable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/control_button"/>
+
+    <Switch android:id="@+id/action_enable"
+        android:checked="false"
+        android:layout_alignTop="@id/control_button"
+        android:layout_alignBottom="@id/control_button"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:visibility="invisible"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content" />
+
+    <CheckBox android:id="@+id/action_pick"
+        android:layout_alignBaseline="@id/control_button"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        android:layout_below="@id/control_button"
+        android:background="@android:color/darker_gray" />
+
+</RelativeLayout>
