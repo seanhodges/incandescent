@@ -10,6 +10,9 @@ interface RoomDao {
     @Query("SELECT * FROM room WHERE id = :id")
     fun findById(id: String): RoomEntity?
 
+    @Query("SELECT * FROM room ORDER BY chosen_count DESC, id")
+    fun loadAll(): LiveData<List<RoomEntity>>
+
     @Transaction
     @Query("SELECT * FROM room ORDER BY chosen_count DESC, id")
     fun loadAllWithDevices(): LiveData<List<RoomWithDevices>>
@@ -38,6 +41,9 @@ interface DeviceDao {
 
     @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
     fun findByCommandId(commandId: String): DeviceEntity?
+
+    @Query("SELECT * FROM device WHERE device.room_id = :roomId ORDER BY chosen_count DESC, id")
+    fun findByRoom(roomId: String): LiveData<List<DeviceEntity>>
 
     @Query("SELECT * FROM device INNER JOIN room ON room.id = device.room_id WHERE room.title = :roomName AND device.title = :deviceName")
     fun findByRoomAndDeviceName(roomName: String, deviceName: String) : DeviceEntity
