@@ -14,11 +14,11 @@ import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.storage.SettingsRepository
 import java.lang.ref.WeakReference
 
-private const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
+const val DEVICE_BUTTON_HIGHLIGHT_LENGTH : Long = 300
 
-public const val ENTRY_DEFAULT_COLOUR = "#000000"
-public const val ENTRY_SELECTED_COLOUR = "#00927C"
-public const val ENTRY_ACTIVE_COLOUR = "#FF6000"
+const val ENTRY_DEFAULT_COLOUR = "#000000"
+const val ENTRY_SELECTED_COLOUR = "#00927C"
+const val ENTRY_ACTIVE_COLOUR = "#FF6000"
 
 class ListEntryDecorator(private val button: Button, private val parent: ViewGroup) {
 

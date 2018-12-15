@@ -2,7 +2,9 @@ package uk.co.seanhodges.incandescent.client.selection
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.os.Handler
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -156,9 +158,11 @@ class ContentAdapter(
                     actionToggle.isChecked = true
                 }
                 row.findViewById<TextView>(R.id.device_name).text = device.title
-                row.setOnClickListener {
+                val controlButton = row.findViewById<ImageButton>(R.id.control_button)
+                controlButton.setOnClickListener {
                     launch.deviceControl(this.parentView.context, room, device)
                 }
+                controlButton.setOnTouchListener(applyControlButtonPressEffect(controlButton))
                 actionToggle.setOnClickListener {
                     device.powerCommand?.let { cmd ->
                         executor.enqueueChange(cmd, if (actionToggle.isChecked) 1 else 0)
@@ -170,6 +174,24 @@ class ContentAdapter(
 
         // If there are no devices, collapse the row
         setVisibility(if (buttonList.childCount == 0) View.GONE else View.VISIBLE, roomImage, roomTitle, buttonList)
+    }
+
+    private fun applyControlButtonPressEffect(button: ImageButton) : View.OnTouchListener {
+        return View.OnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    setButtonColour(button, ENTRY_SELECTED_COLOUR)
+                    Handler().postDelayed({
+                        setButtonColour(button, ENTRY_DEFAULT_COLOUR)
+                    }, DEVICE_BUTTON_HIGHLIGHT_LENGTH)
+                }
+            }
+            return@OnTouchListener false
+        }
+    }
+
+    private fun setButtonColour(button: ImageButton, colour: String) {
+        button.backgroundTintList = ColorStateList.valueOf(Color.parseColor(colour))
     }
 
     private fun setVisibility(visibility: Int, vararg views: View) {
