@@ -1,10 +1,12 @@
 package uk.co.seanhodges.incandescent.client.selection
 
 import android.content.Context
+import android.content.res.Resources
+import android.graphics.ColorFilter
+import android.graphics.PorterDuff
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -35,6 +37,8 @@ class DeviceSelectActivity(
     private lateinit var deviceViewModel: DeviceSelectViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
+
+    private lateinit var menu: Menu
 
     // FIXME: Avoids an infinite loop when the DB observer is triggered by the device refresh commands
     // Ideally we fetch the devices outside the observer and trigger observe only after they've finished
@@ -130,14 +134,21 @@ class DeviceSelectActivity(
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        this.menu = menu
         val settingsRepository = SettingsRepository(WeakReference(applicationContext))
         val settings = settingsRepository.get()
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.menu_device_select, menu)
         var item = menu.findItem(R.id.action_view_mode)
         item?.isChecked = settings.deviceViewMode == DeviceViewMode.LIST
+        var itemIcon = menu.findItem(R.id.action_view_mode_icon)
+        itemIcon?.setIcon(if (item.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
+        contentAdapter.setViewMode(settings.deviceViewMode)
         item = menu.findItem(R.id.action_show_only_active)
         item?.isChecked = settings.showOnlyActiveDevices
+        itemIcon = menu.findItem(R.id.action_show_only_active_icon)
+        itemIcon?.setIcon(if (item.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
+        contentAdapter.setFilters(settings.showOnlyActiveDevices)
         return true
     }
 
@@ -147,9 +158,19 @@ class DeviceSelectActivity(
                 onBackPressed()
                 return true
             }
+            R.id.action_show_only_active_icon -> {
+                val itemCheck = menu.findItem(R.id.action_show_only_active)
+                itemCheck.isChecked = !itemCheck.isChecked()
+                item.setIcon(if (itemCheck.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
+                contentAdapter.setFilters(itemCheck.isChecked)
+                val settingsRepository = SettingsRepository(WeakReference(applicationContext))
+                settingsRepository.updateShowOnlyActiveDevices(itemCheck.isChecked)
+                return true;
+            }
             R.id.action_show_only_active -> {
                 item.isChecked = !item.isChecked()
-                Log.d(javaClass.name, "Setting active only filter to ${item.isChecked}")
+                val itemIcon = menu.findItem(R.id.action_show_only_active_icon)
+                itemIcon.setIcon(if (item.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
                 contentAdapter.setFilters(item.isChecked)
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
                 settingsRepository.updateShowOnlyActiveDevices(item.isChecked)
@@ -159,8 +180,20 @@ class DeviceSelectActivity(
                 deviceViewModel.refreshList(this)
                 return true
             }
+            R.id.action_view_mode_icon -> {
+                val itemCheck = menu.findItem(R.id.action_view_mode)
+                itemCheck.isChecked = !itemCheck.isChecked()
+                item.setIcon(if (itemCheck.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
+                val deviceViewMode = if (itemCheck.isChecked) DeviceViewMode.LIST else DeviceViewMode.GRID
+                contentAdapter.setViewMode(deviceViewMode)
+                val settingsRepository = SettingsRepository(WeakReference(applicationContext))
+                settingsRepository.updateDeviceViewMode(deviceViewMode)
+                return true;
+            }
             R.id.action_view_mode -> {
                 item.isChecked = !item.isChecked()
+                val itemIcon = menu.findItem(R.id.action_view_mode_icon)
+                itemIcon.setIcon(if (item.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
                 val deviceViewMode = if (item.isChecked) DeviceViewMode.LIST else DeviceViewMode.GRID
                 contentAdapter.setViewMode(deviceViewMode)
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
