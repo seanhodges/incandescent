@@ -1,7 +1,6 @@
 package uk.co.seanhodges.incandescent.client.selection
 
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -21,7 +20,6 @@ import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.LaunchActivity
 import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.R
-import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
 import uk.co.seanhodges.incandescent.client.storage.*
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
@@ -45,7 +43,7 @@ class DeviceSelectActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         setupActionBar()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_room_select)
+        setContentView(R.layout.activity_select)
 
         val settingsRepository = SettingsRepository(WeakReference(applicationContext))
         contentAdapter = ContentAdapter(launch, settingsRepository.get().showOnlyActiveDevices)

@@ -1,17 +1,15 @@
 package uk.co.seanhodges.incandescent.client.selection
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
+import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.LaunchActivity
 import uk.co.seanhodges.incandescent.client.R
-import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
-import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
 import uk.co.seanhodges.incandescent.client.scene.ApplySceneTask
 import uk.co.seanhodges.incandescent.client.scene.DeleteSceneTask
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
@@ -53,7 +51,7 @@ class ContentAdapter(
         this.parentView = parent
         val view = when(viewType) {
             VIEW_TYPE_SCENE -> LayoutInflater.from(parent.context).inflate(R.layout.content_scene_entry, parent, false)
-            else -> LayoutInflater.from(parent.context).inflate(R.layout.content_room_entry, parent, false)
+            else -> LayoutInflater.from(parent.context).inflate(R.layout.content_select_grid_section, parent, false)
         }
         return SectionViewHolder(view)
     }
@@ -72,7 +70,7 @@ class ContentAdapter(
         buttonList.removeAllViewsInLayout()
 
         for (sceneWithActions in sceneData) {
-            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_grid_entry, this.parentView, false) as Button
             val item = ListEntryDecorator(button, this.parentView)
                     .title(sceneWithActions.scene?.title ?: "")
                     .type("scene")
@@ -101,7 +99,7 @@ class ContentAdapter(
             }
         }
 
-        val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+        val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_grid_entry, this.parentView, false) as Button
         val item = ListEntryDecorator(button, this.parentView)
                 .title(parentView.resources.getString(R.string.add_new_scene_label))
                 .type("add")
@@ -113,9 +111,11 @@ class ContentAdapter(
     }
 
     private fun renderDevices(holder: SectionViewHolder, position: Int) {
-        val room = roomData[position].room
+        val room = roomData[position].room!!
+        val roomImage : ImageView = holder.containerView.findViewById(R.id.room_image)
+        roomImage.setImageResource(IconResolver.getRoomImage(room.title))
         val roomTitle : TextView = holder.containerView.findViewById(R.id.room_title)
-        roomTitle.text = room?.title
+        roomTitle.text = room.title
 
         val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
@@ -125,7 +125,7 @@ class ContentAdapter(
                 return@forEach
             }
 
-            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_list_entry, this.parentView, false) as Button
+            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_grid_entry, this.parentView, false) as Button
             val item = ListEntryDecorator(button, this.parentView)
                     .title(device.title)
                     .type(device.type)
@@ -138,7 +138,7 @@ class ContentAdapter(
         }
 
         // If there are no devices, collapse the row
-        setVisibility(if (buttonList.childCount == 0) View.GONE else View.VISIBLE, roomTitle, buttonList)
+        setVisibility(if (buttonList.childCount == 0) View.GONE else View.VISIBLE, roomImage, roomTitle, buttonList)
     }
 
     private fun setVisibility(visibility: Int, vararg views: View) {

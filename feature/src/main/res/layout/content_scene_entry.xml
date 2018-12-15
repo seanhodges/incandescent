@@ -36,7 +36,7 @@
                     android:paddingBottom="0dp"
                     android:orientation="horizontal">
 
-                    <include layout="@layout/content_list_entry" />
+                    <include layout="@layout/content_select_grid_entry" />
 
                 </LinearLayout>
             </HorizontalScrollView>

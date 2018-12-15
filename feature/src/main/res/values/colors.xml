@@ -5,4 +5,5 @@
     <color name="list_background">#efefef</color>
     <color name="select_room_background">#ffffff</color>
     <color name="select_scene_background">#fff8e2</color>
+    <color name="grey">#EEEEEE</color>
 </resources>
