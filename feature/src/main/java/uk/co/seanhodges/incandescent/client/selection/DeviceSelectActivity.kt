@@ -46,7 +46,7 @@ class DeviceSelectActivity(
         setContentView(R.layout.activity_select)
 
         val settingsRepository = SettingsRepository(WeakReference(applicationContext))
-        contentAdapter = ContentAdapter(launch, settingsRepository.get().showOnlyActiveDevices)
+        contentAdapter = ContentAdapter(launch, executor, settingsRepository.get().showOnlyActiveDevices)
 
         recyclerView = this.findViewById(R.id.room_list)
         recyclerView.layoutManager = LinearLayoutManager(this)

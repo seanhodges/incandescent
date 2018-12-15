@@ -1,25 +1,28 @@
 package uk.co.seanhodges.incandescent.client.selection
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
-import uk.co.seanhodges.incandescent.client.IconResolver
-import uk.co.seanhodges.incandescent.client.Inject
-import uk.co.seanhodges.incandescent.client.LaunchActivity
-import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.scene.ApplySceneTask
 import uk.co.seanhodges.incandescent.client.scene.DeleteSceneTask
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.client.storage.SceneWithActions
 
 private const val VIEW_TYPE_SCENE = 0
-private const val VIEW_TYPE_ROOM = 1
+private const val VIEW_TYPE_GRID = 1
+private const val VIEW_TYPE_LIST = 2
+
+private const val USE_GRID_LAYOUT = true
 
 class ContentAdapter(
         private val launch: LaunchActivity = Inject.launch,
+        private val executor: OperationExecutor = Inject.executor,
         private var activeOnly: Boolean = false
 ) : RecyclerView.Adapter<SectionViewHolder>() {
 
@@ -44,14 +47,15 @@ class ContentAdapter(
 
     override fun getItemViewType(position: Int) : Int = when(position) {
         0 -> VIEW_TYPE_SCENE
-        else -> VIEW_TYPE_ROOM
+        else -> if (USE_GRID_LAYOUT) VIEW_TYPE_GRID else VIEW_TYPE_LIST
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
         this.parentView = parent
         val view = when(viewType) {
             VIEW_TYPE_SCENE -> LayoutInflater.from(parent.context).inflate(R.layout.content_scene_entry, parent, false)
-            else -> LayoutInflater.from(parent.context).inflate(R.layout.content_select_grid_section, parent, false)
+            VIEW_TYPE_GRID -> LayoutInflater.from(parent.context).inflate(R.layout.content_select_grid_section, parent, false)
+            else -> LayoutInflater.from(parent.context).inflate(R.layout.content_select_list_section, parent, false)
         }
         return SectionViewHolder(view)
     }
@@ -117,7 +121,7 @@ class ContentAdapter(
         val roomTitle : TextView = holder.containerView.findViewById(R.id.room_title)
         roomTitle.text = room.title
 
-        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
+        val buttonList : ViewGroup = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
 
         roomData[position].getDevicesInOrder().forEach { device ->
@@ -125,16 +129,38 @@ class ContentAdapter(
                 return@forEach
             }
 
-            val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_grid_entry, this.parentView, false) as Button
-            val item = ListEntryDecorator(button, this.parentView)
-                    .title(device.title)
-                    .type(device.type)
-                    .active(device.lastPowerValue == 1)
-                    .build()
-            item.setOnClickListener {
-                launch.deviceControl(this.parentView.context, room, device)
+            if (USE_GRID_LAYOUT) {
+                val button: Button = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_grid_entry, this.parentView, false) as Button
+                val item = ListEntryDecorator(button, this.parentView)
+                        .title(device.title)
+                        .type(device.type)
+                        .active(device.lastPowerValue == 1)
+                        .build()
+                item.setOnClickListener {
+                    launch.deviceControl(this.parentView.context, room, device)
+                }
+                buttonList.addView(item)
             }
-            buttonList.addView(item)
+            else {
+                val row: RelativeLayout = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_list_entry, this.parentView, false) as RelativeLayout
+                val deviceImage: ImageView = row.findViewById(R.id.device_image)
+                val actionToggle: Switch = row.findViewById(R.id.action_enable)
+                deviceImage.setImageResource(IconResolver.getDeviceImage(device.title, device.type))
+                if (device.lastPowerValue == 1) {
+                    deviceImage.imageTintList = ColorStateList.valueOf(Color.parseColor(ENTRY_ACTIVE_COLOUR))
+                    actionToggle.isChecked = true
+                }
+                row.findViewById<TextView>(R.id.device_name).text = device.title
+                row.setOnClickListener {
+                    launch.deviceControl(this.parentView.context, room, device)
+                }
+                actionToggle.setOnClickListener {
+                    device.powerCommand?.let { cmd ->
+                        executor.enqueueChange(cmd, if (actionToggle.isChecked) 1 else 0)
+                    }
+                }
+                buttonList.addView(row)
+            }
         }
 
         // If there are no devices, collapse the row

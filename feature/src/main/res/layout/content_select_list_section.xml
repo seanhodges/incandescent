@@ -10,12 +10,13 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true" />
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/device_list"
         android:layout_below="@id/heading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="0dp"
+        android:background="@color/select_room_background"
         android:orientation="vertical">
 
         <include
@@ -25,5 +26,5 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true" />
 
-    </RelativeLayout>
+    </LinearLayout>
 </RelativeLayout>
