@@ -20,8 +20,8 @@ class MakeBundleActivity(
         private val launch: LaunchActivity = Inject.launch
 ) : AbstractFragmentPluginActivity() {
 
-    private val roomDao: RoomDao = AppDatabase.getDatabase(this).roomDao()
-    private val deviceDao: DeviceDao = AppDatabase.getDatabase(this).deviceDao()
+    private lateinit var roomDao: RoomDao
+    private lateinit var deviceDao: DeviceDao
 
     private val roomValues = mutableMapOf<String, RoomEntity>()
     private val deviceValues = mutableMapOf<String, DeviceEntity>()
@@ -31,8 +31,10 @@ class MakeBundleActivity(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_make_bundle)
+
+        roomDao = AppDatabase.getDatabase(this).roomDao()
+        deviceDao = AppDatabase.getDatabase(this).deviceDao()
 
         try {
             title = packageManager.getApplicationLabel(packageManager.getApplicationInfo(callingPackage, 0))
