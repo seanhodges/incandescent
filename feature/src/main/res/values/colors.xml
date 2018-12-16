@@ -4,6 +4,6 @@
     <color name="btn_on_active">#fcf263</color>
     <color name="list_background">#efefef</color>
     <color name="select_room_background">#ffffff</color>
-    <color name="select_scene_background">#fff8e2</color>
+    <color name="select_scene_background">#f8ffff</color>
     <color name="select_header_text">#777777</color>
 </resources>
