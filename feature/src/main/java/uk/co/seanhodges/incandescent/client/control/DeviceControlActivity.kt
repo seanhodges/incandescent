@@ -23,6 +23,7 @@ import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import java.lang.ref.WeakReference
 import androidx.core.app.NavUtils
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
@@ -30,9 +31,8 @@ import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
 
 class DeviceControlActivity(
         private val launch: LaunchActivity = Inject.launch,
-        private val executor: OperationExecutor = Inject.executor,
-        private val deviceChangeHandler: DeviceChangeHandler = Inject.deviceChangeHandler
-) : AppCompatActivity(), DeviceChangeAware {
+        private val executor: OperationExecutor = Inject.executor
+) : AppCompatActivity() {
 
     private lateinit var viewModel : DeviceControlViewModel
     private lateinit var selectedRoom: RoomEntity
@@ -46,6 +46,7 @@ class DeviceControlActivity(
         setContentView(R.layout.activity_device_control)
 
         viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
+        viewModel.listenForValueChanges(this)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -79,6 +80,11 @@ class DeviceControlActivity(
             //@see OperationExecutor.onRawEvent()
             GatherDeviceReport(this).saveReport(packet)
         }
+
+        viewModel.getDevice(selectedDevice.id).observe(this, Observer<DeviceEntity> { device ->
+            onDeviceChanged(device)
+        })
+        onDeviceChanged(selectedDevice)
     }
 
     private fun setupActionBar() {
@@ -129,19 +135,12 @@ class DeviceControlActivity(
                 }
             })
         }
-
-        deviceChangeHandler.addListener(this)
     }
 
     private fun isNetworkDown(): Boolean {
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
         return activeNetwork?.isConnectedOrConnecting != true
-    }
-
-    override fun onPause() {
-        super.onPause()
-        deviceChangeHandler.removeListener(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
@@ -189,13 +188,11 @@ class DeviceControlActivity(
 
         offButton.setOnClickListener {
             selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 0) }
-//                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, 0) } // Workaround for a bug in my dimmer bulbs :)
             applyOnOffHighlight(false)
         }
 
         onButton.setOnClickListener {
             selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, 1) }
-//                selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, 100) } // Workaround for a bug in my dimmer bulbs :)
             applyOnOffHighlight(true)
         }
     }
@@ -227,19 +224,19 @@ class DeviceControlActivity(
         };
     }
 
-    override fun onDeviceChanged(featureId: String, newValue: Int) {
-        Log.d(javaClass.name, "Device change detected: $featureId=$newValue")
-        if (featureId.equals(selectedDevice.dimCommand)) {
-            selectedDevice.lastDimValue = newValue
+    private fun onDeviceChanged(device: DeviceEntity) {
+        if (selectedDevice.dimCommand != null && selectedDevice.lastDimValue != device.lastDimValue) {
+            selectedDevice.lastDimValue = device.lastDimValue
             withUiChangeListenersDisabled {
                 val croller = findViewById<View>(R.id.croller) as Croller
-                croller.value = newValue
+                croller.value = device.lastDimValue
             }
         }
-        else if (featureId.equals(selectedDevice.powerCommand)) {
-            selectedDevice.lastPowerValue = newValue
+
+        if (selectedDevice.powerCommand != null && selectedDevice.lastPowerValue != device.lastPowerValue) {
+            selectedDevice.lastPowerValue = device.lastPowerValue
             withUiChangeListenersDisabled {
-                applyOnOffHighlight(newValue == 1)
+                applyOnOffHighlight(device.lastPowerValue == 1)
             }
         }
     }

@@ -1,6 +1,7 @@
 package uk.co.seanhodges.incandescent.client
 
 import org.hamcrest.CoreMatchers.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -21,13 +22,15 @@ class EventsTest : DeviceChangeAware {
     private var server = mock(LightwaveServer::class.java)
     val eventHandler = DeviceChangeHandler(server)
 
-    init {
-        eventHandler.addListener(this)
-    }
-
     @Before
     fun setUp() {
         called = false
+        eventHandler.addListener(this)
+    }
+
+    @After
+    fun tearDown() {
+        eventHandler.removeListener(this)
     }
 
     override fun onDeviceChanged(featureId: String, newValue: Int) {

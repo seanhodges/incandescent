@@ -37,7 +37,10 @@ interface RoomDao {
 interface DeviceDao {
 
     @Query("SELECT * FROM device WHERE id = :id")
-    fun findById(id: String): DeviceEntity?
+    fun findById(id: String): LiveData<DeviceEntity>
+
+    @Query("SELECT count(id) FROM device WHERE id = :id")
+    fun exists(id: String): Int
 
     @Query("SELECT * FROM device WHERE dim_command = :commandId OR power_command = :commandId")
     fun findByCommandId(commandId: String): DeviceEntity?

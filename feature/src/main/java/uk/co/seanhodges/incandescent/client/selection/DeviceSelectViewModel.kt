@@ -9,13 +9,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import uk.co.seanhodges.incandescent.client.DeviceChangeHandler
 import uk.co.seanhodges.incandescent.client.Inject
-import uk.co.seanhodges.incandescent.client.LastValueChangeListener
 import uk.co.seanhodges.incandescent.client.storage.AppDatabase
 import uk.co.seanhodges.incandescent.client.storage.DeviceDao
 import uk.co.seanhodges.incandescent.client.storage.RoomDao
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
-import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadGroup
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
@@ -26,16 +25,15 @@ class DeviceSelectViewModel(
 
     private val roomDao: RoomDao = AppDatabase.getDatabase(application).roomDao()
     private val deviceDao: DeviceDao = AppDatabase.getDatabase(application).deviceDao()
-    private val roomsWithDevices: LiveData<List<RoomWithDevices>> = roomDao.loadAllWithDevices()
     private val server: LightwaveServer = Inject.server
-    private val lastValueChangeListener: LastValueChangeListener = Inject.lastValueChangeListener
+    private val deviceChangeHandler: DeviceChangeHandler = Inject.deviceChangeHandler
 
     fun listenForValueChanges(owner: LifecycleOwner) {
-        lastValueChangeListener.setRepository(owner, deviceDao)
+        deviceChangeHandler.setRepository(owner, deviceDao)
     }
 
     fun getAllRooms(): LiveData<List<RoomWithDevices>> {
-        return roomsWithDevices
+        return roomDao.loadAllWithDevices()
     }
 
     fun initialiseList(owner: LifecycleOwner) {

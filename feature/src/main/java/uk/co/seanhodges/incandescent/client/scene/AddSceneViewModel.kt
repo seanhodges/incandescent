@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import uk.co.seanhodges.incandescent.client.DeviceChangeHandler
 import uk.co.seanhodges.incandescent.client.Inject
-import uk.co.seanhodges.incandescent.client.LastValueChangeListener
 import uk.co.seanhodges.incandescent.client.storage.*
 
 
@@ -18,15 +18,14 @@ class AddSceneViewModel(
     private val sceneDao: SceneDao = AppDatabase.getDatabase(application).sceneDao()
     private val roomDao: RoomDao = AppDatabase.getDatabase(application).roomDao()
     private val deviceDao: DeviceDao = AppDatabase.getDatabase(application).deviceDao()
-    private val roomsWithDevices: LiveData<List<RoomWithDevices>> = roomDao.loadAllWithDevices()
-    private val lastValueChangeListener: LastValueChangeListener = Inject.lastValueChangeListener
+    private val deviceChangeHandler: DeviceChangeHandler = Inject.deviceChangeHandler
 
     fun listenForValueChanges(owner: LifecycleOwner) {
-        lastValueChangeListener.setRepository(owner, deviceDao)
+        deviceChangeHandler.setRepository(owner, deviceDao)
     }
 
     fun getAllRooms(): LiveData<List<RoomWithDevices>> {
-        return roomsWithDevices
+        return roomDao.loadAllWithDevices()
     }
 
     fun save(name: String, settings: List<FlatDeviceRow>) {

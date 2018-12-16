@@ -40,8 +40,6 @@ class ListEntryDecorator(private val button: Button, private val parent: ViewGro
 
     @SuppressLint("ClickableViewAccessibility")
     fun build(): Button {
-        val settingsRepository = SettingsRepository(WeakReference(parent.context))
-        val settings = settingsRepository.get()
         button.text = title
         button.textSize = getButtonTextSize()
         button.width = getButtonSize()
