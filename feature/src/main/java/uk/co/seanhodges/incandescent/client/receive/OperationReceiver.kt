@@ -13,7 +13,7 @@ import uk.co.seanhodges.incandescent.client.storage.AuthRepository
 import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import java.lang.ref.WeakReference
 
-private const val EXECUTOR_NAME : String = "Incandescent.Operation.Executor"
+private const val EXECUTOR_NAME : String = "Incandescent.Operation.Receiver"
 
 class OperationReceiver(
         private val executor: OperationExecutor = Inject.executor
