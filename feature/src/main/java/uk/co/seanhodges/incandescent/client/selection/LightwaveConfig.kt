@@ -143,33 +143,26 @@ class LightwaveConfigParser(
         rooms.forEach rooms@{ room ->
             val roomEntity = RoomEntity(room.id, room.name)
             val deviceEntities = mutableListOf<DeviceEntity>()
+            val existingDevices = mutableSetOf<String>()
             room.featureSets.forEach features@{ featureSetId ->
                 if (!featureSets.containsKey(featureSetId)) return@features
                 val featureSet = featureSets[featureSetId]!!
+
+                // Device with this name already exists in this room
+                if (existingDevices.contains(featureSet.name)) return@features
+                existingDevices.add(featureSet.name)
+
                 val powerCommand = findCommand(featureSet.features, "switch")
                 val dimCommand = findCommand(featureSet.features, "dimLevel")
 
-                var deviceEntity = DeviceEntity(
+                deviceEntities.add(DeviceEntity(
                         featureSet.id,
                         featureSet.name,
                         inferTypeFromCommands(powerCommand, dimCommand),
                         powerCommand,
                         dimCommand,
                         room.id
-                )
-
-//                // TEST
-//                if (featureSet.name == "Christmas tree") {
-//                    deviceEntity = DeviceEntity(
-//                            featureSet.id,
-//                            "Kettle",
-//                            inferTypeFromCommands(powerCommand, dimCommand),
-//                            powerCommand,
-//                            dimCommand,
-//                            room.id
-//                    )
-//                }
-                deviceEntities.add(deviceEntity)
+                ))
             }
             onRoomFound(roomEntity, deviceEntities)
         }
