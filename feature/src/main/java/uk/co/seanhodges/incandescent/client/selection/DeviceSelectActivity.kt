@@ -30,6 +30,7 @@ class DeviceSelectActivity(
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity(), AuthenticationAware {
 
+    private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var sceneViewModel: SceneViewModel
     private lateinit var deviceViewModel: DeviceSelectViewModel
     private lateinit var recyclerView: RecyclerView
@@ -71,6 +72,8 @@ class DeviceSelectActivity(
             //@see OperationExecutor.onRawEvent()
             GatherDeviceReport(this).saveReport(packet)
         }
+
+        connectionMonitor = ConnectionStateMonitor(this, this)
     }
 
     private fun refreshDeviceValues(roomsWithDevices: List<RoomWithDevices>) {
@@ -91,10 +94,13 @@ class DeviceSelectActivity(
 
     override fun onResume() {
         super.onResume()
-
-        val authRepository = AuthRepository(WeakReference(applicationContext))
-        executor.start(authRepository, this)
+        connectionMonitor.resume()
         firstTimeLoad = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        connectionMonitor.pause()
     }
 
     override fun onAuthenticationSuccess() {

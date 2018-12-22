@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingDeque
 
 private const val EXECUTOR_NAME : String = "Incandescent.Operation.Executor"
-private const val EXECUTOR_FREQUENCY : Long = 2000 // Poll frequency
+private const val EXECUTOR_FREQUENCY : Long = 1000 // Poll frequency
 
 class OperationExecutor(
         private val server : LightwaveServer,
@@ -25,12 +25,13 @@ class OperationExecutor(
 ) : LWEventListener {
 
     private lateinit var authRepository: AuthRepository
+    private lateinit var handler: Handler
 
     private var senderId: String = ""
 
     var reportHandler: (packet: String) -> Unit? = {}
 
-    @Volatile var connected: Boolean = false
+    @Volatile var authenticated: Boolean = false
 
     init {
         server.addListener(this)
@@ -51,13 +52,13 @@ class OperationExecutor(
 
     override fun onEvent(event: LWEvent) {
         if (event.clazz.equals("user") && event.operation.equals("authenticate")) {
-            connected = true
+            authenticated = true
         }
     }
 
     override fun onRawEvent(packet: String) {
         // TODO(sean): This is hacky, we should decouple all the report gathering stuff
-        // TODO(sean): This indirection is only necessary to get active activity context to save the reports
+        // TODO(sean): This indirection is only necessary to get activity context to save the reports
         reportHandler.invoke(packet)
     }
 
@@ -67,29 +68,66 @@ class OperationExecutor(
     }
 
     fun start(authRepository: AuthRepository, authHandler: AuthenticationAware) {
+        Log.d(javaClass.name, "CommandExecutor started")
         this.authRepository = authRepository
         if (!authRepository.isAuthenticated()) {
             authHandler.onAuthenticationFailed()
         }
 
-        if (handlerThread.isAlive) {
-            return
+        if (!handlerThread.isAlive) {
+            handlerThread.start()
+            handler = Handler(handlerThread.looper)
         }
 
-        handlerThread.start()
-        val handler = Handler(handlerThread.looper)
-        val runnableCode = object : Runnable {
-            override fun run() {
-                if (connected) {
-                    processOperations()
-                }
-                else {
-                    connectToServer()
-                }
-                handler.postDelayed(this, EXECUTOR_FREQUENCY)
+        handler.post(eventLoop)
+    }
+
+    private fun connectToServer() {
+        var auth = authRepository.getCredentials()
+        var needsReconnect = !server.socketActive
+        if (authRepository.isExpired()) {
+            try {
+                Log.d(javaClass.name, "Refreshing access token using refresh token $auth.refreshToken...")
+                val tokens: LWAuthenticatedTokens = server.refreshToken(auth.refreshToken)
+                auth = authRepository.updateCredentials(tokens)
+                Log.d(javaClass.name, "New access token is: ${auth.accessToken}")
+                needsReconnect = true
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Connection failed", e)
+                throw Exception("Failed to authenticate", e)
             }
         }
-        handler.post(runnableCode)
+        if (needsReconnect) {
+            try {
+                Log.d(javaClass.name, "Connecting...")
+                server.connect(auth.accessToken, senderId)
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Connection failed", e)
+                throw Exception("Failed to authenticate", e)
+            }
+        }
+        else {
+            // We've already authenticated, ignore request
+        }
+        senderId = authRepository.getDeviceId()
+    }
+
+    fun stop() {
+        authenticated = false
+        handler.removeCallbacks(eventLoop)
+        server.disconnect()
+    }
+
+    private val eventLoop = object : Runnable {
+        override fun run() {
+            if (authenticated) {
+                processOperations()
+            }
+            else {
+                connectToServer()
+            }
+            handler.postDelayed(this, EXECUTOR_FREQUENCY)
+        }
     }
 
     fun processOperations() {
@@ -131,36 +169,6 @@ class OperationExecutor(
         catch (e: Throwable) {
             Log.e(javaClass.name, "Server error while processing change operation", e)
         }
-    }
-
-    private fun connectToServer() {
-        var auth = authRepository.getCredentials()
-        var needsReconnect = !server.socketActive
-        if (authRepository.isExpired()) {
-            try {
-                Log.d(javaClass.name, "Refreshing access token using refresh token $auth.refreshToken...")
-                val tokens: LWAuthenticatedTokens = server.refreshToken(auth.refreshToken)
-                auth = authRepository.updateCredentials(tokens)
-                Log.d(javaClass.name, "New access token is: ${auth.accessToken}")
-                needsReconnect = true
-            } catch (e: Exception) {
-                Log.e(javaClass.name, "Connection failed", e)
-                throw Exception("Failed to authenticate", e)
-            }
-        }
-        if (needsReconnect) {
-            try {
-                Log.d(javaClass.name, "Connecting...")
-                server.connect(auth.accessToken, senderId)
-            } catch (e: Exception) {
-                Log.e(javaClass.name, "Connection failed", e)
-                throw Exception("Failed to authenticate", e)
-            }
-        }
-        else {
-            // We've already connected, ignore request
-        }
-        senderId = authRepository.getDeviceId()
     }
 }
 
