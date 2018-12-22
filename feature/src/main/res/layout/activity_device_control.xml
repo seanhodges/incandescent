@@ -6,6 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".control.DeviceControlActivity">
 
+    <TextView
+        android:id="@+id/no_network_alert"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/message_waiting_for_network_connection"
+        android:textAlignment="center"
+        android:gravity="center_vertical|center_horizontal"
+        android:textColor="@android:color/white"
+        android:background="@color/alert"
+        android:visibility="gone"
+        />
+
     <ImageView
         android:id="@+id/room_image"
         android:layout_width="0dp"

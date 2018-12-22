@@ -32,4 +32,5 @@
     <string name="menu_cancel">Cancel</string>
     <string name="room_name_hint">Room name</string>
     <string name="appliance_name_hint">Appliance name</string>
+    <string name="message_waiting_for_network_connection">Waiting for network connection...</string>
 </resources>

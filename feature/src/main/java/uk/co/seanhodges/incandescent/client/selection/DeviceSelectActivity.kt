@@ -5,6 +5,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.Window
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -23,7 +24,7 @@ class DeviceSelectActivity(
         private val launch: LaunchActivity = Inject.launch,
         private val server: LightwaveServer = Inject.server,
         private val executor: OperationExecutor = Inject.executor
-) : AppCompatActivity(), AuthenticationAware {
+) : AppCompatActivity(), ConnectionAware {
 
     private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var sceneViewModel: SceneViewModel
@@ -104,6 +105,18 @@ class DeviceSelectActivity(
 
     override fun onAuthenticationFailed() {
         launch.authenticate(this)
+    }
+
+    override fun onConnectionAvailable() {
+        this.runOnUiThread {
+            this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.GONE
+        }
+    }
+
+    override fun onConnectionLost() {
+        this.runOnUiThread {
+            this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.VISIBLE
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

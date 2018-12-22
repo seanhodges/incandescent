@@ -9,6 +9,18 @@
     android:orientation="vertical"
     tools:context=".selection.DeviceSelectActivity">
 
+    <TextView
+        android:id="@+id/no_network_alert"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:text="@string/message_waiting_for_network_connection"
+        android:textAlignment="center"
+        android:gravity="center_vertical|center_horizontal"
+        android:textColor="@android:color/white"
+        android:background="@color/alert"
+        android:visibility="gone"
+        />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/room_list"
         android:nestedScrollingEnabled="true"

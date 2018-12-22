@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NavUtils
 import androidx.lifecycle.Observer
@@ -24,7 +25,7 @@ import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
 class DeviceControlActivity(
         private val launch: LaunchActivity = Inject.launch,
         private val executor: OperationExecutor = Inject.executor
-) : AppCompatActivity(), AuthenticationAware {
+) : AppCompatActivity(), ConnectionAware {
 
     private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var viewModel : DeviceControlViewModel
@@ -115,6 +116,18 @@ class DeviceControlActivity(
 
     override fun onAuthenticationFailed() {
         launch.authenticate(this)
+    }
+
+    override fun onConnectionAvailable() {
+        this.runOnUiThread {
+            this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.GONE
+        }
+    }
+
+    override fun onConnectionLost() {
+        this.runOnUiThread {
+            this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.VISIBLE
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {

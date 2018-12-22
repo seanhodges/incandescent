@@ -8,7 +8,7 @@ import java.lang.ref.WeakReference
 
 class ConnectionStateMonitor(
         context: Context,
-        listener: AuthenticationAware,
+        listener: ConnectionAware,
         private val executor: OperationExecutor = Inject.executor,
         private val networkRequest: NetworkRequest = NetworkRequest.Builder()
                 .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
@@ -20,7 +20,7 @@ class ConnectionStateMonitor(
     private var connectivityManager: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private var contextRef: WeakReference<Context> = WeakReference(context)
-    private var listenerRef: WeakReference<AuthenticationAware> = WeakReference(listener)
+    private var listenerRef: WeakReference<ConnectionAware> = WeakReference(listener)
 
     fun resume() {
         Log.d(javaClass.name, "Started listening for network changes")
@@ -37,20 +37,18 @@ class ConnectionStateMonitor(
         super.onLost(network)
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Lost connection")
-            listenerRef.get()?.let { listener ->
-                executor.stop()
-            }
+            executor.stop()
         }
+        listenerRef.get()?.onConnectionLost()
     }
 
     override fun onUnavailable() {
         super.onUnavailable()
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Connection unavailable")
-            listenerRef.get()?.let { listener ->
-                executor.stop()
-            }
+            executor.stop()
         }
+        listenerRef.get()?.onConnectionLost()
     }
 
     override fun onAvailable(network: Network?) {
@@ -62,6 +60,14 @@ class ConnectionStateMonitor(
                 executor.start(authRepository, listener)
             }
         }
+        listenerRef.get()?.onConnectionAvailable()
     }
+
+}
+
+interface ConnectionAware : AuthenticationAware {
+
+    fun onConnectionAvailable() {}
+    fun onConnectionLost() {}
 
 }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.Window
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NavUtils
@@ -18,7 +19,7 @@ import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
 class AddSceneActivity(
         private val executor: OperationExecutor = Inject.executor
-) : AppCompatActivity(), AuthenticationAware {
+) : AppCompatActivity(), ConnectionAware {
 
     private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var sceneViewModel: AddSceneViewModel
@@ -58,6 +59,18 @@ class AddSceneActivity(
     override fun onPause() {
         super.onPause()
         connectionMonitor.pause()
+    }
+
+    override fun onConnectionAvailable() {
+        this.runOnUiThread {
+            this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.GONE
+        }
+    }
+
+    override fun onConnectionLost() {
+        this.runOnUiThread {
+            this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.VISIBLE
+        }
     }
 
     private fun doAddScene(sceneName: EditText) {

@@ -25,7 +25,7 @@ class OperationExecutor(
 ) : LWEventListener {
 
     private lateinit var authRepository: AuthRepository
-    private lateinit var handler: Handler
+    private var handler: Handler? = null
 
     private var senderId: String = ""
 
@@ -79,7 +79,7 @@ class OperationExecutor(
             handler = Handler(handlerThread.looper)
         }
 
-        handler.post(eventLoop)
+        handler?.post(eventLoop)
     }
 
     private fun connectToServer() {
@@ -114,7 +114,7 @@ class OperationExecutor(
 
     fun stop() {
         authenticated = false
-        handler.removeCallbacks(eventLoop)
+        handler?.removeCallbacks(eventLoop)
         server.disconnect()
     }
 
@@ -126,7 +126,7 @@ class OperationExecutor(
             else {
                 connectToServer()
             }
-            handler.postDelayed(this, EXECUTOR_FREQUENCY)
+            handler?.postDelayed(this, EXECUTOR_FREQUENCY)
         }
     }
 
