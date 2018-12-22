@@ -1,30 +1,22 @@
 package uk.co.seanhodges.incandescent.client.control
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.net.ConnectivityManager
-import android.net.NetworkInfo
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.sdsmdg.harjot.crollerTest.Croller
-import uk.co.seanhodges.incandescent.client.*
-import uk.co.seanhodges.incandescent.client.storage.AuthRepository
-import uk.co.seanhodges.incandescent.client.auth.AuthenticateActivity
-import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
-import uk.co.seanhodges.incandescent.client.storage.RoomEntity
-import java.lang.ref.WeakReference
 import androidx.core.app.NavUtils
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.sdsmdg.harjot.crollerTest.Croller
+import uk.co.seanhodges.incandescent.client.*
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
 
@@ -34,6 +26,7 @@ class DeviceControlActivity(
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity(), AuthenticationAware {
 
+    private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var viewModel : DeviceControlViewModel
     private lateinit var selectedRoom: RoomEntity
     private lateinit var selectedDevice: DeviceEntity
@@ -85,6 +78,8 @@ class DeviceControlActivity(
             onDeviceChanged(device)
         })
         onDeviceChanged(selectedDevice)
+
+        connectionMonitor = ConnectionStateMonitor(this, this)
     }
 
     private fun setupActionBar() {
@@ -110,8 +105,12 @@ class DeviceControlActivity(
         selectedDevice.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
         selectedDevice.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
 
-        val authRepository = AuthRepository(WeakReference(applicationContext))
-        executor.start(authRepository, this)
+        connectionMonitor.resume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        connectionMonitor.pause()
     }
 
     override fun onAuthenticationFailed() {

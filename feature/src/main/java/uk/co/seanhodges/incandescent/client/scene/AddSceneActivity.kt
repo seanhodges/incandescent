@@ -12,19 +12,15 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_add_scene.*
-import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
-import uk.co.seanhodges.incandescent.client.AuthenticationAware
-import uk.co.seanhodges.incandescent.client.Inject
-import uk.co.seanhodges.incandescent.client.OperationExecutor
-import uk.co.seanhodges.incandescent.client.storage.AuthRepository
-import java.lang.ref.WeakReference
 
 
 class AddSceneActivity(
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity(), AuthenticationAware {
 
+    private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var sceneViewModel: AddSceneViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
@@ -50,12 +46,18 @@ class AddSceneActivity(
         fab.setOnClickListener { _ ->
             doAddScene(sceneName)
         }
+
+        connectionMonitor = ConnectionStateMonitor(this, this)
     }
 
     override fun onResume() {
         super.onResume()
-        val authRepository = AuthRepository(WeakReference(applicationContext))
-        executor.start(authRepository, this)
+        connectionMonitor.resume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        connectionMonitor.pause()
     }
 
     private fun doAddScene(sceneName: EditText) {

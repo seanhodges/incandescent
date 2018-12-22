@@ -3,10 +3,8 @@ package uk.co.seanhodges.incandescent.client
 import android.content.Context
 import android.net.*
 import android.util.Log
-import android.widget.Toast
 import uk.co.seanhodges.incandescent.client.storage.AuthRepository
 import java.lang.ref.WeakReference
-
 
 class ConnectionStateMonitor(
         context: Context,
@@ -38,9 +36,7 @@ class ConnectionStateMonitor(
     override fun onLost(network: Network?) {
         super.onLost(network)
         contextRef.get()?.let { context ->
-            Toast.makeText(context, ">> Lost connection", Toast.LENGTH_SHORT).show()
-            Log.d(javaClass.name, ">> Lost connection")
-
+            Log.d(javaClass.name, "Lost connection")
             listenerRef.get()?.let { listener ->
                 executor.stop()
             }
@@ -50,9 +46,7 @@ class ConnectionStateMonitor(
     override fun onUnavailable() {
         super.onUnavailable()
         contextRef.get()?.let { context ->
-            Toast.makeText(context, ">> Connection unavailable", Toast.LENGTH_SHORT).show()
-            Log.d(javaClass.name, ">> Connection unavailable")
-
+            Log.d(javaClass.name, "Connection unavailable")
             listenerRef.get()?.let { listener ->
                 executor.stop()
             }
@@ -62,9 +56,7 @@ class ConnectionStateMonitor(
     override fun onAvailable(network: Network?) {
         super.onAvailable(network)
         contextRef.get()?.let { context ->
-            Toast.makeText(context, ">> Connection available", Toast.LENGTH_SHORT).show()
-            Log.d(javaClass.name, ">> Connection available")
-
+            Log.d(javaClass.name, "Connection available")
             val authRepository = AuthRepository(WeakReference(context))
             listenerRef.get()?.let { listener ->
                 executor.start(authRepository, listener)
