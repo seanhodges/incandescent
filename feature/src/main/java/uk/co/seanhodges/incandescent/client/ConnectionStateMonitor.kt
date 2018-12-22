@@ -25,6 +25,13 @@ class ConnectionStateMonitor(
     fun resume() {
         Log.d(javaClass.name, "Started listening for network changes")
         connectivityManager.registerNetworkCallback(networkRequest, this)
+
+        // Check on startup...
+        val networkInfo = connectivityManager.activeNetworkInfo
+        when (networkInfo != null && networkInfo.isConnected) {
+            true -> onAvailable(connectivityManager.activeNetwork)
+            else -> onUnavailable()
+        }
     }
 
     fun pause() {
@@ -34,7 +41,6 @@ class ConnectionStateMonitor(
     }
 
     override fun onLost(network: Network?) {
-        super.onLost(network)
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Lost connection")
             executor.stop()
@@ -43,7 +49,6 @@ class ConnectionStateMonitor(
     }
 
     override fun onUnavailable() {
-        super.onUnavailable()
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Connection unavailable")
             executor.stop()
@@ -52,7 +57,6 @@ class ConnectionStateMonitor(
     }
 
     override fun onAvailable(network: Network?) {
-        super.onAvailable(network)
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Connection available")
             val authRepository = AuthRepository(WeakReference(context))
