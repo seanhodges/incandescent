@@ -1,10 +1,5 @@
 package uk.co.seanhodges.incandescent.client.scene
 
-import android.content.Context
-import android.content.DialogInterface
-import android.net.ConnectivityManager
-import android.net.NetworkInfo
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.Window
@@ -19,10 +14,16 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_add_scene.*
 import uk.co.seanhodges.incandescent.client.R
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
-import androidx.appcompat.app.AlertDialog
+import uk.co.seanhodges.incandescent.client.AuthenticationAware
+import uk.co.seanhodges.incandescent.client.Inject
+import uk.co.seanhodges.incandescent.client.OperationExecutor
+import uk.co.seanhodges.incandescent.client.storage.AuthRepository
+import java.lang.ref.WeakReference
 
 
-class AddSceneActivity : AppCompatActivity() {
+class AddSceneActivity(
+        private val executor: OperationExecutor = Inject.executor
+) : AppCompatActivity(), AuthenticationAware {
 
     private lateinit var sceneViewModel: AddSceneViewModel
     private lateinit var recyclerView: RecyclerView
@@ -39,7 +40,6 @@ class AddSceneActivity : AppCompatActivity() {
         recyclerView.adapter = contentAdapter
 
         sceneViewModel = ViewModelProviders.of(this).get(AddSceneViewModel::class.java)
-        sceneViewModel.listenForValueChanges(this)
         sceneViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
             roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
@@ -53,24 +53,12 @@ class AddSceneActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (isNetworkDown()) {
-            val builder = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            builder.setTitle(resources.getString(R.string.alert_title_no_internet))
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setMessage(resources.getString(R.string.alert_message_no_internet))
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        finish()
-                        startActivity(intent)
-                    }
-                    .show()
-            return
-        }
+        val authRepository = AuthRepository(WeakReference(applicationContext))
+        executor.start(authRepository, this)
     }
 
-    private fun isNetworkDown(): Boolean {
-        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        return activeNetwork?.isConnectedOrConnecting != true
+    override fun onAuthenticationSuccess() {
+        sceneViewModel.listenForValueChanges(this)
     }
 
     private fun doAddScene(sceneName: EditText) {

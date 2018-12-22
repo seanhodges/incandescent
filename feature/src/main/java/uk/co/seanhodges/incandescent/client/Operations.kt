@@ -1,11 +1,9 @@
 package uk.co.seanhodges.incandescent.client
 
-import android.os.AsyncTask
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import uk.co.seanhodges.incandescent.client.storage.AuthRepository
-import uk.co.seanhodges.incandescent.client.storage.Credentials
 import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
@@ -15,19 +13,24 @@ import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingDeque
 
+private const val EXECUTOR_NAME : String = "Incandescent.Operation.Executor"
+private const val EXECUTOR_FREQUENCY : Long = 2000 // Poll frequency
 
 class OperationExecutor(
         private val server : LightwaveServer,
-        private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf()
+        private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf(),
+        private val handlerThread: HandlerThread = HandlerThread(EXECUTOR_NAME),
+        private val loadQueue: LinkedBlockingDeque<String> = LinkedBlockingDeque<String>(),
+        private val changeQueue: ConcurrentHashMap<String, Int> = ConcurrentHashMap()
 ) : LWEventListener {
 
-    private val handlerThread = HandlerThread(EXECUTOR_NAME)
-    private val loadQueue = LinkedBlockingDeque<String>()
-    private val changeQueue = ConcurrentHashMap<String, Int>()
+    private lateinit var authRepository: AuthRepository
 
     private var senderId: String = ""
 
     var reportHandler: (packet: String) -> Unit? = {}
+
+    @Volatile var connected: Boolean = false
 
     init {
         server.addListener(this)
@@ -46,27 +49,10 @@ class OperationExecutor(
         changeQueue[featureId] = newValue
     }
 
-    fun connectToServer(authRepository: AuthRepository, onComplete: (success: Boolean) -> Unit) {
-        if (authRepository.isExpired()) {
-            val refreshTask = RefreshTokenAndConnectToServerTask(authRepository, onComplete)
-            refreshTask.execute(server)
-        }
-        else if (!server.socketActive) {
-            val connectTask = ConnectToServerTask(authRepository, onComplete)
-            connectTask.execute(server)
-        }
-        else {
-            // We've already connected, ignore request
-        }
-        senderId = authRepository.getDeviceId()
-    }
-
     override fun onEvent(event: LWEvent) {
-        if (!(event.clazz.equals("user") && event.operation.equals("authenticate"))) {
-            return // Watch for authentication success
+        if (event.clazz.equals("user") && event.operation.equals("authenticate")) {
+            connected = true
         }
-
-        start()
     }
 
     override fun onRawEvent(packet: String) {
@@ -80,7 +66,12 @@ class OperationExecutor(
         Log.e(javaClass.name, "Server auth error: " + error.message)
     }
 
-    private fun start() {
+    fun start(authRepository: AuthRepository, authHandler: AuthenticationAware) {
+        this.authRepository = authRepository
+        if (!authRepository.isAuthenticated()) {
+            authHandler.onAuthenticationFailed()
+        }
+
         if (handlerThread.isAlive) {
             return
         }
@@ -89,7 +80,12 @@ class OperationExecutor(
         val handler = Handler(handlerThread.looper)
         val runnableCode = object : Runnable {
             override fun run() {
-                processOperations()
+                if (connected) {
+                    processOperations()
+                }
+                else {
+                    connectToServer()
+                }
                 handler.postDelayed(this, EXECUTOR_FREQUENCY)
             }
         }
@@ -137,66 +133,40 @@ class OperationExecutor(
         }
     }
 
-    companion object {
-        private val EXECUTOR_NAME : String = "Incandescent.Operation.Executor"
-        private val EXECUTOR_FREQUENCY : Long = 1000 // Poll frequency
-    }
-}
-
-class RefreshTokenAndConnectToServerTask(
-        private val authRepository: AuthRepository,
-        private val onComplete: (success: Boolean) -> Unit
-) : AsyncTask<LightwaveServer, Void, LWAuthenticatedTokens>() {
-
-    override fun doInBackground(vararg server: LightwaveServer): LWAuthenticatedTokens? {
-        val auth: Credentials = authRepository.getCredentials()
-        try {
-            Log.d(javaClass.name, "Refreshing access token using refresh token $auth.refreshToken...")
-            val tokens: LWAuthenticatedTokens = server[0].refreshToken(auth.refreshToken)
-            if (tokens.refreshToken == null) {
-                return null
+    private fun connectToServer() {
+        var auth = authRepository.getCredentials()
+        var needsReconnect = !server.socketActive
+        if (authRepository.isExpired()) {
+            try {
+                Log.d(javaClass.name, "Refreshing access token using refresh token $auth.refreshToken...")
+                val tokens: LWAuthenticatedTokens = server.refreshToken(auth.refreshToken)
+                auth = authRepository.updateCredentials(tokens)
+                Log.d(javaClass.name, "New access token is: ${auth.accessToken}")
+                needsReconnect = true
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Connection failed", e)
+                throw Exception("Failed to authenticate", e)
             }
-            Log.d(javaClass.name, "Access token is: ${tokens.accessToken}")
-            Log.d(javaClass.name, "Connecting...")
-            server[0].connect(tokens.accessToken, auth.deviceId)
-            return tokens
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Connection failed", e)
         }
-        return null
-    }
-
-    override fun onPostExecute(result: LWAuthenticatedTokens?) {
-        super.onPostExecute(result)
-        if (result != null) {
-            authRepository.updateCredentials(result)
-            onComplete(true)
+        if (needsReconnect) {
+            try {
+                Log.d(javaClass.name, "Connecting...")
+                server.connect(auth.accessToken, senderId)
+            } catch (e: Exception) {
+                Log.e(javaClass.name, "Connection failed", e)
+                throw Exception("Failed to authenticate", e)
+            }
         }
         else {
-            onComplete(false)
+            // We've already connected, ignore request
         }
+        senderId = authRepository.getDeviceId()
     }
 }
 
-class ConnectToServerTask(
-        private val authRepository: AuthRepository,
-        private val onComplete: (success: Boolean) -> Unit
-) : AsyncTask<LightwaveServer, Void, Boolean>() {
+interface AuthenticationAware {
 
-    override fun doInBackground(vararg server: LightwaveServer): Boolean {
-        try {
-            val auth: Credentials = authRepository.getCredentials()
-            Log.d(javaClass.name, "Connecting...")
-            server[0].connect(auth.accessToken, auth.deviceId)
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Connection failed", e)
-            return false
-        }
-        return true
-    }
+    fun onAuthenticationSuccess() {}
+    fun onAuthenticationFailed() {}
 
-    override fun onPostExecute(success: Boolean) {
-        super.onPostExecute(success)
-        onComplete(success)
-    }
 }

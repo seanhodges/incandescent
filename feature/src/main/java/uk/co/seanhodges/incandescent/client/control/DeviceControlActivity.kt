@@ -32,7 +32,7 @@ import uk.co.seanhodges.incandescent.client.support.ReportDeviceActivity
 class DeviceControlActivity(
         private val launch: LaunchActivity = Inject.launch,
         private val executor: OperationExecutor = Inject.executor
-) : AppCompatActivity() {
+) : AppCompatActivity(), AuthenticationAware {
 
     private lateinit var viewModel : DeviceControlViewModel
     private lateinit var selectedRoom: RoomEntity
@@ -46,7 +46,6 @@ class DeviceControlActivity(
         setContentView(R.layout.activity_device_control)
 
         viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
-        viewModel.listenForValueChanges(this)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -98,18 +97,6 @@ class DeviceControlActivity(
 
     override fun onResume() {
         super.onResume()
-        if (isNetworkDown()) {
-            val builder = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            builder.setTitle(resources.getString(R.string.alert_title_no_internet))
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setMessage(resources.getString(R.string.alert_message_no_internet))
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        finish()
-                        startActivity(intent)
-                    }
-                    .show()
-            return
-        }
 
         eventsPreventingCrollerChangeListener = 0
 
@@ -121,26 +108,17 @@ class DeviceControlActivity(
         }
         selectedDevice.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
         selectedDevice.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
-        viewModel.listenForValueChanges(this)
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
-        if (!authRepository.isAuthenticated()) {
-            launch.authenticate(this)
-        }
-        else {
-            executor.connectToServer(authRepository, onComplete = { success: Boolean ->
-                if (!success) {
-                    Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
-                    launch.authenticate(this)
-                }
-            })
-        }
+        executor.start(authRepository, this)
     }
 
-    private fun isNetworkDown(): Boolean {
-        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        return activeNetwork?.isConnectedOrConnecting != true
+    override fun onAuthenticationSuccess() {
+        viewModel.listenForValueChanges(this)
+    }
+
+    override fun onAuthenticationFailed() {
+        launch.authenticate(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {

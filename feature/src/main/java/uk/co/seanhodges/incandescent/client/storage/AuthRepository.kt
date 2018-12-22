@@ -56,7 +56,7 @@ class AuthRepository(private val ctxRef: WeakReference<Context>) {
         )
     }
 
-    fun updateCredentials(tokens: LWAuthenticatedTokens) {
+    fun updateCredentials(tokens: LWAuthenticatedTokens): Credentials {
         ctxRef.get()?.let { ctx ->
             val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit()
@@ -65,6 +65,7 @@ class AuthRepository(private val ctxRef: WeakReference<Context>) {
                     .putLong("createdOn", System.currentTimeMillis())
                     .apply()
         }
+        return getCredentials()
     }
 
     fun getUserId(): String {

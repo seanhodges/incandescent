@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import com.twofortyfouram.locale.sdk.client.receiver.AbstractPluginSettingReceiver
+import uk.co.seanhodges.incandescent.client.AuthenticationAware
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.OperationExecutor
 import uk.co.seanhodges.incandescent.client.storage.AppDatabase
@@ -17,7 +18,7 @@ private const val EXECUTOR_NAME : String = "Incandescent.Operation.Receiver"
 
 class OperationReceiver(
         private val executor: OperationExecutor = Inject.executor
-) : AbstractPluginSettingReceiver() {
+) : AbstractPluginSettingReceiver(), AuthenticationAware {
 
     private val handlerThread = HandlerThread(EXECUTOR_NAME)
 
@@ -44,13 +45,13 @@ class OperationReceiver(
 
             applyPowerValue(operation, device)
             applyDimValue(operation, device)
-
-            executor.connectToServer(authRepository, onComplete = { success: Boolean ->
-                if (!success) {
-                    Log.e(javaClass.name, "Could not connect to Lightwave server :(")
-                }
-            })
         }
+
+        executor.start(authRepository, this)
+    }
+
+    override fun onAuthenticationFailed() {
+        Log.e(javaClass.name, "Could not connect to Lightwave server :(")
     }
 
     private fun applyPowerValue(operation: OperationBundle, device: DeviceEntity) {

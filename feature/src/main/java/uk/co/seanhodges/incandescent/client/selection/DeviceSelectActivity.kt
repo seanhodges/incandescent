@@ -18,10 +18,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import uk.co.seanhodges.incandescent.client.Inject
-import uk.co.seanhodges.incandescent.client.LaunchActivity
-import uk.co.seanhodges.incandescent.client.OperationExecutor
-import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.storage.*
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
@@ -31,7 +28,7 @@ class DeviceSelectActivity(
         private val launch: LaunchActivity = Inject.launch,
         private val server: LightwaveServer = Inject.server,
         private val executor: OperationExecutor = Inject.executor
-) : AppCompatActivity() {
+) : AppCompatActivity(), AuthenticationAware {
 
     private lateinit var sceneViewModel: SceneViewModel
     private lateinit var deviceViewModel: DeviceSelectViewModel
@@ -61,7 +58,6 @@ class DeviceSelectActivity(
             scenesWithActions -> contentAdapter.setSceneData(scenesWithActions)
         })
         deviceViewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
-        deviceViewModel.listenForValueChanges(this)
         deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
             contentAdapter.setDeviceData(roomsWithDevices)
             if (firstTimeLoad) {
@@ -94,43 +90,19 @@ class DeviceSelectActivity(
 
     override fun onResume() {
         super.onResume()
-        if (isNetworkDown()) {
-            val builder = AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
-            builder.setTitle(resources.getString(R.string.alert_title_no_internet))
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setCancelable(false)
-                    .setMessage(resources.getString(R.string.alert_message_no_internet))
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        finish()
-                        startActivity(intent)
-                    }
-                    .show()
-            return
-        }
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
-        if (!authRepository.isAuthenticated()) {
-            launch.authenticate(this)
-        }
-        else {
-            executor.connectToServer(authRepository, onComplete = { success: Boolean ->
-                if (success) {
-                    deviceViewModel.initialiseList(this)
-                }
-                else {
-                    Toast.makeText(this, "Could not connect to Lightwave server :(", Toast.LENGTH_LONG).show()
-                    launch.authenticate(this)
-                }
-            })
-        }
-
+        executor.start(authRepository, this)
         firstTimeLoad = true
     }
 
-    private fun isNetworkDown(): Boolean {
-        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        return activeNetwork?.isConnectedOrConnecting != true
+    override fun onAuthenticationSuccess() {
+        deviceViewModel.initialiseList(this)
+        deviceViewModel.listenForValueChanges(this)
+    }
+
+    override fun onAuthenticationFailed() {
+        launch.authenticate(this)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
