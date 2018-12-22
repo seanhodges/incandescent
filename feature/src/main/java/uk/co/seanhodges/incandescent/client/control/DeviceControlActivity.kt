@@ -46,6 +46,7 @@ class DeviceControlActivity(
         setContentView(R.layout.activity_device_control)
 
         viewModel = ViewModelProviders.of(this).get(DeviceControlViewModel::class.java)
+        viewModel.listenForValueChanges(this)
 
         if (!intent.hasExtra("selectedRoom")) {
             Log.e(this.javaClass.name, "Room info missing when attempting to open DeviceControlActivity")
@@ -111,10 +112,6 @@ class DeviceControlActivity(
 
         val authRepository = AuthRepository(WeakReference(applicationContext))
         executor.start(authRepository, this)
-    }
-
-    override fun onAuthenticationSuccess() {
-        viewModel.listenForValueChanges(this)
     }
 
     override fun onAuthenticationFailed() {

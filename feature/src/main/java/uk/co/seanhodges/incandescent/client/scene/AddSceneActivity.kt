@@ -40,6 +40,7 @@ class AddSceneActivity(
         recyclerView.adapter = contentAdapter
 
         sceneViewModel = ViewModelProviders.of(this).get(AddSceneViewModel::class.java)
+        sceneViewModel.listenForValueChanges(this)
         sceneViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
             roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
@@ -55,10 +56,6 @@ class AddSceneActivity(
         super.onResume()
         val authRepository = AuthRepository(WeakReference(applicationContext))
         executor.start(authRepository, this)
-    }
-
-    override fun onAuthenticationSuccess() {
-        sceneViewModel.listenForValueChanges(this)
     }
 
     private fun doAddScene(sceneName: EditText) {

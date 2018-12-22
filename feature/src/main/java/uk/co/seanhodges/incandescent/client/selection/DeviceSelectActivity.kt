@@ -58,6 +58,7 @@ class DeviceSelectActivity(
             scenesWithActions -> contentAdapter.setSceneData(scenesWithActions)
         })
         deviceViewModel = ViewModelProviders.of(this).get(DeviceSelectViewModel::class.java)
+        deviceViewModel.listenForValueChanges(this)
         deviceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
             contentAdapter.setDeviceData(roomsWithDevices)
             if (firstTimeLoad) {
@@ -98,7 +99,6 @@ class DeviceSelectActivity(
 
     override fun onAuthenticationSuccess() {
         deviceViewModel.initialiseList(this)
-        deviceViewModel.listenForValueChanges(this)
     }
 
     override fun onAuthenticationFailed() {
