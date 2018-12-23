@@ -22,6 +22,8 @@ class ConnectionStateMonitor(
     private var contextRef: WeakReference<Context> = WeakReference(context)
     private var listenerRef: WeakReference<ConnectionAware> = WeakReference(listener)
 
+    private var state: NetworkInfo.State = NetworkInfo.State.UNKNOWN
+
     fun resume() {
         Log.d(javaClass.name, "Started listening for network changes")
         connectivityManager.registerNetworkCallback(networkRequest, this)
@@ -41,6 +43,10 @@ class ConnectionStateMonitor(
     }
 
     override fun onLost(network: Network?) {
+        if (state == NetworkInfo.State.DISCONNECTED) {
+            return
+        }
+        state = NetworkInfo.State.DISCONNECTED
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Lost connection")
             executor.stop()
@@ -49,6 +55,10 @@ class ConnectionStateMonitor(
     }
 
     override fun onUnavailable() {
+        if (state == NetworkInfo.State.DISCONNECTED) {
+            return
+        }
+        state = NetworkInfo.State.DISCONNECTED
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Connection unavailable")
             executor.stop()
@@ -57,6 +67,10 @@ class ConnectionStateMonitor(
     }
 
     override fun onAvailable(network: Network?) {
+        if (state == NetworkInfo.State.CONNECTED) {
+            return
+        }
+        state = NetworkInfo.State.CONNECTED
         contextRef.get()?.let { context ->
             Log.d(javaClass.name, "Connection available")
             val authRepository = AuthRepository(WeakReference(context))

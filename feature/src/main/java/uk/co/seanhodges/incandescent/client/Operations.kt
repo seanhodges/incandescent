@@ -31,6 +31,7 @@ class OperationExecutor(
 
     var reportHandler: (packet: String) -> Unit? = {}
 
+    @Volatile var started: Boolean = false
     @Volatile var authenticated: Boolean = false
 
     init {
@@ -73,12 +74,12 @@ class OperationExecutor(
         if (!authRepository.isAuthenticated()) {
             authHandler.onAuthenticationFailed()
         }
-
-        if (!handlerThread.isAlive) {
+        if (!started) {
+            started = true
             handlerThread.start()
             handler = Handler(handlerThread.looper)
         }
-
+        handler?.removeCallbacks(eventLoop)
         handler?.post(eventLoop)
     }
 
