@@ -6,7 +6,9 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".scene.AddSceneActivity"
-    tools:showIn="@layout/activity_add_scene">
+    tools:showIn="@layout/activity_add_scene"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
     <TextView
         android:id="@+id/no_network_alert"
@@ -25,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="Scene name"
+        android:text="@string/scene_name"
         app:layout_constraintBaseline_toBaselineOf="@+id/scene_name"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -33,20 +35,31 @@
         android:id="@+id/scene_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingTop="15dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:ems="10"
         android:inputType="text"
         android:text=""
+        android:focusedByDefault="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/scene_name_label" />
+
+    <TextView
+        android:id="@+id/scene_help"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/scene_help_message"
+        app:layout_constraintTop_toBottomOf="@+id/scene_name" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_marginTop="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:nestedScrollingEnabled="true"
-        app:layout_constraintTop_toBottomOf="@+id/scene_name"
+        app:layout_constraintTop_toBottomOf="@+id/scene_help"
         android:id="@+id/scene_setting_list">
 
     </androidx.recyclerview.widget.RecyclerView>

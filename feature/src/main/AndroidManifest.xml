@@ -29,11 +29,7 @@
         </activity>
         <activity
             android:name=".control.DeviceControlActivity"
-            android:label="@string/control_device_title"
-            android:parentActivityName=".selection.DeviceSelectActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".selection.DeviceSelectActivity" />
+            android:label="@string/control_device_title">
         </activity>
         <activity
             android:name=".auth.AuthenticateActivity"
@@ -44,11 +40,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".scene.AddSceneActivity"
-            android:label="@string/title_activity_add_scene"
-            android:parentActivityName=".selection.DeviceSelectActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".selection.DeviceSelectActivity" />
+            android:label="@string/title_activity_add_scene">
         </activity>
 
         <!-- Intent API for Locale and similar automation apps -->

@@ -150,8 +150,11 @@ class ContentAdapter(
             }
             else {
                 val row: RelativeLayout = LayoutInflater.from(this.parentView.context).inflate(R.layout.content_select_list_entry, this.parentView, false) as RelativeLayout
+                row.findViewById<CheckBox>(R.id.action_pick).visibility = View.GONE
+
                 val deviceImage: ImageView = row.findViewById(R.id.device_image)
                 val actionToggle: Switch = row.findViewById(R.id.action_enable)
+                actionToggle.visibility = View.VISIBLE
                 deviceImage.setImageResource(IconResolver.getDeviceImage(device.title, device.type))
                 if (device.lastPowerValue == 1) {
                     deviceImage.imageTintList = ColorStateList.valueOf(Color.parseColor(ENTRY_ACTIVE_COLOUR))
