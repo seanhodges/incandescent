@@ -41,7 +41,9 @@ object IconResolver {
         name.containsOneOf("microwave") -> R.drawable.device_microwave
         name.containsOneOf("bike", "moped") -> R.drawable.device_motorbike
         name.containsOneOf("socket", "plug") -> R.drawable.device_socket
-        name.containsOneOf("thermostat", "heating") -> R.drawable.device_thermostat
+        name.containsOneOf("trv", "radiator", "rad") -> R.drawable.device_temp
+        name.containsOneOf("thermostat", "temp", "temperature") -> R.drawable.device_thermostat
+        name.containsOneOf("heating", "boiler", "heater") -> R.drawable.device_heater
         name.containsOneOf("tv", "television") -> R.drawable.device_tv
         name.containsOneOf("music", "stereo") -> R.drawable.device_music_player
         name.containsOneOf("office") -> R.drawable.device_office_lamp
