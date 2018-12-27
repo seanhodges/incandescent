@@ -27,7 +27,7 @@ class RefreshListTask(
                 updateExistingRoom(room)
 
                 val existingDevicesInRoom = devices.filter { device ->
-                    deviceDao.exists(device.id) != null
+                    deviceDao.exists(device.id) > 0
                 }
 
                 Log.d(javaClass.name, "Inserting room ${room.title} with ${devices.size} devices")

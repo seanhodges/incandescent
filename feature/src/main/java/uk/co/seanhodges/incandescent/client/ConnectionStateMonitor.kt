@@ -77,7 +77,7 @@ class ConnectionStateMonitor(
             return
         }
         state = NetworkInfo.State.DISCONNECTED
-        contextRef.get()?.let { context ->
+        contextRef.get()?.let { _ ->
             Log.d(javaClass.name, "Lost connection")
             executor.stop()
         }
@@ -89,7 +89,7 @@ class ConnectionStateMonitor(
             return
         }
         state = NetworkInfo.State.DISCONNECTED
-        contextRef.get()?.let { context ->
+        contextRef.get()?.let { _ ->
             Log.d(javaClass.name, "Connection unavailable")
             executor.stop()
         }
