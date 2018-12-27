@@ -2,9 +2,15 @@ package uk.co.seanhodges.incandescent.client
 
 import android.content.Context
 import android.net.*
+import android.os.AsyncTask
 import android.util.Log
 import uk.co.seanhodges.incandescent.client.storage.AuthRepository
+import java.io.IOException
 import java.lang.ref.WeakReference
+import java.net.HttpURLConnection
+import java.net.URL
+
+private const val CONNECTION_CHECK_TIMEOUT = 2000
 
 class ConnectionStateMonitor(
         context: Context,
@@ -29,17 +35,41 @@ class ConnectionStateMonitor(
         connectivityManager.registerNetworkCallback(networkRequest, this)
 
         // Check on startup...
-        val networkInfo = connectivityManager.activeNetworkInfo
-        when (networkInfo != null && networkInfo.isConnected) {
-            true -> onAvailable(connectivityManager.activeNetwork)
-            else -> onUnavailable()
-        }
+        IsNetworkAvailableNowTask(this, connectivityManager.activeNetwork).execute()
     }
 
     fun pause() {
         Log.d(javaClass.name, "Stopped listening for network changes")
         executor.stop()
         connectivityManager.unregisterNetworkCallback(this)
+    }
+
+    internal class IsNetworkAvailableNowTask(
+            private val parent: ConnectionStateMonitor,
+            private val activeNetwork: Network?
+    ) : AsyncTask<Void, Void, Boolean>() {
+
+        override fun doInBackground(vararg voids: Void): Boolean {
+            try {
+                val url = URL("http://clients3.google.com/generate_204")
+                        .openConnection() as HttpURLConnection
+                url.setRequestProperty("User-Agent", "Android")
+                url.setRequestProperty("Connection", "close")
+                url.connectTimeout = CONNECTION_CHECK_TIMEOUT
+                url.connect()
+                return url.responseCode == 204
+            } catch (e: IOException) {
+                // Internet connection unavailable
+                return false
+            }
+        }
+
+        override fun onPostExecute(result: Boolean) {
+            when (result) {
+                true -> parent.onAvailable(activeNetwork)
+                else -> parent.onUnavailable()
+            }
+        }
     }
 
     override fun onLost(network: Network?) {
