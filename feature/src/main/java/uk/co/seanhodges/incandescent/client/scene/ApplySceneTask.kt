@@ -22,10 +22,12 @@ class ApplySceneTask(
         if (params.isEmpty()) return null
         val sceneId = params[0]!!
         val scene = sceneDao.findSceneById(sceneId)
-        Log.d(javaClass.name, "Found ${scene.actions?.size} actions")
-        scene.actions?.forEach { action ->
-            Log.d(javaClass.name, "Applying: ${action.id} = ${action.value}")
-            executor.enqueueChange(action.id, action.value)
+        scene.actions?.let { actions ->
+            Log.d(javaClass.name, "Found ${actions.size} actions")
+            actions.forEach { action ->
+                Log.d(javaClass.name, "Applying: ${action.id} = ${action.value}")
+            }
+            executor.enqueueChangeAll(actions.map { Pair(it.id, it.value) })
         }
         return scene.scene?.title
     }

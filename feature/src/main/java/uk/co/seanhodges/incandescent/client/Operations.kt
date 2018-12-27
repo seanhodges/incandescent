@@ -20,7 +20,7 @@ class OperationExecutor(
         private val server : LightwaveServer,
         private var loadItemIdToFeatureId : MutableMap<Int, String> = mutableMapOf(),
         private val handlerThread: HandlerThread = HandlerThread(EXECUTOR_NAME),
-        private val loadQueue: LinkedBlockingDeque<String> = LinkedBlockingDeque<String>(),
+        private val loadQueue: LinkedBlockingDeque<String> = LinkedBlockingDeque(),
         private val changeQueue: ConcurrentHashMap<String, Int> = ConcurrentHashMap()
 ) : LWEventListener {
 
@@ -39,11 +39,15 @@ class OperationExecutor(
     }
 
     fun enqueueLoad(featureId : String) {
-        loadQueue.add(featureId)
+        if (!loadQueue.contains(featureId)) {
+            loadQueue.add(featureId)
+        }
     }
 
     fun enqueueLoadAll(featureIds : List<String>) {
-        loadQueue.addAll(featureIds)
+        loadQueue.addAll(featureIds.filter { featureId ->
+            loadQueue.contains(featureId)
+        })
     }
 
     fun enqueueChange(featureId : String, newValue : Int) {
@@ -51,9 +55,15 @@ class OperationExecutor(
         changeQueue[featureId] = newValue
     }
 
+    fun enqueueChangeAll(features: List<Pair<String, Int>>) {
+        // Will replace the old value if exists
+        changeQueue.putAll(features)
+    }
+
     override fun onEvent(event: LWEvent) {
         if (event.clazz.equals("user") && event.operation.equals("authenticate")) {
             authenticated = true
+            handler?.postDelayed(eventLoop, EXECUTOR_FREQUENCY)
         }
     }
 
@@ -102,6 +112,12 @@ class OperationExecutor(
             try {
                 Log.d(javaClass.name, "Connecting...")
                 server.connect(auth.accessToken, senderId)
+
+                if (senderId.isNotEmpty()) {
+                    // It seems we don't get a response from LW if we recently
+                    // connected, so here we assume it was a success
+                    authenticated = true
+                }
             } catch (e: Exception) {
                 Log.e(javaClass.name, "Connection failed", e)
                 throw Exception("Failed to authenticate", e)
@@ -123,24 +139,28 @@ class OperationExecutor(
         override fun run() {
             if (authenticated) {
                 processOperations()
+                handler?.postDelayed(this, EXECUTOR_FREQUENCY)
             }
             else {
                 connectToServer()
             }
-            handler?.postDelayed(this, EXECUTOR_FREQUENCY)
         }
     }
 
     fun processOperations() {
+        Log.d(javaClass.name, "Processing operations...")
+        changeQueue.entries.map { entry ->
+            if (!changeQueue.entries.contains(entry)) return@map
+            Log.d(javaClass.name, "Received operation ${entry.key}=${entry.value}")
+            doProcessChange(entry.key, entry.value)
+            changeQueue.remove(entry.key)
+            Log.d(javaClass.name, "Operations remaining: ${changeQueue.size}")
+        }
+
         while (!loadQueue.isEmpty()) {
             val featureId = loadQueue.take()
             doProcessLoad(featureId)
         }
-
-        changeQueue.entries.forEach { entry ->
-            doProcessChange(entry.key, entry.value)
-        }
-        changeQueue.clear()
     }
 
     private fun doProcessLoad(featureId: String) {
