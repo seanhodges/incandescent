@@ -12,6 +12,9 @@ import java.net.URL
 
 private const val CONNECTION_CHECK_TIMEOUT = 2000
 
+// TODO: Make this a user option
+private const val DISCONNECT_ON_PAUSE = false // Improves battery life at expense of app performance
+
 class ConnectionStateMonitor(
         context: Context,
         listener: ConnectionAware,
@@ -32,6 +35,7 @@ class ConnectionStateMonitor(
 
     fun resume() {
         Log.d(javaClass.name, "Started listening for network changes")
+        state = NetworkInfo.State.UNKNOWN
         connectivityManager.registerNetworkCallback(networkRequest, this)
 
         // Check on startup...
@@ -40,8 +44,11 @@ class ConnectionStateMonitor(
 
     fun pause() {
         Log.d(javaClass.name, "Stopped listening for network changes")
-        executor.stop()
-        connectivityManager.unregisterNetworkCallback(this)
+        if (DISCONNECT_ON_PAUSE) {
+            state = NetworkInfo.State.UNKNOWN
+            executor.stop()
+            connectivityManager.unregisterNetworkCallback(this)
+        }
     }
 
     internal class IsNetworkAvailableNowTask(
