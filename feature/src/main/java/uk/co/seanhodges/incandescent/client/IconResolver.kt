@@ -2,8 +2,10 @@ package uk.co.seanhodges.incandescent.client
 
 object IconResolver {
     fun getRoomImage(name: String): Int = when {
+
+        // Rooms
         name.containsOneOf("bath") -> R.drawable.room_bathroom
-        name.containsOneOf("bed") -> R.drawable.room_bedroom
+        name.containsOneOf("bedroom", "bed room") -> R.drawable.room_bedroom
         name.containsOneOf("game", "gaming") -> R.drawable.room_gaming
         name.containsOneOf("garage") -> R.drawable.room_garage
         name.containsOneOf("hall", "landing") -> R.drawable.room_hall
@@ -15,6 +17,12 @@ object IconResolver {
         name.containsOneOf("shower", "cloak") -> R.drawable.room_shower
         name.containsOneOf("toilet", "loo", "rest") -> R.drawable.room_toilet
         name.containsOneOf("utility", "cupboard") -> R.drawable.room_utility
+
+        // Scenes
+        name.containsOneOf("day", "morning", "afternoon", "cupboard") -> R.drawable.room_day
+        name.containsOneOf("night", "sleep", "bed") -> R.drawable.room_night
+        name.containsOneOf("work", "commute", "job", "shift") -> R.drawable.room_work
+        name.containsOneOf("power", "off", "on") -> R.drawable.room_power
 
         else -> R.drawable.room_lounge
     }
