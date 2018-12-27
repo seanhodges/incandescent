@@ -127,13 +127,11 @@ class DeviceSelectActivity(
         inflater.inflate(R.menu.menu_device_select, menu)
         var item = menu.findItem(R.id.action_view_mode)
         item?.isChecked = settings.deviceViewMode == DeviceViewMode.LIST
-        var itemIcon = menu.findItem(R.id.action_view_mode_icon)
-        itemIcon?.setIcon(if (item.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
+        item?.setIcon(if (item.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
         contentAdapter.setViewMode(settings.deviceViewMode)
         item = menu.findItem(R.id.action_show_only_active)
         item?.isChecked = settings.showOnlyActiveDevices
-        itemIcon = menu.findItem(R.id.action_show_only_active_icon)
-        itemIcon?.setIcon(if (item.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
+        item?.setIcon(if (item.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
         contentAdapter.setFilters(settings.showOnlyActiveDevices)
         return true
     }
@@ -144,19 +142,9 @@ class DeviceSelectActivity(
                 onBackPressed()
                 return true
             }
-            R.id.action_show_only_active_icon -> {
-                val itemCheck = menu.findItem(R.id.action_show_only_active)
-                itemCheck.isChecked = !itemCheck.isChecked()
-                item.setIcon(if (itemCheck.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
-                contentAdapter.setFilters(itemCheck.isChecked)
-                val settingsRepository = SettingsRepository(WeakReference(applicationContext))
-                settingsRepository.updateShowOnlyActiveDevices(itemCheck.isChecked)
-                return true;
-            }
             R.id.action_show_only_active -> {
-                item.isChecked = !item.isChecked()
-                val itemIcon = menu.findItem(R.id.action_show_only_active_icon)
-                itemIcon.setIcon(if (item.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
+                item.isChecked = !item.isChecked
+                item.setIcon(if (item.isChecked) R.drawable.filter_action_button_on else R.drawable.filter_action_button_off)
                 contentAdapter.setFilters(item.isChecked)
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
                 settingsRepository.updateShowOnlyActiveDevices(item.isChecked)
@@ -166,20 +154,9 @@ class DeviceSelectActivity(
                 deviceViewModel.refreshList(this)
                 return true
             }
-            R.id.action_view_mode_icon -> {
-                val itemCheck = menu.findItem(R.id.action_view_mode)
-                itemCheck.isChecked = !itemCheck.isChecked()
-                item.setIcon(if (itemCheck.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
-                val deviceViewMode = if (itemCheck.isChecked) DeviceViewMode.LIST else DeviceViewMode.GRID
-                contentAdapter.setViewMode(deviceViewMode)
-                val settingsRepository = SettingsRepository(WeakReference(applicationContext))
-                settingsRepository.updateDeviceViewMode(deviceViewMode)
-                return true;
-            }
             R.id.action_view_mode -> {
-                item.isChecked = !item.isChecked()
-                val itemIcon = menu.findItem(R.id.action_view_mode_icon)
-                itemIcon.setIcon(if (item.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
+                item.isChecked = !item.isChecked
+                item.setIcon(if (item.isChecked) R.drawable.list_action_button_on else R.drawable.list_action_button_off)
                 val deviceViewMode = if (item.isChecked) DeviceViewMode.LIST else DeviceViewMode.GRID
                 contentAdapter.setViewMode(deviceViewMode)
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
