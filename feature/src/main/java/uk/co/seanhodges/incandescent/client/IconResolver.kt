@@ -2,14 +2,12 @@ package uk.co.seanhodges.incandescent.client
 
 object IconResolver {
     fun getRoomImage(name: String): Int = when {
-
-        // Rooms
         name.containsOneOf("bath") -> R.drawable.room_bathroom
         name.containsOneOf("bedroom", "bed room") -> R.drawable.room_bedroom
         name.containsOneOf("game", "gaming") -> R.drawable.room_gaming
         name.containsOneOf("garage") -> R.drawable.room_garage
         name.containsOneOf("hall", "landing") -> R.drawable.room_hall
-        name.containsOneOf("kids", "play") -> R.drawable.room_kidsroom
+        name.containsOneOf("kids", "play", "child", "girl", "boy") -> R.drawable.room_kidsroom
         name.containsOneOf("kitchen") -> R.drawable.room_kitchen
         name.containsOneOf("living", "lounge", "snug") -> R.drawable.room_lounge
         name.containsOneOf("nursery", "baby") -> R.drawable.room_nursery
@@ -17,12 +15,6 @@ object IconResolver {
         name.containsOneOf("shower", "cloak") -> R.drawable.room_shower
         name.containsOneOf("toilet", "loo", "rest") -> R.drawable.room_toilet
         name.containsOneOf("utility", "cupboard") -> R.drawable.room_utility
-
-        // Scenes
-        name.containsOneOf("day", "morning", "afternoon", "cupboard") -> R.drawable.room_day
-        name.containsOneOf("night", "sleep", "bed") -> R.drawable.room_night
-        name.containsOneOf("work", "commute", "job", "shift") -> R.drawable.room_work
-        name.containsOneOf("power", "off", "on") -> R.drawable.room_power
 
         else -> R.drawable.room_lounge
     }
@@ -47,6 +39,14 @@ object IconResolver {
         name.containsOneOf("tv", "television") -> R.drawable.device_tv
         name.containsOneOf("music", "stereo") -> R.drawable.device_music_player
         name.containsOneOf("office") -> R.drawable.device_office_lamp
+
+        // Scenes
+        name.containsOneOf("day", "morning", "afternoon", "cupboard") -> R.drawable.scene_day
+        name.containsOneOf("night", "sleep", "bed") -> R.drawable.scene_night
+        name.containsOneOf("work", "commute", "job", "shift") -> R.drawable.scene_work
+        name.containsOneOf("power", "off", "on") -> R.drawable.scene_power
+        name.containsOneOf("holiday", "vacation", "on") -> R.drawable.scene_holiday
+        name.containsOneOf("bath") -> R.drawable.room_bathroom
 
         type == "light" -> R.drawable.device_light
         type == "socket" -> R.drawable.device_socket
