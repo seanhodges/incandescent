@@ -41,14 +41,14 @@ object IconResolver {
         name.containsOneOf("office") -> R.drawable.device_office_lamp
 
         // Scenes
-        name.containsOneOf("day", "morning", "afternoon", "cupboard") -> R.drawable.scene_day
-        name.containsOneOf("night", "sleep", "bed") -> R.drawable.scene_night
+        name.containsOneOf("holiday", "vacation") -> R.drawable.scene_holiday
         name.containsOneOf("work", "commute", "job", "shift") -> R.drawable.scene_work
         name.containsOneOf("home", "house", "apartment") -> R.drawable.scene_home
         name.containsOneOf("away") -> R.drawable.device_car
-        name.containsOneOf("power", "off", "on") -> R.drawable.scene_power
-        name.containsOneOf("holiday", "vacation") -> R.drawable.scene_holiday
         name.containsOneOf("bath") -> R.drawable.room_bathroom
+        name.containsOneOf("day", "morning", "afternoon", "cupboard") -> R.drawable.scene_day
+        name.containsOneOf("night", "sleep", "bed") -> R.drawable.scene_night
+        name.containsOneOf("power", "off", "on") -> R.drawable.scene_power
 
         type == "light" -> R.drawable.device_light
         type == "socket" -> R.drawable.device_socket
