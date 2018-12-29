@@ -63,6 +63,7 @@ class OperationExecutor(
     override fun onEvent(event: LWEvent) {
         if (event.clazz.equals("user") && event.operation.equals("authenticate")) {
             authenticated = true
+            handler?.removeCallbacks(eventLoop)
             handler?.postDelayed(eventLoop, EXECUTOR_FREQUENCY)
         }
     }
@@ -83,6 +84,7 @@ class OperationExecutor(
         this.authRepository = authRepository
         if (!authRepository.isAuthenticated()) {
             authHandler.onAuthenticationFailed()
+            return
         }
         if (!started) {
             started = true
