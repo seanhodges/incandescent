@@ -104,13 +104,6 @@ class DeviceControlActivity(
         }
         selectedDevice.powerCommand?.let { cmd -> executor.enqueueLoad(cmd) }
         selectedDevice.dimCommand?.let { cmd -> executor.enqueueLoad(cmd) }
-
-        connectionMonitor.resume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        connectionMonitor.pause()
     }
 
     override fun onAuthenticationFailed() {

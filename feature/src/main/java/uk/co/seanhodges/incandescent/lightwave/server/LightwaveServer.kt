@@ -19,14 +19,20 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLException
 
 private const val LIGHTWAVE_VERSION: String = "1.8.12"
-private const val MAX_IDLE_CONNECTIONS: Int = 5
-private const val KEEP_ALIVE_DURATION_MINS: Long = 30
+private const val MAX_IDLE_CONNECTIONS: Int = 2 // One for oauth, one for websocket
+private const val KEEP_ALIVE_DURATION_MINS: Long = 5
+private const val PING_FREQUENCY_SECS: Long = 20
+private const val SOCKET_ACTIVITY_TIMEOUT_SECS: Long = 60
 
 class LightwaveServer : WebSocketListener() {
 
     private val client = OkHttpClient.Builder()
-            .retryOnConnectionFailure(true)
+            .retryOnConnectionFailure(false)
             .connectionPool(ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION_MINS, TimeUnit.MINUTES))
+            .pingInterval(PING_FREQUENCY_SECS, TimeUnit.SECONDS)
+            .connectTimeout(SOCKET_ACTIVITY_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .readTimeout(SOCKET_ACTIVITY_TIMEOUT_SECS, TimeUnit.SECONDS)
+            .writeTimeout(SOCKET_ACTIVITY_TIMEOUT_SECS, TimeUnit.SECONDS)
             .build()
 
     private val authenticatedAdapter: JsonAdapter<LWAuthenticatedResult>
@@ -119,7 +125,6 @@ class LightwaveServer : WebSocketListener() {
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
-        super.onOpen(webSocket, response)
         val operation = LWOperation("user", senderId, "authenticate")
         accessToken?.let { token ->
             operation.addPayload(LWOperationPayloadConnect(token, senderId))
@@ -132,6 +137,7 @@ class LightwaveServer : WebSocketListener() {
     fun command(command: LWOperation) {
         if (this.webSocket == null && this.socketActive) {
             // We lost websocket connection unexpectedly, retry and wait for connection to open
+            this.socketActive = false
             accessToken?.let { token ->
                 connect(token, this.senderId)
             }
@@ -149,7 +155,6 @@ class LightwaveServer : WebSocketListener() {
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
-        super.onMessage(webSocket, text)
         println("<<< $text")
 
         try {
@@ -172,8 +177,8 @@ class LightwaveServer : WebSocketListener() {
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-        super.onFailure(webSocket, t, response)
-        if (t is SSLException && t.message?.contains("Software caused connection abort") == true && !this.reconnectAttempted) {
+        if (RECONNECT_MESSAGES.any {t.message?.contains(it, ignoreCase = true) == true}
+                && !this.reconnectAttempted) {
             // Likely the device network state changed and okhttp could not recover, try and reconnect once more
             this.reconnectAttempted = true
             this.accessToken?.let { token ->
@@ -192,14 +197,18 @@ class LightwaveServer : WebSocketListener() {
         }
     }
 
-    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-        super.onClosed(webSocket, code, reason)
+    override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         this.webSocket = null
     }
 
     companion object {
         private val JSON_CONTENT_TYPE = MediaType.parse("application/json; charset=utf-8")
         private const val SOCKET_CLOSE_STATUS = 1000
+
+        val RECONNECT_MESSAGES = listOf(
+                "connect timed out",
+                "software caused connection abort"
+        )
     }
 }
 

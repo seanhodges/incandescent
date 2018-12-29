@@ -17,12 +17,10 @@ import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 import uk.co.seanhodges.incandescent.client.storage.SceneWithActions
 import uk.co.seanhodges.incandescent.client.storage.SettingsRepository
 import uk.co.seanhodges.incandescent.client.support.GatherDeviceReport
-import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 import java.lang.ref.WeakReference
 
 class DeviceSelectActivity(
         private val launch: LaunchActivity = Inject.launch,
-        private val server: LightwaveServer = Inject.server,
         private val executor: OperationExecutor = Inject.executor
 ) : AppCompatActivity(), ConnectionAware {
 
@@ -90,13 +88,7 @@ class DeviceSelectActivity(
 
     override fun onResume() {
         super.onResume()
-        connectionMonitor.resume()
         firstTimeLoad = true
-    }
-
-    override fun onPause() {
-        super.onPause()
-        connectionMonitor.pause()
     }
 
     override fun onAuthenticationSuccess() {
@@ -168,7 +160,7 @@ class DeviceSelectActivity(
     }
 
     override fun onBackPressed() {
-        server.disconnect()
+        executor.stop()
         finish()
     }
 }

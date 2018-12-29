@@ -12,9 +12,6 @@ import java.net.URL
 
 private const val CONNECTION_CHECK_TIMEOUT = 2000
 
-// TODO: Make this a user option
-private const val DISCONNECT_ON_PAUSE = false // Improves battery life at expense of app performance
-
 class ConnectionStateMonitor(
         context: Context,
         listener: ConnectionAware,
@@ -33,22 +30,13 @@ class ConnectionStateMonitor(
 
     private var state: NetworkInfo.State = NetworkInfo.State.UNKNOWN
 
-    fun resume() {
-        Log.d(javaClass.name, "Started listening for network changes")
+    init {
+        Log.d(javaClass.name, "Listening for network changes")
         state = NetworkInfo.State.UNKNOWN
         connectivityManager.registerNetworkCallback(networkRequest, this)
 
         // Check on startup...
         IsNetworkAvailableNowTask(this, connectivityManager.activeNetwork).execute()
-    }
-
-    fun pause() {
-        Log.d(javaClass.name, "Stopped listening for network changes")
-        if (DISCONNECT_ON_PAUSE) {
-            state = NetworkInfo.State.UNKNOWN
-            executor.stop()
-            connectivityManager.unregisterNetworkCallback(this)
-        }
     }
 
     internal class IsNetworkAvailableNowTask(
@@ -57,17 +45,17 @@ class ConnectionStateMonitor(
     ) : AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg voids: Void): Boolean {
-            try {
+            return try {
                 val url = URL("http://clients3.google.com/generate_204")
                         .openConnection() as HttpURLConnection
                 url.setRequestProperty("User-Agent", "Android")
                 url.setRequestProperty("Connection", "close")
                 url.connectTimeout = CONNECTION_CHECK_TIMEOUT
                 url.connect()
-                return url.responseCode == 204
+                url.responseCode == 204
             } catch (e: IOException) {
                 // Internet connection unavailable
-                return false
+                false
             }
         }
 

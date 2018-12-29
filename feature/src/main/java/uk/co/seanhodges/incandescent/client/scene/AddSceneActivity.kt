@@ -50,16 +50,6 @@ class AddSceneActivity(
         connectionMonitor = ConnectionStateMonitor(this, this)
     }
 
-    override fun onResume() {
-        super.onResume()
-        connectionMonitor.resume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        connectionMonitor.pause()
-    }
-
     override fun onConnectionAvailable() {
         this.runOnUiThread {
             this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.GONE

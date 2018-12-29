@@ -75,8 +75,14 @@ class OperationExecutor(
     }
 
     override fun onError(error: Throwable) {
+        if (LightwaveServer.RECONNECT_MESSAGES.any {error.message?.contains(it, ignoreCase = true) == true}) {
+            // Connection failed, stop the executor
+            stop()
+            return
+        }
+
         //TODO(sean): implement proper in-app error handling
-        Log.e(javaClass.name, "Server auth error: " + error.message)
+        Log.e(javaClass.name, "Server error: " + error.message)
     }
 
     fun start(authRepository: AuthRepository, authHandler: AuthenticationAware) {
