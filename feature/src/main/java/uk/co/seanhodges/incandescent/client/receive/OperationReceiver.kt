@@ -32,19 +32,21 @@ class OperationReceiver(
 
     override fun firePluginSetting(context: Context, bundle: Bundle) {
         Log.d(javaClass.name, "Intent received: $bundle")
-        val operation = BundleUtils.unpackBundle(bundle)
-        if (operation.roomName == null || operation.applianceName == null) return
+        val cmd = BundleUtils.unpackBundle(bundle)
+        if (cmd.appliances == null) return
 
         val deviceDao = AppDatabase.getDatabase(context).deviceDao()
         val authRepository = AuthRepository(WeakReference(context))
 
         val handler = Handler(handlerThread.looper)
         handler.post {
-            Log.d(javaClass.name, "Finding appliance ${operation.roomName} > ${operation.applianceName}")
-            val device = deviceDao.findByRoomAndDeviceName(operation.roomName, operation.applianceName)
+            cmd.appliances.map { operation ->
+                Log.d(javaClass.name, "Finding appliance ${operation.roomName} > ${operation.applianceName}")
+                val device = deviceDao.findByRoomAndDeviceName(operation.roomName, operation.applianceName)
 
-            applyPowerValue(operation, device)
-            applyDimValue(operation, device)
+                applyPowerValue(operation, device)
+                applyDimValue(operation, device)
+            }
         }
 
         executor.start(authRepository, this)

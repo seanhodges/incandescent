@@ -6,52 +6,61 @@
     android:paddingRight="10dp"
     android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/room_name_label"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip"
-        android:text="@string/room_name_hint"/>
-    <Spinner
-        android:id="@+id/room_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/room_name_label"
-        android:spinnerMode="dropdown"
-        android:hint="@string/room_name_hint" />
+    <!--<TextView-->
+        <!--android:id="@+id/room_name_label"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="20dip"-->
+        <!--android:text="@string/room_name_hint"/>-->
+    <!--<Spinner-->
+        <!--android:id="@+id/room_name"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@+id/room_name_label"-->
+        <!--android:spinnerMode="dropdown"-->
+        <!--android:hint="@string/room_name_hint" />-->
 
-    <TextView
-        android:id="@+id/appliance_name_label"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dip"
-        android:layout_below="@id/room_name"
-        android:text="@string/appliance_name_hint"/>
-    <Spinner
-        android:id="@+id/appliance_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/appliance_name_label"
-        android:spinnerMode="dropdown"
-        android:hint="@string/appliance_name_hint" />
+    <!--<TextView-->
+        <!--android:id="@+id/appliance_name_label"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="20dip"-->
+        <!--android:layout_below="@id/room_name"-->
+        <!--android:text="@string/appliance_name_hint"/>-->
+    <!--<Spinner-->
+        <!--android:id="@+id/appliance_name"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@+id/appliance_name_label"-->
+        <!--android:spinnerMode="dropdown"-->
+        <!--android:hint="@string/appliance_name_hint" />-->
 
-    <TextView
-        android:id="@+id/device_info"
-        android:layout_width="wrap_content"
+    <!--<TextView-->
+        <!--android:id="@+id/device_info"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@id/appliance_name"-->
+        <!--android:layout_alignTop="@id/control_button"-->
+        <!--android:layout_alignBottom="@id/control_button"-->
+        <!--android:gravity="center_vertical"-->
+        <!--android:text="Living Room > Living Room Light (On, 100%)" />-->
+    <!--<ImageButton-->
+        <!--android:id="@+id/control_button"-->
+        <!--android:layout_below="@+id/appliance_name"-->
+        <!--android:layout_alignParentEnd="true"-->
+        <!--android:layout_marginTop="20dip"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:background="@drawable/control_button"-->
+        <!--android:backgroundTint="@android:color/white"/>-->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="15dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/appliance_name"
-        android:layout_alignTop="@id/control_button"
-        android:layout_alignBottom="@id/control_button"
-        android:gravity="center_vertical"
-        android:text="Living Room > Living Room Light (On, 100%)" />
-    <ImageButton
-        android:id="@+id/control_button"
-        android:layout_below="@+id/appliance_name"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="20dip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/control_button"
-        android:backgroundTint="@android:color/white"/>
+        android:nestedScrollingEnabled="true"
+        android:id="@+id/bundle_setting_list">
+
+    </androidx.recyclerview.widget.RecyclerView>
 
 </RelativeLayout>
