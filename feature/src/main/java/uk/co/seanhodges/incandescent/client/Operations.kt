@@ -46,7 +46,7 @@ class OperationExecutor(
 
     fun enqueueLoadAll(featureIds : List<String>) {
         loadQueue.addAll(featureIds.filter { featureId ->
-            loadQueue.contains(featureId)
+            !loadQueue.contains(featureId)
         })
     }
 
