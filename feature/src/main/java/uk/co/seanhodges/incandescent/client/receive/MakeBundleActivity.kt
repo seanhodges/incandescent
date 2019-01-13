@@ -65,13 +65,13 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
 
     override fun getResultBundle(): Bundle? {
         // TODO: Support scenes
-        val scene = null
+        val scenes = emptyList<String>()
 
         val enabledDevices = contentAdapter.getEnabledDeviceData()
-        val appliances = enabledDevices.map { ApplicanceBundle(it) }
+        val appliances = enabledDevices.map { ApplianceBundle(it) }
 
         // Generate the bundle object from the UI
-        val cmd = CommandBundle(title.toString(), scene, appliances)
+        val cmd = CommandBundle(title.toString(), scenes, appliances)
         return BundleUtils.generateBundle(cmd)
     }
 
@@ -89,8 +89,8 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
     }
 
     private fun buildLabel(cmd: CommandBundle): String {
-        if (cmd.scene != null) {
-            return cmd.scene
+        if (cmd.scenes.isNotEmpty()) {
+            return buildLabel(cmd.scenes)
         }
         else if (cmd.appliances.size == 1) {
             return buildLabel(cmd.appliances[0])
@@ -98,8 +98,11 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
         return "Control ${cmd.appliances.size} appliances"
     }
 
-    private fun buildLabel(applicance: ApplicanceBundle): String =
-            buildLabel(applicance.roomName, applicance.applianceName, applicance.power == 1, applicance.dim)
+    private fun buildLabel(scenes: List<String>): String = scenes.joinToString(
+            prefix = "Scenes: ", separator = ", ")
+
+    private fun buildLabel(appliance: ApplianceBundle): String =
+            buildLabel(appliance.roomName, appliance.applianceName, appliance.power == 1, appliance.dim)
 
     private fun buildLabel(roomName: String?, applianceName: String?, power: Boolean?, dim: Int?): String {
         val status = when (power) {

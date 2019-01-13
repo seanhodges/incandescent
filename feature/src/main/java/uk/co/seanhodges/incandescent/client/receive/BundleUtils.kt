@@ -5,7 +5,6 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.twofortyfouram.assertion.BundleAssertions
-import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 
 private const val BUNDLE_EXTRA_ORIGIN = "uk.co.seanhodges.incandescent.client.receive.ORIGIN"
 private const val BUNDLE_EXTRA_SCENES = "uk.co.seanhodges.incandescent.client.receive.SCENES"
@@ -17,15 +16,16 @@ object BundleUtils {
 
     fun generateBundle(cmd : CommandBundle) = Bundle().apply {
         this.putString(BUNDLE_EXTRA_ORIGIN, cmd.origin)
+        this.putStringArray(BUNDLE_EXTRA_SCENES, cmd.scenes?.toTypedArray() ?: emptyArray())
         this.putString(BUNDLE_EXTRA_APPLIANCES, packAppliances(cmd.appliances))
     }
 
-    private fun packAppliances(appliances: List<ApplicanceBundle>): String = Gson().toJson(appliances)
-    private fun unpackAppliances(appliances: String?): List<ApplicanceBundle> = Gson().fromJson(appliances ?: "[]")
+    private fun packAppliances(appliances: List<ApplianceBundle>): String = Gson().toJson(appliances)
+    private fun unpackAppliances(appliances: String?): List<ApplianceBundle> = Gson().fromJson(appliances ?: "[]")
 
     fun unpackBundle(bundle: Bundle): CommandBundle = CommandBundle(
             bundle.getString(BUNDLE_EXTRA_ORIGIN) ?: "",
-            null,
+            bundle.getStringArray(BUNDLE_EXTRA_SCENES)?.toList() ?: emptyList(),
             unpackAppliances(bundle.getString(BUNDLE_EXTRA_APPLIANCES))
     )
 
@@ -42,11 +42,11 @@ object BundleUtils {
 
 data class CommandBundle(
         val origin: String,
-        val scene: String?,
-        val appliances: List<ApplicanceBundle>
+        val scenes: List<String>,
+        val appliances: List<ApplianceBundle>
 )
 
-data class ApplicanceBundle(
+data class ApplianceBundle(
         val id: String,
         val roomName: String,
         val applianceName: String,

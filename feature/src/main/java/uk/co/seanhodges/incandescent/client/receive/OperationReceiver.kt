@@ -9,9 +9,7 @@ import com.twofortyfouram.locale.sdk.client.receiver.AbstractPluginSettingReceiv
 import uk.co.seanhodges.incandescent.client.AuthenticationAware
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.OperationExecutor
-import uk.co.seanhodges.incandescent.client.storage.AppDatabase
-import uk.co.seanhodges.incandescent.client.storage.AuthRepository
-import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.*
 import java.lang.ref.WeakReference
 
 private const val EXECUTOR_NAME : String = "Incandescent.Operation.Receiver"
@@ -33,14 +31,16 @@ class OperationReceiver(
     override fun firePluginSetting(context: Context, bundle: Bundle) {
         Log.d(javaClass.name, "Intent received: $bundle")
         val cmd = BundleUtils.unpackBundle(bundle)
-        if (cmd.scene.isNullOrEmpty() && cmd.appliances.isEmpty()) return
+        if (cmd.scenes.isEmpty() && cmd.appliances.isEmpty()) return
 
         val deviceDao = AppDatabase.getDatabase(context).deviceDao()
+        val sceneDao = AppDatabase.getDatabase(context).sceneDao()
         val authRepository = AuthRepository(WeakReference(context))
 
         val handler = Handler(handlerThread.looper)
         handler.post {
-            // TODO: Handle scenes
+            val scenes = sceneDao.findScenesByNames(cmd.scenes)
+            scenes.map { applyScene(it) }
 
             val applianceIds = cmd.appliances.map { operation ->
                 Log.d(javaClass.name, "Finding appliance ${operation.roomName} > ${operation.applianceName}")
@@ -63,8 +63,15 @@ class OperationReceiver(
         Log.e(javaClass.name, "Could not connect to Lightwave server :(")
     }
 
-    private fun applyPowerValue(applicance: ApplicanceBundle, device: DeviceEntity) {
-        applicance.power.let { value ->
+    private fun applyScene(scene: SceneWithActions) {
+        Log.d(javaClass.name, "Applying scene ${scene.scene?.title}")
+        scene.actions?.map { action ->
+            executor.enqueueChange(action.id, action.value)
+        }
+    }
+
+    private fun applyPowerValue(appliance: ApplianceBundle, device: DeviceEntity) {
+        appliance.power.let { value ->
             device.powerCommand?.let { cmd ->
                 Log.d(javaClass.name, "Applying power $value")
                 executor.enqueueChange(cmd, value)
@@ -72,8 +79,8 @@ class OperationReceiver(
         }
     }
 
-    private fun applyDimValue(applicance: ApplicanceBundle, device: DeviceEntity) {
-        applicance.dim.let { value ->
+    private fun applyDimValue(appliance: ApplianceBundle, device: DeviceEntity) {
+        appliance.dim.let { value ->
             device.dimCommand?.let { cmd ->
                 Log.d(javaClass.name, "Applying dim $value")
                 executor.enqueueChange(cmd, value)

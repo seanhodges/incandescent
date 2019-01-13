@@ -16,6 +16,9 @@ interface SceneDao {
     @Query("SELECT * FROM scene WHERE id = :id")
     fun findSceneById(id: Long): SceneWithActions
 
+    @Query("SELECT * FROM scene WHERE title in (:names)")
+    fun findScenesByNames(names: List<String>): List<SceneWithActions>
+
     @Query("SELECT count(id) FROM scene")
     fun count(): Int
 
