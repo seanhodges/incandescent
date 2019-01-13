@@ -11,16 +11,16 @@ import androidx.recyclerview.widget.RecyclerView
 
 import uk.co.seanhodges.incandescent.client.R
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractFragmentPluginActivity
-import uk.co.seanhodges.incandescent.client.fragment.applianceList.ContentAdapter
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceContentAdapter
 import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceListViewModel
 import uk.co.seanhodges.incandescent.client.storage.*
 
 
 class MakeBundleActivity() : AbstractFragmentPluginActivity() {
 
-    private lateinit var sceneViewModel: ApplianceListViewModel
+    private lateinit var applianceViewModel: ApplianceListViewModel
     private lateinit var recyclerView: RecyclerView
-    private lateinit var contentAdapter: ContentAdapter
+    private lateinit var contentAdapter: ApplianceContentAdapter
 
     private var previousCmd: CommandBundle? = null
 
@@ -34,13 +34,13 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
             Log.e(javaClass.name, "Calling package couldn't be found", e)
         }
 
-        contentAdapter = ContentAdapter()
+        contentAdapter = ApplianceContentAdapter()
         recyclerView = this.findViewById(R.id.bundle_setting_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
-        sceneViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
-        sceneViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
+        applianceViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
+        applianceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
             val enabled = mutableListOf<String>()
             roomsWithDevices.map { room ->
                 room.devices?.map { device ->

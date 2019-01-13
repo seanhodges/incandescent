@@ -58,7 +58,7 @@ class ContentAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
         this.parentView = parent
         val view = when(viewType) {
-            VIEW_TYPE_SCENE -> LayoutInflater.from(parent.context).inflate(R.layout.content_scene_entry, parent, false)
+            VIEW_TYPE_SCENE -> LayoutInflater.from(parent.context).inflate(R.layout.content_scene_grid_entry, parent, false)
             VIEW_TYPE_GRID -> LayoutInflater.from(parent.context).inflate(R.layout.content_select_grid_section, parent, false)
             else -> LayoutInflater.from(parent.context).inflate(R.layout.content_select_list_section, parent, false)
         }
@@ -75,7 +75,7 @@ class ContentAdapter(
     }
 
     private fun renderScenes(holder: SectionViewHolder) {
-        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.device_list)
+        val buttonList : LinearLayout = holder.containerView.findViewById(R.id.scene_list)
         buttonList.removeAllViewsInLayout()
 
         for (sceneWithActions in sceneData) {

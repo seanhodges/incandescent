@@ -3,7 +3,7 @@ package uk.co.seanhodges.incandescent.client.scene
 import android.content.Context
 import android.os.AsyncTask
 import android.util.Log
-import uk.co.seanhodges.incandescent.client.fragment.applianceList.FlatDeviceRow
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.FlatApplianceRow
 import uk.co.seanhodges.incandescent.client.storage.AppDatabase
 import uk.co.seanhodges.incandescent.client.storage.SceneActionEntity
 import uk.co.seanhodges.incandescent.client.storage.SceneDao
@@ -21,13 +21,13 @@ class SaveSceneTask(
         val actions = mutableListOf<SceneActionEntity>()
         Log.d(javaClass.name, "Saving scene as ${addSceneForm.name}")
         addSceneForm.settings.forEach {setting ->
-            setting.device.powerCommand?.apply {
-                Log.d(javaClass.name, "Saving ${this} as ${setting.device.lastPowerValue}")
-                actions.add(SceneActionEntity(this, setting.device.lastPowerValue))
+            setting.appliance.powerCommand?.apply {
+                Log.d(javaClass.name, "Saving ${this} as ${setting.appliance.lastPowerValue}")
+                actions.add(SceneActionEntity(this, setting.appliance.lastPowerValue))
             }
-            setting.device.dimCommand?.apply {
-                Log.d(javaClass.name, "Saving ${this} as ${setting.device.lastDimValue}")
-                actions.add(SceneActionEntity(this, setting.device.lastDimValue))
+            setting.appliance.dimCommand?.apply {
+                Log.d(javaClass.name, "Saving ${this} as ${setting.appliance.lastDimValue}")
+                actions.add(SceneActionEntity(this, setting.appliance.lastDimValue))
             }
         }
         sceneDao.insertSceneWithActions(scene, actions)
@@ -37,5 +37,5 @@ class SaveSceneTask(
 
 data class AddSceneForm (
         val name: String,
-        val settings: List<FlatDeviceRow>
+        val settings: List<FlatApplianceRow>
 )

@@ -5,7 +5,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.twofortyfouram.assertion.BundleAssertions
-import uk.co.seanhodges.incandescent.client.fragment.applianceList.FlatDeviceRow
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.FlatApplianceRow
 
 private const val BUNDLE_EXTRA_ORIGIN = "uk.co.seanhodges.incandescent.client.receive.ORIGIN"
 private const val BUNDLE_EXTRA_SCENES = "uk.co.seanhodges.incandescent.client.receive.SCENES"
@@ -54,11 +54,11 @@ data class ApplianceBundle(
         val power: Int,
         val dim: Int
 ) {
-    constructor(data: FlatDeviceRow) : this(
-        data.device.id,
+    constructor(data: FlatApplianceRow) : this(
+        data.appliance.id,
         data.room.title,
-        data.device.title,
-        if (data.device.powerCommand != null) { data.device.lastPowerValue } else -1,
-        if (data.device.dimCommand != null) { data.device.lastDimValue } else -1
+        data.appliance.title,
+        if (data.appliance.powerCommand != null) { data.appliance.lastPowerValue } else -1,
+        if (data.appliance.dimCommand != null) { data.appliance.lastDimValue } else -1
     )
 }

@@ -13,6 +13,7 @@ import uk.co.seanhodges.incandescent.client.IconResolver
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.LaunchActivity
 import uk.co.seanhodges.incandescent.client.R
+import uk.co.seanhodges.incandescent.client.fragment.SectionViewHolder
 import uk.co.seanhodges.incandescent.client.selection.DEVICE_BUTTON_HIGHLIGHT_LENGTH
 import uk.co.seanhodges.incandescent.client.selection.ENTRY_ACTIVE_COLOUR
 import uk.co.seanhodges.incandescent.client.selection.ENTRY_DEFAULT_COLOUR
@@ -21,20 +22,20 @@ import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
-class ContentAdapter(
+class ApplianceContentAdapter(
         private val launch: LaunchActivity = Inject.launch
 ) : RecyclerView.Adapter<SectionViewHolder>() {
 
-    private var deviceData: MutableList<FlatDeviceRow> = mutableListOf()
+    private var applianceData: MutableList<FlatApplianceRow> = mutableListOf()
     private lateinit var parentView: ViewGroup
 
     fun setDeviceData(newData: List<RoomWithDevices>, enabled: List<String> = emptyList()) {
-        this.deviceData.clear()
+        this.applianceData.clear()
         newData.forEach { room ->
-            room.devices?.forEach { device ->
-                val entry = FlatDeviceRow(buildLabel(device, room), room.room!!, device)
-                if (enabled.contains(device.id)) entry.enabled = true
-                this.deviceData.add(entry)
+            room.devices?.forEach { appliance ->
+                val entry = FlatApplianceRow(buildLabel(appliance, room), room.room!!, appliance)
+                if (enabled.contains(appliance.id)) entry.enabled = true
+                this.applianceData.add(entry)
             }
         }
         notifyDataSetChanged()
@@ -54,8 +55,8 @@ class ContentAdapter(
         return "${room.room?.title} > ${device.title} ($status)"
     }
 
-    fun getEnabledDeviceData(): List<FlatDeviceRow> {
-        return deviceData.filter { it.enabled }
+    fun getEnabledDeviceData(): List<FlatApplianceRow> {
+        return applianceData.filter { it.enabled }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SectionViewHolder {
@@ -65,14 +66,14 @@ class ContentAdapter(
     }
 
     override fun onBindViewHolder(holder: SectionViewHolder, position: Int) {
-        val rowData = deviceData[position]
+        val rowData = applianceData[position]
 
         val row = holder.containerView
         row.findViewById<Switch>(R.id.action_enable).visibility = View.GONE
 
         val deviceImage: ImageView = row.findViewById(R.id.device_image)
-        deviceImage.setImageResource(IconResolver.getDeviceImage(rowData.device.title, rowData.device.type))
-        if (rowData.device.lastPowerValue == 1) {
+        deviceImage.setImageResource(IconResolver.getDeviceImage(rowData.appliance.title, rowData.appliance.type))
+        if (rowData.appliance.lastPowerValue == 1) {
             deviceImage.imageTintList = ColorStateList.valueOf(Color.parseColor(ENTRY_ACTIVE_COLOUR))
         }
 
@@ -88,13 +89,13 @@ class ContentAdapter(
 
         val controlButton = row.findViewById<ImageButton>(R.id.control_button)
         controlButton.setOnClickListener {
-            launch.deviceControl(this.parentView.context, rowData.room, rowData.device)
+            launch.deviceControl(this.parentView.context, rowData.room, rowData.appliance)
         }
         controlButton.setOnTouchListener(applyControlButtonPressEffect(controlButton))
     }
 
     override fun getItemCount(): Int {
-        return deviceData.size
+        return applianceData.size
     }
 
     private fun applyControlButtonPressEffect(button: ImageButton) : View.OnTouchListener {
@@ -116,12 +117,10 @@ class ContentAdapter(
     }
 }
 
-data class FlatDeviceRow(
+data class FlatApplianceRow(
         val title: String,
         val room: RoomEntity,
-        val device: DeviceEntity
+        val appliance: DeviceEntity
 ) {
     var enabled: Boolean = false
 }
-
-class SectionViewHolder(val containerView: View) : RecyclerView.ViewHolder(containerView)

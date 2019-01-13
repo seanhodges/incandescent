@@ -16,7 +16,7 @@ import uk.co.seanhodges.incandescent.client.selection.DeviceSelectActivity
 
 
 /**
- * Instrumented test, which will execute on an Android device.
+ * Instrumented test, which will execute on an Android appliance.
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */

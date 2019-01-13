@@ -13,17 +13,12 @@ class ApplianceListViewModel(
         application: Application
 ) : AndroidViewModel(application) {
 
-    private val sceneDao: SceneDao = AppDatabase.getDatabase(application).sceneDao()
     private val roomDao: RoomDao = AppDatabase.getDatabase(application).roomDao()
     private val deviceDao: DeviceDao = AppDatabase.getDatabase(application).deviceDao()
     private val deviceChangeHandler: DeviceChangeHandler = Inject.deviceChangeHandler
 
     fun listenForValueChanges(owner: LifecycleOwner) {
         deviceChangeHandler.setRepository(owner, deviceDao)
-    }
-
-    fun getAllScenes(): LiveData<List<SceneWithActions>> {
-        return sceneDao.loadAllWithActions()
     }
 
     fun getAllRooms(): LiveData<List<RoomWithDevices>> {

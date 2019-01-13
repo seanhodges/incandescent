@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_add_scene.*
 import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceListViewModel
-import uk.co.seanhodges.incandescent.client.fragment.applianceList.ContentAdapter
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceContentAdapter
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
 
@@ -23,23 +23,23 @@ class AddSceneActivity(
 ) : AppCompatActivity(), ConnectionAware {
 
     private lateinit var connectionMonitor: ConnectionStateMonitor
-    private lateinit var sceneViewModel: ApplianceListViewModel
+    private lateinit var applianceViewModel: ApplianceListViewModel
     private lateinit var recyclerView: RecyclerView
-    private lateinit var contentAdapter: ContentAdapter
+    private lateinit var contentAdapter: ApplianceContentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setupActionBar()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_scene)
 
-        contentAdapter = ContentAdapter()
+        contentAdapter = ApplianceContentAdapter()
         recyclerView = this.findViewById(R.id.scene_setting_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
-        sceneViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
-        sceneViewModel.listenForValueChanges(this)
-        sceneViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
+        applianceViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
+        applianceViewModel.listenForValueChanges(this)
+        applianceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
             roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
         })
 
