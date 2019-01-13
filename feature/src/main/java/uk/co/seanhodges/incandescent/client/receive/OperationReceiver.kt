@@ -33,19 +33,26 @@ class OperationReceiver(
     override fun firePluginSetting(context: Context, bundle: Bundle) {
         Log.d(javaClass.name, "Intent received: $bundle")
         val cmd = BundleUtils.unpackBundle(bundle)
-        if (cmd.appliances == null) return
+        if (cmd.scene.isNullOrEmpty() && cmd.appliances.isEmpty()) return
 
         val deviceDao = AppDatabase.getDatabase(context).deviceDao()
         val authRepository = AuthRepository(WeakReference(context))
 
         val handler = Handler(handlerThread.looper)
         handler.post {
-            cmd.appliances.map { operation ->
-                Log.d(javaClass.name, "Finding appliance ${operation.roomName} > ${operation.applianceName}")
-                val device = deviceDao.findByRoomAndDeviceName(operation.roomName, operation.applianceName)
+            // TODO: Handle scenes
 
-                applyPowerValue(operation, device)
-                applyDimValue(operation, device)
+            val applianceIds = cmd.appliances.map { operation ->
+                Log.d(javaClass.name, "Finding appliance ${operation.roomName} > ${operation.applianceName}")
+                operation.id
+            }
+            val devices = deviceDao.findByIds(applianceIds)
+            cmd.appliances.map { operation ->
+                val device = devices.find { it.id == operation.id }
+                if (device != null) {
+                    applyPowerValue(operation, device)
+                    applyDimValue(operation, device)
+                }
             }
         }
 
@@ -56,17 +63,17 @@ class OperationReceiver(
         Log.e(javaClass.name, "Could not connect to Lightwave server :(")
     }
 
-    private fun applyPowerValue(operation: OperationBundle, device: DeviceEntity) {
-        operation.power?.let { value ->
+    private fun applyPowerValue(applicance: ApplicanceBundle, device: DeviceEntity) {
+        applicance.power.let { value ->
             device.powerCommand?.let { cmd ->
                 Log.d(javaClass.name, "Applying power $value")
-                executor.enqueueChange(cmd, if (value) 1 else 0)
+                executor.enqueueChange(cmd, value)
             }
         }
     }
 
-    private fun applyDimValue(operation: OperationBundle, device: DeviceEntity) {
-        operation.dim?.let { value ->
+    private fun applyDimValue(applicance: ApplicanceBundle, device: DeviceEntity) {
+        applicance.dim.let { value ->
             device.dimCommand?.let { cmd ->
                 Log.d(javaClass.name, "Applying dim $value")
                 executor.enqueueChange(cmd, value)

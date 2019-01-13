@@ -11,7 +11,6 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import uk.co.seanhodges.incandescent.client.*
-import uk.co.seanhodges.incandescent.client.scene.ApplySceneTask
 import uk.co.seanhodges.incandescent.client.scene.DeleteSceneTask
 import uk.co.seanhodges.incandescent.client.storage.DeviceViewMode
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices

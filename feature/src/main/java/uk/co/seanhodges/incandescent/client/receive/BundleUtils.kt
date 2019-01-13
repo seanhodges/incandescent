@@ -1,34 +1,37 @@
 package uk.co.seanhodges.incandescent.client.receive
 
 import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.twofortyfouram.assertion.BundleAssertions
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 
-private const val BUNDLE_EXTRA_SCENE = "uk.co.seanhodges.incandescent.client.receive.SCENE"
+private const val BUNDLE_EXTRA_ORIGIN = "uk.co.seanhodges.incandescent.client.receive.ORIGIN"
+private const val BUNDLE_EXTRA_SCENES = "uk.co.seanhodges.incandescent.client.receive.SCENES"
 private const val BUNDLE_EXTRA_APPLIANCES = "uk.co.seanhodges.incandescent.client.receive.APPLIANCES"
+
+inline fun <reified T> Gson.fromJson(json: String) = this.fromJson<T>(json, object: TypeToken<T>() {}.type)
 
 object BundleUtils {
 
     fun generateBundle(cmd : CommandBundle) = Bundle().apply {
-        cmd.scene?.let {
-            this.putString(BUNDLE_EXTRA_SCENE, it)
-        }
-        cmd.appliances?.let {
-            this.putParcelableArrayList(BUNDLE_EXTRA_APPLIANCES, ArrayList(it))
-        }
+        this.putString(BUNDLE_EXTRA_ORIGIN, cmd.origin)
+        this.putString(BUNDLE_EXTRA_APPLIANCES, packAppliances(cmd.appliances))
     }
 
+    private fun packAppliances(appliances: List<ApplicanceBundle>): String = Gson().toJson(appliances)
+    private fun unpackAppliances(appliances: String?): List<ApplicanceBundle> = Gson().fromJson(appliances ?: "[]")
+
     fun unpackBundle(bundle: Bundle): CommandBundle = CommandBundle(
-        bundle.getString(BUNDLE_EXTRA_SCENE),
-        bundle.getParcelableArrayList(BUNDLE_EXTRA_APPLIANCES)
+            bundle.getString(BUNDLE_EXTRA_ORIGIN) ?: "",
+            null,
+            unpackAppliances(bundle.getString(BUNDLE_EXTRA_APPLIANCES))
     )
 
     fun isBundleValid(bundle: Bundle): Boolean {
         try {
-            BundleAssertions.assertHasString(bundle, BUNDLE_EXTRA_SCENE, true, false)
-            BundleAssertions.assertHasString(bundle, BUNDLE_EXTRA_APPLIANCES, true, false)
+            BundleAssertions.assertHasString(bundle, BUNDLE_EXTRA_ORIGIN, false, false)
         } catch (e: AssertionError) {
             Log.e(OperationReceiver::class.java.name, "Bundle failed verification%s", e)
             return false
@@ -38,40 +41,23 @@ object BundleUtils {
 }
 
 data class CommandBundle(
+        val origin: String,
         val scene: String?,
-        val appliances: List<OperationBundle>?
+        val appliances: List<ApplicanceBundle>
 )
 
-data class OperationBundle(
+data class ApplicanceBundle(
+        val id: String,
         val roomName: String,
         val applianceName: String,
-        val power: Boolean?,
-        val dim: Int?
-): Parcelable {
-    constructor(parcel: Parcel) : this(
-            parcel.readString() ?: "",
-            parcel.readString() ?: "",
-            parcel.readValue(Boolean::class.java.classLoader) as? Boolean,
-            parcel.readValue(Int::class.java.classLoader) as? Int)
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(roomName)
-        parcel.writeString(applianceName)
-        parcel.writeValue(power)
-        parcel.writeValue(dim)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<OperationBundle> {
-        override fun createFromParcel(parcel: Parcel): OperationBundle {
-            return OperationBundle(parcel)
-        }
-
-        override fun newArray(size: Int): Array<OperationBundle?> {
-            return arrayOfNulls(size)
-        }
-    }
+        val power: Int,
+        val dim: Int
+) {
+    constructor(data: FlatDeviceRow) : this(
+        data.device.id,
+        data.room.title,
+        data.device.title,
+        if (data.device.powerCommand != null) { data.device.lastPowerValue } else -1,
+        if (data.device.dimCommand != null) { data.device.lastDimValue } else -1
+    )
 }

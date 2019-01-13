@@ -39,6 +39,9 @@ interface DeviceDao {
     @Query("SELECT * FROM device WHERE id = :id")
     fun findById(id: String): LiveData<DeviceEntity>
 
+    @Query("SELECT * FROM device WHERE id IN (:ids)")
+    fun findByIds(ids: List<String>): List<DeviceEntity>
+
     @Query("SELECT count(id) FROM device WHERE id = :id")
     fun exists(id: String): Int
 
