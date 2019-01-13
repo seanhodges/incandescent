@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.twofortyfouram.assertion.BundleAssertions
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.FlatDeviceRow
 
 private const val BUNDLE_EXTRA_ORIGIN = "uk.co.seanhodges.incandescent.client.receive.ORIGIN"
 private const val BUNDLE_EXTRA_SCENES = "uk.co.seanhodges.incandescent.client.receive.SCENES"

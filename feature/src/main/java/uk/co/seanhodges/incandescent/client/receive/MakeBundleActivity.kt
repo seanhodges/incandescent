@@ -11,12 +11,14 @@ import androidx.recyclerview.widget.RecyclerView
 
 import uk.co.seanhodges.incandescent.client.R
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractFragmentPluginActivity
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.ContentAdapter
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceListViewModel
 import uk.co.seanhodges.incandescent.client.storage.*
 
 
 class MakeBundleActivity() : AbstractFragmentPluginActivity() {
 
-    private lateinit var sceneViewModel: MakeBundleViewModel
+    private lateinit var sceneViewModel: ApplianceListViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
 
@@ -37,7 +39,7 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
-        sceneViewModel = ViewModelProviders.of(this).get(MakeBundleViewModel::class.java)
+        sceneViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
         sceneViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
             val enabled = mutableListOf<String>()
             roomsWithDevices.map { room ->

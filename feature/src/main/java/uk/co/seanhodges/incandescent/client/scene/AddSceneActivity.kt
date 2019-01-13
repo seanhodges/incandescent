@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_add_scene.*
 import uk.co.seanhodges.incandescent.client.*
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceListViewModel
+import uk.co.seanhodges.incandescent.client.fragment.applianceList.ContentAdapter
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
 
@@ -21,7 +23,7 @@ class AddSceneActivity(
 ) : AppCompatActivity(), ConnectionAware {
 
     private lateinit var connectionMonitor: ConnectionStateMonitor
-    private lateinit var sceneViewModel: AddSceneViewModel
+    private lateinit var sceneViewModel: ApplianceListViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var contentAdapter: ContentAdapter
 
@@ -35,7 +37,7 @@ class AddSceneActivity(
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
 
-        sceneViewModel = ViewModelProviders.of(this).get(AddSceneViewModel::class.java)
+        sceneViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
         sceneViewModel.listenForValueChanges(this)
         sceneViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> {
             roomsWithDevices -> contentAdapter.setDeviceData(roomsWithDevices)
@@ -70,7 +72,8 @@ class AddSceneActivity(
             return
         }
 
-        sceneViewModel.save(name, contentAdapter.getEnabledDeviceData())
+
+        SaveSceneTask(this).execute(AddSceneForm(name, contentAdapter.getEnabledDeviceData()))
         finish()
     }
 

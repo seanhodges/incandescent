@@ -1,4 +1,4 @@
-package uk.co.seanhodges.incandescent.client.scene
+package uk.co.seanhodges.incandescent.client.fragment.applianceList
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -28,12 +28,13 @@ class ContentAdapter(
     private var deviceData: MutableList<FlatDeviceRow> = mutableListOf()
     private lateinit var parentView: ViewGroup
 
-    fun setDeviceData(newData: List<RoomWithDevices>) {
+    fun setDeviceData(newData: List<RoomWithDevices>, enabled: List<String> = emptyList()) {
         this.deviceData.clear()
         newData.forEach { room ->
             room.devices?.forEach { device ->
-                val title = buildLabel(device, room)
-                this.deviceData.add(FlatDeviceRow(title, room.room!!, device))
+                val entry = FlatDeviceRow(buildLabel(device, room), room.room!!, device)
+                if (enabled.contains(device.id)) entry.enabled = true
+                this.deviceData.add(entry)
             }
         }
         notifyDataSetChanged()
