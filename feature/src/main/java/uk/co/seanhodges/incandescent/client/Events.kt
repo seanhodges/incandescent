@@ -57,10 +57,10 @@ class DeviceChangeHandler(
             it.onDeviceChanged(featureId, payload.value)
         }
 
-        Log.d(javaClass.name, "Finding device by featureId $featureId")
+        Log.d(javaClass.name, "Finding appliance by featureId $featureId")
         val device = deviceDao?.findByCommandId(featureId)
         if (device == null) {
-            Log.w(javaClass.name, "No device found")
+            Log.w(javaClass.name, "No appliance found")
             return
         }
         Log.d(javaClass.name, "Device found: ${device.id}")

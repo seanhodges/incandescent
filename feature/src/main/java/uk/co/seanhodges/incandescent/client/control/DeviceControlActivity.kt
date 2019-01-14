@@ -53,7 +53,7 @@ class DeviceControlActivity(
             return
         }
         selectedDevice = intent.getSerializableExtra("selectedDevice") as DeviceEntity
-        Log.d(this.javaClass.name, "Selected device is ${selectedDevice.id}")
+        Log.d(this.javaClass.name, "Selected appliance is ${selectedDevice.id}")
 
         withUiChangeListenersDisabled {
             setupDeviceInfo()
@@ -97,7 +97,7 @@ class DeviceControlActivity(
         eventsPreventingCrollerChangeListener = 0
 
         withUiChangeListenersDisabled {
-            Log.d(javaClass.name, "Setting initial device values")
+            Log.d(javaClass.name, "Setting initial appliance values")
             val croller = findViewById<View>(R.id.croller) as Croller
             croller.value = selectedDevice.lastDimValue
             applyOnOffHighlight(selectedDevice.lastPowerValue == 1)
@@ -200,7 +200,7 @@ class DeviceControlActivity(
             selectedDevice.dimCommand?.let { cmd -> executor.enqueueChange(cmd, newValue) }
             selectedDevice.powerCommand?.let { cmd -> executor.enqueueChange(cmd, if (newValue > 0) 1 else 0) }
             applyOnOffHighlight(newValue > 0)
-        };
+        }
     }
 
     private fun onDeviceChanged(device: DeviceEntity) {
