@@ -40,6 +40,13 @@ class SceneContentAdapter(
 
     private fun buildLabel(scene: SceneEntity): String = scene.title
 
+    fun setEnabledSceneData(enabled: List<String>) {
+        sceneData.forEach { scene ->
+            scene.enabled = enabled.contains(scene.scene.title)
+        }
+        notifyDataSetChanged()
+    }
+
     fun getEnabledSceneData(): List<FlatSceneRow> {
         return sceneData.filter { it.enabled }
     }

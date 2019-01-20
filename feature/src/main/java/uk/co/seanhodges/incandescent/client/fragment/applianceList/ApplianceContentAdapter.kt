@@ -62,6 +62,13 @@ class ApplianceContentAdapter(
         return "${room.room?.title} > ${device.title} ($status)"
     }
 
+    fun setEnabledSceneData(enabled: List<String>) {
+        applianceData.forEach { appliance ->
+            appliance.enabled = enabled.contains(appliance.appliance.id)
+        }
+        notifyDataSetChanged()
+    }
+
     fun getEnabledDeviceData(): List<FlatApplianceRow> {
         return applianceData.filter { it.enabled }
     }

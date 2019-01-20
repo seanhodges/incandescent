@@ -58,10 +58,12 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
                     0 -> {
                         sceneList.visibility = View.VISIBLE
                         applianceList.visibility = View.GONE
+                        applianceContentAdapter.setEnabledSceneData(emptyList())
                     }
                     else -> {
                         sceneList.visibility = View.GONE
                         applianceList.visibility = View.VISIBLE
+                        sceneContentAdapter.setEnabledSceneData(emptyList())
                     }
                 }
             }
@@ -110,6 +112,13 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
             }
 
             applianceContentAdapter.setDeviceData(roomsWithDevices, enabled)
+
+            if (applianceContentAdapter.getEnabledDeviceData().size > sceneContentAdapter.getEnabledSceneData().size
+                || sceneContentAdapter.itemCount < 1) {
+                // Hop directly to appliance tab if appliances were selected last time, or if there are no scenes
+                // TODO: Need to tidy this up before extracting to fragments
+                findViewById<TabLayout>(R.id.tabs).getTabAt(1)?.select()
+            }
         })
     }
 
