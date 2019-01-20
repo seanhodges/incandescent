@@ -1,5 +1,7 @@
 package uk.co.seanhodges.incandescent.client.fragment.sceneList
 
+import android.content.res.ColorStateList
+import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,11 +16,17 @@ import uk.co.seanhodges.incandescent.client.storage.SceneEntity
 import uk.co.seanhodges.incandescent.client.storage.SceneWithActions
 
 class SceneContentAdapter(
-        private val launch: LaunchActivity = Inject.launch
+        private val launch: LaunchActivity = Inject.launch,
+        var theme: Theme = Theme.Light // TODO: Move this to a material theme
 ) : RecyclerView.Adapter<SectionViewHolder>() {
 
     private var sceneData: MutableList<FlatSceneRow> = mutableListOf()
     private lateinit var parentView: ViewGroup
+
+    enum class Theme {
+        Light,
+        Dark
+    }
 
     fun setSceneData(newData: List<SceneWithActions>, enabled: List<String> = emptyList()) {
         this.sceneData.clear()
@@ -49,16 +57,35 @@ class SceneContentAdapter(
         row.findViewById<Switch>(R.id.action_enable).visibility = View.GONE
 
         val deviceImage: ImageView = row.findViewById(R.id.device_image)
+        applyThemeGraphic(deviceImage)
         deviceImage.setImageResource(IconResolver.getDeviceImage(rowData.title, "scene"))
 
-        val title : TextView = holder.containerView.findViewById(R.id.scene_name)
+        val title : TextView = holder.containerView.findViewById(R.id.device_name)
+        applyThemeText(title)
         title.text = rowData.title
+
+        row.findViewById<ImageButton>(R.id.control_button).visibility = View.INVISIBLE
 
         val pick = row.findViewById<CheckBox>(R.id.action_pick)
         pick.visibility = View.VISIBLE
         pick.isChecked = rowData.enabled
         pick.setOnCheckedChangeListener { _, checked ->
             rowData.enabled = checked
+        }
+    }
+
+    private fun applyThemeText(component: TextView) {
+        if (theme == Theme.Dark) {
+            component.setTextColor(ColorStateList.valueOf(parentView.resources.getColor(R.color.theme_light_list_fg_colour, null)))
+        }
+    }
+
+    private fun applyThemeGraphic(component: ImageView) {
+        if (theme == Theme.Dark) {
+            component.imageTintList = ColorStateList.valueOf(parentView.resources.getColor(R.color.theme_light_list_fg_colour, null))
+            component.imageTintMode = PorterDuff.Mode.SRC_IN
+            component.backgroundTintList = ColorStateList.valueOf(parentView.resources.getColor(R.color.theme_light_list_fg_colour, null))
+            component.backgroundTintMode = PorterDuff.Mode.SRC_IN
         }
     }
 

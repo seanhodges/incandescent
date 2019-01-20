@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,13 +15,20 @@ import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractFragmentPluginAc
 import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceContentAdapter
 import uk.co.seanhodges.incandescent.client.fragment.applianceList.ApplianceListViewModel
 import uk.co.seanhodges.incandescent.client.storage.*
+import com.google.android.material.tabs.TabLayout
+import uk.co.seanhodges.incandescent.client.fragment.sceneList.SceneContentAdapter
+import uk.co.seanhodges.incandescent.client.fragment.sceneList.SceneListViewModel
 
 
 class MakeBundleActivity() : AbstractFragmentPluginActivity() {
 
+    private lateinit var sceneViewModel: SceneListViewModel
+    private lateinit var sceneRecyclerView: RecyclerView
+    private lateinit var sceneContentAdapter: SceneContentAdapter
+
     private lateinit var applianceViewModel: ApplianceListViewModel
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var contentAdapter: ApplianceContentAdapter
+    private lateinit var applianceRecyclerView: RecyclerView
+    private lateinit var applianceContentAdapter: ApplianceContentAdapter
 
     private var previousCmd: CommandBundle? = null
 
@@ -34,10 +42,61 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
             Log.e(javaClass.name, "Calling package couldn't be found", e)
         }
 
-        contentAdapter = ApplianceContentAdapter(theme = ApplianceContentAdapter.Theme.Dark)
-        recyclerView = this.findViewById(R.id.bundle_setting_list)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = contentAdapter
+        // TODO: Move the recyclerviews into proper fragments
+        makeSceneList()
+        makeApplianceList()
+
+        actionBar?.setSubtitle(R.string.application_name)
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val tabLayout = findViewById<TabLayout>(R.id.tabs)
+        val sceneList = findViewById<RecyclerView>(R.id.scene_list)
+        val applianceList = findViewById<RecyclerView>(R.id.appliance_list)
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                when (tabLayout.selectedTabPosition) {
+                    0 -> {
+                        sceneList.visibility = View.VISIBLE
+                        applianceList.visibility = View.GONE
+                    }
+                    else -> {
+                        sceneList.visibility = View.GONE
+                        applianceList.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
+    }
+
+    private fun makeSceneList() {
+        sceneContentAdapter = SceneContentAdapter(theme = SceneContentAdapter.Theme.Dark)
+        sceneRecyclerView = this.findViewById(R.id.scene_list)
+        sceneRecyclerView.layoutManager = LinearLayoutManager(this)
+        sceneRecyclerView.adapter = sceneContentAdapter
+
+        sceneViewModel = ViewModelProviders.of(this).get(SceneListViewModel::class.java)
+        sceneViewModel.getAllScenes().observe(this, Observer<List<SceneWithActions>> { scenes ->
+            val enabled = mutableListOf<String>()
+            scenes.map { sceneWithActions ->
+                sceneWithActions.scene?.let { scene ->
+                    if (previousCmd?.scenes?.find { it == scene.title } != null) {
+                        enabled.add(scene.title)
+                    }
+                }
+            }
+
+            sceneContentAdapter.setSceneData(scenes, enabled)
+        })
+    }
+
+    private fun makeApplianceList() {
+        applianceContentAdapter = ApplianceContentAdapter(theme = ApplianceContentAdapter.Theme.Dark)
+        applianceRecyclerView = this.findViewById(R.id.appliance_list)
+        applianceRecyclerView.layoutManager = LinearLayoutManager(this)
+        applianceRecyclerView.adapter = applianceContentAdapter
 
         applianceViewModel = ViewModelProviders.of(this).get(ApplianceListViewModel::class.java)
         applianceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
@@ -50,11 +109,8 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
                 }
             }
 
-            contentAdapter.setDeviceData(roomsWithDevices, enabled)
+            applianceContentAdapter.setDeviceData(roomsWithDevices, enabled)
         })
-
-        actionBar?.setSubtitle(R.string.application_name)
-        actionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     override fun onPostCreateWithPreviousResult(previousBundle: Bundle, previousBlurb: String) {
@@ -67,9 +123,10 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
 
     override fun getResultBundle(): Bundle? {
         // TODO: Support scenes
-        val scenes = emptyList<String>()
+        val enabledScenes = sceneContentAdapter.getEnabledSceneData()
+        val enabledDevices = applianceContentAdapter.getEnabledDeviceData()
 
-        val enabledDevices = contentAdapter.getEnabledDeviceData()
+        val scenes = enabledScenes.map { it.title }
         val appliances = enabledDevices.map { ApplianceBundle(it) }
 
         // Generate the bundle object from the UI

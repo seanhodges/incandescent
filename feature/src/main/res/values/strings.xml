@@ -35,4 +35,6 @@
     <string name="message_waiting_for_network_connection">Waiting for network connection...</string>
     <string name="scene_name">Scene name</string>
     <string name="scene_help_message">Tick the appliances you wish to include in this scene.  The current state will be applied; to change it press the gear button.</string>
+    <string name="scenes">Scenes</string>
+    <string name="appliances">Appliances</string>
 </resources>
