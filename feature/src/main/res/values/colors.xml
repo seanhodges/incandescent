@@ -7,4 +7,5 @@
     <color name="select_scene_background">#f8ffff</color>
     <color name="select_header_text">#777777</color>
     <color name="alert">#ff0000</color>
+    <color name="theme_light_list_fg_colour">#ffffff</color>
 </resources>

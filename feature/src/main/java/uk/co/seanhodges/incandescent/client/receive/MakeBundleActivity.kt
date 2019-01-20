@@ -34,7 +34,7 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
             Log.e(javaClass.name, "Calling package couldn't be found", e)
         }
 
-        contentAdapter = ApplianceContentAdapter()
+        contentAdapter = ApplianceContentAdapter(theme = ApplianceContentAdapter.Theme.Dark)
         recyclerView = this.findViewById(R.id.bundle_setting_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = contentAdapter
