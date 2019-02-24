@@ -173,7 +173,7 @@ class LightwaveServerIntTest {
 
     @Test
     @Throws(InterruptedException::class)
-    fun testReadsDimSetting() {
+    fun testReadsFeature() {
         val responded = AtomicBoolean(false)
         val result = AtomicInteger()
 
@@ -267,7 +267,7 @@ class LightwaveServerIntTest {
 
     companion object {
         private const val ROOT_GROUP_ID = "5b8aa9b4d36c330fd5b4e100-5b8aa9b4d36c330fd5b4e101"
-        private const val FEATURE_ID = "5b8aa9b4d36c330fd5b4e100-23-3157332334+1"
+        private const val FEATURE_ID = "5b8aa9b4d36c330fd5b4e100-149-3157332334+1"
         private const val FEATURE_DIM_VALUE = 20
     }
 

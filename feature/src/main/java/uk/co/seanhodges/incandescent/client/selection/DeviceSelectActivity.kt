@@ -1,5 +1,6 @@
 package uk.co.seanhodges.incandescent.client.selection
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -11,6 +12,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.robinhood.spark.SparkView
+import com.robinhood.spark.animation.MorphSparkAnimator
 import uk.co.seanhodges.incandescent.client.*
 import uk.co.seanhodges.incandescent.client.storage.DeviceViewMode
 import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
@@ -22,7 +25,7 @@ import java.lang.ref.WeakReference
 class DeviceSelectActivity(
         private val launch: LaunchActivity = Inject.launch,
         private val executor: OperationExecutor = Inject.executor
-) : AppCompatActivity(), ConnectionAware {
+) : AppCompatActivity(), ConnectionAware, EnergyAware {
 
     private lateinit var connectionMonitor: ConnectionStateMonitor
     private lateinit var sceneViewModel: SceneViewModel
@@ -61,6 +64,17 @@ class DeviceSelectActivity(
                 refreshDeviceValues(roomsWithDevices)
             }
         })
+
+        val spark = this.findViewById<SparkView>(R.id.energy_monitor)
+        spark.sparkAnimator = MorphSparkAnimator()
+        RollingSparkAdapter(this, 10).let { adapter ->
+            spark.adapter = adapter
+            EnergyMonitor(adapter, this).start()
+            spark.isScrubEnabled = true
+            spark.setScrubListener {
+                adapter.reset()
+            }
+        }
 
         executor.reportHandler = { packet ->
             //@see OperationExecutor.onRawEvent()
@@ -108,6 +122,17 @@ class DeviceSelectActivity(
     override fun onConnectionLost() {
         this.runOnUiThread {
             this.findViewById<TextView>(R.id.no_network_alert)?.visibility = TextView.VISIBLE
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    override fun onEnergyChanged(wattsValue: Int, kwhValue: Float) {
+        runOnUiThread {
+            val currentWatts = this.findViewById<TextView>(R.id.energy_monitor_watts)
+            currentWatts.text = "$wattsValue W"
+
+            val currentKWH = this.findViewById<TextView>(R.id.energy_monitor_kwh)
+            currentKWH.text = "%.1f".format(kwhValue) + " kWh"
         }
     }
 

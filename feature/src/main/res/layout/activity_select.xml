@@ -21,6 +21,33 @@
         android:visibility="gone"
         />
 
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white">
+
+        <com.robinhood.spark.SparkView
+            android:id="@+id/energy_monitor"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:background="@drawable/energy_monitor_border" />
+
+        <TextView
+            android:id="@+id/energy_monitor_watts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="15dp"
+            android:text="0 W" />
+
+        <TextView
+            android:id="@+id/energy_monitor_kwh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="15dp"
+            android:text="0 kWh" />
+
+    </androidx.appcompat.widget.Toolbar>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/room_list"
         android:nestedScrollingEnabled="true"
