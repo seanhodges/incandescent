@@ -66,8 +66,8 @@ interface DeviceDao {
     @Query("UPDATE device SET last_value_power = :value WHERE id = :deviceId")
     fun setLastPowerValue(deviceId: String, value : Int)
 
-    @Query("UPDATE device SET title = :title, room_id = :roomId, type = :type, power_usage_command = :powerUsageCommand, energy_consumption_command = :energyConsumptionCommand WHERE id = :id")
-    fun updateDevice(id: String, title: String, roomId: String, type: String, powerUsageCommand: String?, energyConsumptionCommand: String?)
+    @Query("UPDATE device SET title = :title, room_id = :roomId, type = :type, hidden = :hidden, power_usage_command = :powerUsageCommand, energy_consumption_command = :energyConsumptionCommand WHERE id = :id")
+    fun updateDevice(id: String, title: String, roomId: String, type: String, hidden: Boolean, powerUsageCommand: String?, energyConsumptionCommand: String?)
 
     @Query("DELETE FROM device WHERE id NOT IN (:ids)")
     fun deleteDevicesNotInList(ids: List<String>)
@@ -129,11 +129,14 @@ data class DeviceEntity(
     @ColumnInfo(name = "last_value_dim")
     var lastDimValue: Int = 0
 
+    @ColumnInfo(name = "hidden")
+    var hidden: Boolean = false
+
     fun inferType() {
         type = when {
-            energyConsumptionCommand.isNullOrEmpty() -> "energy_monitor"
-            dimCommand.isNullOrEmpty() -> "light"
-            powerCommand.isNullOrEmpty() -> "socket"
+            !energyConsumptionCommand.isNullOrEmpty() && dimCommand.isNullOrEmpty() && powerCommand.isNullOrEmpty()-> "energy_monitor"
+            !dimCommand.isNullOrEmpty() -> "light"
+            !powerCommand.isNullOrEmpty() -> "socket"
             else -> "unknown"
         }
     }
@@ -149,8 +152,7 @@ data class RoomWithDevices(
         var devices: List<DeviceEntity>? = null
 ) {
 
-    // FIME: No way to sort a @Relation, sort devices in-memory
-    fun getDevicesInOrder(): List<DeviceEntity> {
-        return devices.orEmpty().sortedByDescending { it.chosenCount }
+    fun getVisibleDevices(): List<DeviceEntity> {
+        return devices.orEmpty().filter { !it.hidden }.sortedByDescending { it.chosenCount }
     }
 }

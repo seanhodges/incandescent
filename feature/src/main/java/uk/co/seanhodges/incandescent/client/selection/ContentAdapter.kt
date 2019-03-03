@@ -129,7 +129,7 @@ class ContentAdapter(
         val buttonList : ViewGroup = holder.containerView.findViewById(R.id.device_list)
         buttonList.removeAllViewsInLayout()
 
-        roomData[position].getDevicesInOrder().forEach { device ->
+        roomData[position].getVisibleDevices().forEach { device ->
             if (activeOnly && device.lastPowerValue == 0) {
                 return@forEach
             }

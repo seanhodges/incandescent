@@ -11,6 +11,13 @@ import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadGetRo
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadGroup
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 
+private const val FEATURE_TYPE_SWITCH = "switch"
+private const val FEATURE_TYPE_DIM = "dimLevel"
+private const val FEATURE_TYPE_POWER = "power"
+private const val FEATURE_TYPE_ENERGY = "energy"
+
+private val HIDDEN_DEVICES = arrayOf("energy_monitor")
+
 class LightwaveConfigLoader(
         private val server: LightwaveServer
 ) : LWEventListener {
@@ -148,20 +155,24 @@ class LightwaveConfigParser(
                 if (!featureSets.containsKey(featureSetId)) return@features
                 val featureSet = featureSets[featureSetId]!!
 
-                // Device with this name already exists in this room
-                if (existingDevices.contains(featureSet.name)) return@features
-                existingDevices.add(featureSet.name)
-
                 val device = DeviceEntity(
                         featureSet.id,
                         featureSet.name,
-                        findCommand(featureSet.features, "switch"),
-                        findCommand(featureSet.features, "dimLevel"),
-                        findCommand(featureSet.features, "power"),
-                        findCommand(featureSet.features, "energy"),
+                        findCommand(featureSet.features, FEATURE_TYPE_SWITCH),
+                        findCommand(featureSet.features, FEATURE_TYPE_DIM),
+                        findCommand(featureSet.features, FEATURE_TYPE_POWER),
+                        findCommand(featureSet.features, FEATURE_TYPE_ENERGY),
                         room.id
                 )
                 device.inferType()
+
+                // Show only one device that shares the same name in the same room
+                // Or if in the list of always-hidden devices
+                if (existingDevices.contains(featureSet.name) || HIDDEN_DEVICES.contains(device.type)) {
+                    device.hidden = true
+                }
+                existingDevices.add(featureSet.name)
+
                 deviceEntities.add(device)
             }
             onRoomFound(roomEntity, deviceEntities)

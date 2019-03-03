@@ -62,6 +62,7 @@ class RefreshListTask(
                     device.title,
                     device.roomId,
                     device.type,
+                    device.hidden,
                     device.powerUsageCommand,
                     device.energyConsumptionCommand)
         }

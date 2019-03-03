@@ -39,7 +39,7 @@ class ApplianceContentAdapter(
     fun setDeviceData(newData: List<RoomWithDevices>, enabled: List<String> = emptyList()) {
         this.applianceData.clear()
         newData.forEach { room ->
-            room.devices?.forEach { appliance ->
+            room.getVisibleDevices().forEach { appliance ->
                 val entry = FlatApplianceRow(buildLabel(appliance, room), room.room!!, appliance)
                 if (enabled.contains(appliance.id)) entry.enabled = true
                 this.applianceData.add(entry)

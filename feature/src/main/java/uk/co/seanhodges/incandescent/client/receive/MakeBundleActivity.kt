@@ -104,7 +104,7 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
         applianceViewModel.getAllRooms().observe(this, Observer<List<RoomWithDevices>> { roomsWithDevices ->
             val enabled = mutableListOf<String>()
             roomsWithDevices.map { room ->
-                room.devices?.map { device ->
+                room.getVisibleDevices().map { device ->
                     if (previousCmd?.appliances?.find { it.id == device.id } != null) {
                         enabled.add(device.id)
                     }
