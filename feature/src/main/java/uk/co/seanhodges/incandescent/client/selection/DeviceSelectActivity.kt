@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.Window
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -62,19 +63,9 @@ class DeviceSelectActivity(
             if (firstTimeLoad) {
                 firstTimeLoad = false
                 refreshDeviceValues(roomsWithDevices)
+                launchEnergyMonitor(roomsWithDevices)
             }
         })
-
-        val spark = this.findViewById<SparkView>(R.id.energy_monitor)
-        spark.sparkAnimator = MorphSparkAnimator()
-        RollingSparkAdapter(this, 10, 200).let { adapter ->
-            spark.adapter = adapter
-            EnergyMonitor(adapter, this).start()
-            spark.isScrubEnabled = true
-            spark.setScrubListener {
-                adapter.reset()
-            }
-        }
 
         executor.reportHandler = { packet ->
             //@see OperationExecutor.onRawEvent()
@@ -89,6 +80,27 @@ class DeviceSelectActivity(
             executor.enqueueLoadAll(room.devices!!.flatMap {
                 arrayOf(it.powerCommand, it.dimCommand).filterNotNull()
             })
+        }
+    }
+
+    private fun launchEnergyMonitor(roomsWithDevices: List<RoomWithDevices>) {
+        val monitor = roomsWithDevices
+                .flatMap { it.devices!!.asIterable() }
+                .firstOrNull { it.type == "energy_monitor" }
+        if (monitor != null) {
+            val panel = this.findViewById<View>(R.id.energy_monitor_container)
+            panel.visibility = View.VISIBLE
+
+            val spark = this.findViewById<SparkView>(R.id.energy_monitor)
+            spark.sparkAnimator = MorphSparkAnimator()
+            RollingSparkAdapter(this, 10, 200).let { adapter ->
+                spark.adapter = adapter
+                EnergyMonitor(monitor, adapter, this).start()
+                spark.isScrubEnabled = true
+                spark.setScrubListener {
+                    adapter.reset()
+                }
+            }
         }
     }
 

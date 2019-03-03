@@ -6,6 +6,7 @@ import android.util.Log
 import com.robinhood.spark.SparkAdapter
 import uk.co.seanhodges.incandescent.client.Inject
 import uk.co.seanhodges.incandescent.client.OperationExecutor
+import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.lightwave.event.LWEvent
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventListener
 import uk.co.seanhodges.incandescent.lightwave.event.LWEventPayloadFeature
@@ -15,6 +16,7 @@ import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
 class EnergyMonitor(
+        private val device: DeviceEntity,
         private val adapter : RollingSparkAdapter,
         private var listener: EnergyAware? = null,
         private val server: LightwaveServer = Inject.server,
@@ -22,10 +24,9 @@ class EnergyMonitor(
 ) {
 
     fun start() {
-//        val powerFeatureId = device.powerUsageCommand // Current watts
-//        val energyFeatureId = device.currentEnergyCommand // kWh
-        val powerFeatureId = "5b8aa9b4d36c330fd5b4e100-149-3157332334+1" // Current watts
-        val energyFeatureId = "5b8aa9b4d36c330fd5b4e100-150-3157332334+1" // kWh
+        val powerFeatureId = device.powerUsageCommand // Current watts
+        val energyFeatureId = device.energyConsumptionCommand // kWh (cumulative)
+        if (powerFeatureId == null || energyFeatureId == null) return
 
         // Listen for energy value changes
         EnergyChangeHandler(server, adapter, listener, powerFeatureId, energyFeatureId)
