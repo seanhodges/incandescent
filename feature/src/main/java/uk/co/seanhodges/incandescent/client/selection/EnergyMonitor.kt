@@ -1,6 +1,7 @@
 package uk.co.seanhodges.incandescent.client.selection
 
 import android.app.Activity
+import android.graphics.RectF
 import android.util.Log
 import com.robinhood.spark.SparkAdapter
 import uk.co.seanhodges.incandescent.client.Inject
@@ -89,12 +90,35 @@ interface EnergyAware {
 
 class RollingSparkAdapter(
         ctx: Activity,
-        maxHistory: Int = 20
+        maxHistory: Int = 20,
+        private val minScaleY: Int = 200
 ) : SparkAdapter() {
 
     private val yData: FloatArray = FloatArray(maxHistory)
     private val ctxRef = WeakReference(ctx)
     private var baseLine: Float? = null
+
+    override fun getDataBounds(): RectF {
+        val count = count
+        val hasBaseLine = hasBaseLine()
+
+        var minY = if (hasBaseLine) getBaseLine() - minScaleY else java.lang.Float.MAX_VALUE
+        var maxY = if (hasBaseLine) getBaseLine() + minScaleY else -java.lang.Float.MAX_VALUE
+        var minX = java.lang.Float.MAX_VALUE
+        var maxX = -java.lang.Float.MAX_VALUE
+
+        for (i in 0 until count) {
+            val x = getX(i)
+            minX = Math.min(minX, x)
+            maxX = Math.max(maxX, x)
+
+            val y = getY(i)
+            minY = Math.min(minY, y)
+            maxY = Math.max(maxY, y)
+        }
+
+        return RectF(minX, minY, maxX, maxY)
+    }
 
     fun addMetric(value: Float) {
         if (baseLine == null) {
@@ -119,7 +143,7 @@ class RollingSparkAdapter(
     }
 
     override fun hasBaseLine(): Boolean {
-        return false //baseLine != null
+        return baseLine != null
     }
 
     override fun getBaseLine(): Float {

@@ -67,7 +67,7 @@ class DeviceSelectActivity(
 
         val spark = this.findViewById<SparkView>(R.id.energy_monitor)
         spark.sparkAnimator = MorphSparkAnimator()
-        RollingSparkAdapter(this, 10).let { adapter ->
+        RollingSparkAdapter(this, 10, 200).let { adapter ->
             spark.adapter = adapter
             EnergyMonitor(adapter, this).start()
             spark.isScrubEnabled = true
