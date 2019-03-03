@@ -57,7 +57,13 @@ class RefreshListTask(
     private fun updateExistingDevices(existingDevicesInRoom: List<DeviceEntity>) {
         existingDevicesInRoom.map { device ->
             Log.d(javaClass.name, "Updating appliance ${device.title}")
-            deviceDao.updateDevice(device.id, device.title, device.roomId)
+            deviceDao.updateDevice(
+                    device.id,
+                    device.title,
+                    device.roomId,
+                    device.type,
+                    device.powerUsageCommand,
+                    device.energyConsumptionCommand)
         }
     }
 }

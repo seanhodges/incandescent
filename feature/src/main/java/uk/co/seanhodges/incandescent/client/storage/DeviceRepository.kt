@@ -54,6 +54,9 @@ interface DeviceDao {
     @Query("SELECT * FROM device INNER JOIN room ON room.id = device.room_id WHERE room.title = :roomName AND device.title = :deviceName")
     fun findByRoomAndDeviceName(roomName: String, deviceName: String) : DeviceEntity
 
+    @Query("SELECT * FROM device WHERE device.type = :type")
+    fun findByType(type: String): List<DeviceEntity>
+
     @Query("UPDATE device SET chosen_count = chosen_count + 1 WHERE id = :id")
     fun incChosenCount(id: String)
 
@@ -63,17 +66,15 @@ interface DeviceDao {
     @Query("UPDATE device SET last_value_power = :value WHERE id = :deviceId")
     fun setLastPowerValue(deviceId: String, value : Int)
 
-    @Query("UPDATE device SET title = :title, room_id = :roomId WHERE id = :id")
-    fun updateDevice(id: String, title: String, roomId: String)
+    @Query("UPDATE device SET title = :title, room_id = :roomId, type = :type, power_usage_command = :powerUsageCommand, energy_consumption_command = :energyConsumptionCommand WHERE id = :id")
+    fun updateDevice(id: String, title: String, roomId: String, type: String, powerUsageCommand: String?, energyConsumptionCommand: String?)
 
     @Query("DELETE FROM device WHERE id NOT IN (:ids)")
     fun deleteDevicesNotInList(ids: List<String>)
 }
 
 
-@Entity(tableName = "room", indices = arrayOf(
-        Index("chosen_count", name = "idx_room_chosen_count")
-))
+@Entity(tableName = "room", indices = [Index("chosen_count", name = "idx_room_chosen_count")])
 data class RoomEntity(
 
         @PrimaryKey
@@ -86,9 +87,7 @@ data class RoomEntity(
         var chosenCount: Int = 0
 ) : Serializable
 
-@Entity(tableName = "device", indices = arrayOf(
-        Index("chosen_count", name = "idx_device_chosen_count")
-))
+@Entity(tableName = "device", indices = [Index("chosen_count", name = "idx_device_chosen_count")])
 data class DeviceEntity(
 
         @PrimaryKey
@@ -97,14 +96,18 @@ data class DeviceEntity(
         @ColumnInfo(name = "title")
         var title: String,
 
-        @ColumnInfo(name = "type")
-        var type: String,
-
         @ColumnInfo(name = "power_command")
         var powerCommand: String?,
 
         @ColumnInfo(name = "dim_command")
         var dimCommand: String?,
+
+
+        @ColumnInfo(name = "power_usage_command")
+        var powerUsageCommand: String?,
+
+        @ColumnInfo(name = "energy_consumption_command")
+        var energyConsumptionCommand: String?,
 
         @ForeignKey(entity = RoomEntity::class,
                 parentColumns = ["id"],
@@ -117,21 +120,33 @@ data class DeviceEntity(
 
 ) : Serializable {
 
+    @ColumnInfo(name = "type")
+    var type: String = ""
+
     @ColumnInfo(name = "last_value_power")
     var lastPowerValue: Int = 0
 
     @ColumnInfo(name = "last_value_dim")
     var lastDimValue: Int = 0
 
+    fun inferType() {
+        type = when {
+            energyConsumptionCommand.isNullOrEmpty() -> "energy_monitor"
+            dimCommand.isNullOrEmpty() -> "light"
+            powerCommand.isNullOrEmpty() -> "socket"
+            else -> "unknown"
+        }
+    }
+
 }
 
 data class RoomWithDevices(
 
         @Embedded
-    var room: RoomEntity? = null,
+        var room: RoomEntity? = null,
 
         @Relation(parentColumn = "id", entityColumn = "room_id", entity = DeviceEntity::class)
-    var devices: List<DeviceEntity>? = null
+        var devices: List<DeviceEntity>? = null
 ) {
 
     // FIME: No way to sort a @Relation, sort devices in-memory

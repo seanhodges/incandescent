@@ -16,6 +16,7 @@ interface SceneDao {
     @Query("SELECT * FROM scene WHERE id = :id")
     fun findSceneById(id: Long): SceneWithActions
 
+    @Transaction
     @Query("SELECT * FROM scene WHERE title in (:names)")
     fun findScenesByNames(names: List<String>): List<SceneWithActions>
 

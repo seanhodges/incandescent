@@ -14,7 +14,7 @@ const val DATABASE_NAME: String = "incandescent-device-register"
     DeviceEntity::class,
     SceneEntity::class,
     SceneActionEntity::class
-], version = 4, exportSchema = false)
+], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun roomDao(): RoomDao
@@ -31,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
                         .addMigrations(MIGRATION_1_2)
                         .addMigrations(MIGRATION_2_3)
                         .addMigrations(MIGRATION_3_4)
+                        .addMigrations(MIGRATION_4_5)
                         .build()
             }
             return INSTANCE!!
@@ -77,5 +78,12 @@ val MIGRATION_3_4: Migration = object : Migration(3, 4) {
             """)
         database.execSQL("CREATE INDEX IF NOT EXISTS idx_scene_chosen_count ON scene(chosen_count)")
         database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_scene_title ON scene(title)")
+    }
+}
+
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE device ADD COLUMN power_usage_command TEXT")
+        database.execSQL("ALTER TABLE device ADD COLUMN energy_consumption_command TEXT")
     }
 }

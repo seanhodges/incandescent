@@ -152,31 +152,21 @@ class LightwaveConfigParser(
                 if (existingDevices.contains(featureSet.name)) return@features
                 existingDevices.add(featureSet.name)
 
-                val powerCommand = findCommand(featureSet.features, "switch")
-                val dimCommand = findCommand(featureSet.features, "dimLevel")
-
-                deviceEntities.add(DeviceEntity(
+                val device = DeviceEntity(
                         featureSet.id,
                         featureSet.name,
-                        inferTypeFromCommands(powerCommand, dimCommand),
-                        powerCommand,
-                        dimCommand,
+                        findCommand(featureSet.features, "switch"),
+                        findCommand(featureSet.features, "dimLevel"),
+                        findCommand(featureSet.features, "power"),
+                        findCommand(featureSet.features, "energy"),
                         room.id
-                ))
+                )
+                device.inferType()
+                deviceEntities.add(device)
             }
             onRoomFound(roomEntity, deviceEntities)
         }
 
-    }
-
-    private fun inferTypeFromCommands(powerCommand: String?, dimCommand: String?): String {
-        if (!dimCommand.isNullOrEmpty()) {
-            return "light"
-        }
-        else if (!powerCommand.isNullOrEmpty()) {
-            return "socket"
-        }
-        return "unknown"
     }
 
     private fun findCommand(features: List<String>, type: String): String? {
