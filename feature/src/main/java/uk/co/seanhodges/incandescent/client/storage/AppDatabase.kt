@@ -85,6 +85,6 @@ val MIGRATION_4_5: Migration = object : Migration(4, 5) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE device ADD COLUMN power_usage_command TEXT")
         database.execSQL("ALTER TABLE device ADD COLUMN energy_consumption_command TEXT")
-        database.execSQL("ALTER TABLE device ADD COLUMN hidden INTEGER DEFAULT 0")
+        database.execSQL("ALTER TABLE device ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0")
     }
 }
