@@ -61,7 +61,7 @@
             android:targetActivity=".receive.MakeBundleActivity"
             tools:ignore="ExportedActivity">
             <intent-filter>
-                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING"/>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
             </intent-filter>
         </activity-alias>
         <receiver
@@ -71,9 +71,10 @@
             tools:ignore="ExportedReceiver">
 
             <intent-filter>
-                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING"/>
+                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
             </intent-filter>
         </receiver>
+        <activity android:name=".support.LogViewerActivity"></activity>
     </application>
 
 </manifest>

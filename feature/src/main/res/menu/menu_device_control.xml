@@ -2,9 +2,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="uk.co.seanhodges.incandescent.client.selection.DeviceSelectActivity">
+
     <item
         android:id="@+id/menu_item_report_device"
         android:orderInCategory="100"
         android:title="@string/menu_item_title_report_device"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_log"
+        android:title="@string/show_log_label" />
+
 </menu>

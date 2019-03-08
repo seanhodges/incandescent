@@ -144,6 +144,10 @@ class DeviceControlActivity(
                 val intent = Intent(this, ReportDeviceActivity::class.java)
                 startActivity(intent)
             }
+            R.id.action_show_log -> {
+                launch.showLog(this)
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item)
     }

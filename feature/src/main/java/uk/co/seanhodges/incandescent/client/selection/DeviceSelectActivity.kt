@@ -179,7 +179,7 @@ class DeviceSelectActivity(
                 settingsRepository.updateShowOnlyActiveDevices(item.isChecked)
                 return true;
             }
-            R.id.refresh_appliances -> {
+            R.id.action_refresh_appliances -> {
                 deviceViewModel.refreshList(this)
                 return true
             }
@@ -190,6 +190,10 @@ class DeviceSelectActivity(
                 contentAdapter.setViewMode(deviceViewMode)
                 val settingsRepository = SettingsRepository(WeakReference(applicationContext))
                 settingsRepository.updateDeviceViewMode(deviceViewMode)
+                return true;
+            }
+            R.id.action_show_log -> {
+                launch.showLog(this)
                 return true;
             }
         }

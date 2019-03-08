@@ -24,6 +24,7 @@
     <string name="show_only_active_label">Hide switched off appliances</string>
     <string name="list_view_label">Show as list</string>
     <string name="refresh_appliances_label">Refresh appliance list</string>
+    <string name="show_log_label">Show debug log</string>
     <string name="alert_message_no_internet">Please check your signal / wifi settings and press OK to try again...</string>
     <string name="alert_title_no_internet">No internet connection</string>
     <string name="alert_title_delete_scene">Delete scene</string>

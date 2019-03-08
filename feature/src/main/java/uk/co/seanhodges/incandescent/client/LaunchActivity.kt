@@ -7,6 +7,7 @@ import uk.co.seanhodges.incandescent.client.control.DeviceControlActivity
 import uk.co.seanhodges.incandescent.client.scene.AddSceneActivity
 import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomEntity
+import uk.co.seanhodges.incandescent.client.support.LogViewerActivity
 
 class LaunchActivity() {
 
@@ -23,6 +24,10 @@ class LaunchActivity() {
 
     fun addScene(context: Context) {
         context.startActivity(Intent(context, AddSceneActivity::class.java))
+    }
+
+    fun showLog(context: Context) {
+        context.startActivity(Intent(context, LogViewerActivity::class.java))
     }
 
 }
