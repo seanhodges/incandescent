@@ -145,7 +145,7 @@ data class DeviceEntity(
     var hidden: Boolean = false
 
     fun inferType() {
-        // TODO
+        // TODO(sean): add heating support
         type = when {
             !energyConsumptionCommand.isNullOrEmpty() && dimCommand.isNullOrEmpty() && powerCommand.isNullOrEmpty()-> "energy_monitor"
             !dimCommand.isNullOrEmpty() -> "light"

@@ -64,6 +64,7 @@ class DeviceChangeHandler(
             return
         }
         Log.d(javaClass.name, "Device found: ${device.id}")
+        // TODO(sean): add heating support
         if (featureId == device.dimCommand) {
             Log.d(javaClass.name, "Updating dim value to ${payload.value}")
             deviceDao?.setLastDimValue(device.id, payload.value)

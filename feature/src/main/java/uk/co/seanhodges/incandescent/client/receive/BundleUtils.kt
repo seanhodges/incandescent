@@ -58,6 +58,7 @@ data class ApplianceBundle(
         data.appliance.id,
         data.room.title,
         data.appliance.title,
+            // TODO(sean): add heating support
         if (data.appliance.powerCommand != null) { data.appliance.lastPowerValue } else -1,
         if (data.appliance.dimCommand != null) { data.appliance.lastDimValue } else -1
     )

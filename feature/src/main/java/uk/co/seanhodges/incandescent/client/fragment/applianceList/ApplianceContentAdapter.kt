@@ -25,7 +25,7 @@ import uk.co.seanhodges.incandescent.client.storage.RoomWithDevices
 
 class ApplianceContentAdapter(
         private val launch: LaunchActivity = Inject.launch,
-        var theme: Theme = Theme.Light // TODO: Move this to a material theme
+        var theme: Theme = Theme.Light // TODO(sean): Move this to a material theme
 ) : RecyclerView.Adapter<SectionViewHolder>() {
 
     enum class Theme {

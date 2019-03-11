@@ -76,6 +76,7 @@ class DeviceSelectActivity(
     }
 
     private fun refreshDeviceValues(roomsWithDevices: List<RoomWithDevices>) {
+        // TODO(sean): add heating support
         roomsWithDevices.forEach { room ->
             executor.enqueueLoadAll(room.devices!!.flatMap {
                 arrayOf(it.powerCommand, it.dimCommand).filterNotNull()

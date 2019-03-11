@@ -50,6 +50,7 @@ class OperationReceiver(
             cmd.appliances.map { operation ->
                 val device = devices.find { it.id == operation.id }
                 if (device != null) {
+                    // TODO(sean): add heating support
                     applyPowerValue(operation, device)
                     applyDimValue(operation, device)
                 }

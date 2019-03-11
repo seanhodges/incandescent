@@ -21,6 +21,7 @@ class SaveSceneTask(
         val actions = mutableListOf<SceneActionEntity>()
         Log.d(javaClass.name, "Saving scene as ${addSceneForm.name}")
         addSceneForm.settings.forEach {setting ->
+            // TODO(sean): add heating support
             setting.appliance.powerCommand?.apply {
                 Log.d(javaClass.name, "Saving ${this} as ${setting.appliance.lastPowerValue}")
                 actions.add(SceneActionEntity(this, setting.appliance.lastPowerValue))

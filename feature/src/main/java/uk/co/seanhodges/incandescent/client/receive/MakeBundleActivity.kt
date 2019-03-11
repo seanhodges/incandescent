@@ -42,7 +42,7 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
             Log.e(javaClass.name, "Calling package couldn't be found", e)
         }
 
-        // TODO: Move the recyclerviews into proper fragments
+        // TODO(sean): Move the recyclerviews into proper fragments
         makeSceneList()
         makeApplianceList()
 
@@ -116,7 +116,7 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
             if (applianceContentAdapter.getEnabledDeviceData().size > sceneContentAdapter.getEnabledSceneData().size
                 || sceneContentAdapter.itemCount < 1) {
                 // Hop directly to appliance tab if appliances were selected last time, or if there are no scenes
-                // TODO: Need to tidy this up before extracting to fragments
+                // TODO(sean): Need to tidy this up before extracting to fragments
                 findViewById<TabLayout>(R.id.tabs).getTabAt(1)?.select()
             }
         })
@@ -131,7 +131,7 @@ class MakeBundleActivity() : AbstractFragmentPluginActivity() {
     }
 
     override fun getResultBundle(): Bundle? {
-        // TODO: Support scenes
+        // TODO(sean): Support scenes
         val enabledScenes = sceneContentAdapter.getEnabledSceneData()
         val enabledDevices = applianceContentAdapter.getEnabledDeviceData()
 
