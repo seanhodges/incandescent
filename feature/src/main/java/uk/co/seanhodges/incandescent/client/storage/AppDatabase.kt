@@ -13,13 +13,15 @@ const val DATABASE_NAME: String = "incandescent-device-register"
     RoomEntity::class,
     DeviceEntity::class,
     SceneEntity::class,
-    SceneActionEntity::class
+    SceneActionEntity::class,
+    FeaturesetHeatingEntity::class
 ], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun roomDao(): RoomDao
     abstract fun deviceDao(): DeviceDao
     abstract fun sceneDao(): SceneDao
+    abstract fun deviceFeatureDao(): DeviceFeatureDao
 
     companion object {
         private var INSTANCE: AppDatabase? = null

@@ -73,6 +73,18 @@ interface DeviceDao {
     fun deleteDevicesNotInList(ids: List<String>)
 }
 
+@Dao
+interface DeviceFeatureDao {
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertHeatingFeatures(feature: FeaturesetHeatingEntity)
+
+    @Query("SELECT * FROM featureset_heating WHERE device_id = :deviceId")
+    fun getHeatingFeatures(deviceId: String): FeaturesetHeatingEntity?
+
+    @Query("DELETE FROM featureset_heating WHERE device_id = :deviceId")
+    fun deleteHeatingFeatures(deviceId: String)
+}
 
 @Entity(tableName = "room", indices = [Index("chosen_count", name = "idx_room_chosen_count")])
 data class RoomEntity(
@@ -133,6 +145,7 @@ data class DeviceEntity(
     var hidden: Boolean = false
 
     fun inferType() {
+        // TODO
         type = when {
             !energyConsumptionCommand.isNullOrEmpty() && dimCommand.isNullOrEmpty() && powerCommand.isNullOrEmpty()-> "energy_monitor"
             !dimCommand.isNullOrEmpty() -> "light"
@@ -155,4 +168,51 @@ data class RoomWithDevices(
     fun getVisibleDevices(): List<DeviceEntity> {
         return devices.orEmpty().filter { !it.hidden }.sortedByDescending { it.chosenCount }
     }
+}
+
+interface FeaturesetEntity
+
+@Entity(tableName = "featureset_heating")
+data class FeaturesetHeatingEntity(
+
+        @PrimaryKey(autoGenerate = true)
+        var id: Long = 0,
+
+        @ForeignKey(entity = DeviceEntity::class,
+                parentColumns = ["id"],
+                childColumns = ["device_id"])
+        @ColumnInfo(name = "device_id")
+        var deviceId: String,
+
+        @ColumnInfo(name = "current_temp_command")
+        var currentTempCmd: String?,
+
+        @ColumnInfo(name = "target_temp_command")
+        var targetTempCmd: String?,
+
+        @ColumnInfo(name = "valve_level_command")
+        var valveLevelCommand: String?,
+
+        @ColumnInfo(name = "heat_state_command")
+        var heatStateCommand: String?,
+
+        @ColumnInfo(name = "battery_level_command")
+        var batteryLevelCommand: String?
+
+) : Serializable, FeaturesetEntity {
+
+    @ColumnInfo(name = "current_temp_value")
+    var currentTempValue: Int = 0
+
+    @ColumnInfo(name = "target_temp_value")
+    var targetTempValue: Int = 0
+
+    @ColumnInfo(name = "heat_state_value")
+    var valveLevelValue: Int = 0
+
+    @ColumnInfo(name = "heat_state_value")
+    var heatStateValue: Int = 0
+
+    @ColumnInfo(name = "battery_level_value")
+    var batteryLevelValue: Int = 0
 }
