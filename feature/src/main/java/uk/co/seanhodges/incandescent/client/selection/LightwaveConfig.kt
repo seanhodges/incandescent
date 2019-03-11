@@ -4,6 +4,8 @@ import android.util.Log
 import com.squareup.moshi.JsonReader
 import okio.Buffer
 import uk.co.seanhodges.incandescent.client.storage.DeviceEntity
+import uk.co.seanhodges.incandescent.client.storage.FeaturesetEntity
+import uk.co.seanhodges.incandescent.client.storage.FeaturesetHeatingEntity
 import uk.co.seanhodges.incandescent.client.storage.RoomEntity
 import uk.co.seanhodges.incandescent.lightwave.event.*
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperation
@@ -11,10 +13,17 @@ import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadGetRo
 import uk.co.seanhodges.incandescent.lightwave.operation.LWOperationPayloadGroup
 import uk.co.seanhodges.incandescent.lightwave.server.LightwaveServer
 
-private const val FEATURE_TYPE_SWITCH = "switch"
-private const val FEATURE_TYPE_DIM = "dimLevel"
-private const val FEATURE_TYPE_POWER = "power"
-private const val FEATURE_TYPE_ENERGY = "energy"
+private const val FEATURE_POWER_SWITCH = "switch"
+private const val FEATURE_POWER_DIM = "dimLevel"
+
+private const val FEATURE_MONITOR_POWER = "power"
+private const val FEATURE_MONITOR_ENERGY = "energy"
+
+private const val FEATURE_HEATING_TEMP_CURRENT = "temperature"
+private const val FEATURE_HEATING_TEMP_TARGET = "targetTemperature"
+private const val FEATURE_HEATING_VALVE_LEVEL = "valveLevel"
+private const val FEATURE_HEATING_STATE = "heatState"
+private const val FEATURE_HEATING_BATTERY = "batteryLevel"
 
 private val HIDDEN_DEVICES = arrayOf("energy_monitor")
 
@@ -100,9 +109,6 @@ class LightwaveConfigParser(
         private val groupInfo : LWEventPayloadGroup
 ) {
 
-    private var rooms: List<RoomSpec> = emptyList()
-    private var featureSets: Map<String, FeatureSetSpec> = emptyMap()
-
     private fun JsonReader.skipNameAndValue() {
         skipName()
         skipValue()
@@ -134,8 +140,13 @@ class LightwaveConfigParser(
         return result
     }
 
-    fun parse(onRoomFound: (room: RoomEntity, devices: List<DeviceEntity>) -> Unit) {
+    fun parse(onRoomFound: (room: RoomEntity, devices: List<DeviceEntity>) -> Unit,
+              onFeaturesFound: (features: List<FeaturesetEntity>) -> Unit) {
+
         val reader = JsonReader.of(Buffer().writeUtf8(groupHierarchy))
+        var rooms: List<RoomSpec> = emptyList()
+
+        var featureSets: Map<String, FeatureSetSpec> = emptyMap()
         findPayload(reader) {
             reader.readObject {
                 when (reader.selectName(JsonReader.Options.of("room", "featureSet"))) {
@@ -148,6 +159,7 @@ class LightwaveConfigParser(
 
         // Build room and device entities
         rooms.forEach rooms@{ room ->
+            val featureEntities = mutableListOf<FeaturesetEntity>()
             val roomEntity = RoomEntity(room.id, room.name)
             val deviceEntities = mutableListOf<DeviceEntity>()
             val existingDevices = mutableSetOf<String>()
@@ -158,13 +170,24 @@ class LightwaveConfigParser(
                 val device = DeviceEntity(
                         featureSet.id,
                         featureSet.name,
-                        findCommand(featureSet.features, FEATURE_TYPE_SWITCH),
-                        findCommand(featureSet.features, FEATURE_TYPE_DIM),
-                        findCommand(featureSet.features, FEATURE_TYPE_POWER),
-                        findCommand(featureSet.features, FEATURE_TYPE_ENERGY),
+                        findCommand(featureSet.features, FEATURE_POWER_SWITCH),
+                        findCommand(featureSet.features, FEATURE_POWER_DIM),
+                        findCommand(featureSet.features, FEATURE_MONITOR_POWER),
+                        findCommand(featureSet.features, FEATURE_MONITOR_ENERGY),
                         room.id
                 )
                 device.inferType()
+
+                if device is a heating appliance {
+                    featureEntities.add(FeaturesetHeatingEntity(
+                            deviceId = device.id,
+                            currentTempCmd = findCommand(featureSet.features, FEATURE_HEATING_TEMP_CURRENT),
+                            targetTempCmd = findCommand(featureSet.features, FEATURE_HEATING_TEMP_TARGET),
+                            valveLevelCommand = findCommand(featureSet.features, FEATURE_HEATING_VALVE_LEVEL),
+                            heatStateCommand = findCommand(featureSet.features, FEATURE_HEATING_STATE),
+                            batteryLevelCommand = findCommand(featureSet.features, FEATURE_HEATING_BATTERY)
+                    ))
+                }
 
                 // Show only one device that shares the same name in the same room
                 // Or if in the list of always-hidden devices
@@ -176,6 +199,7 @@ class LightwaveConfigParser(
                 deviceEntities.add(device)
             }
             onRoomFound(roomEntity, deviceEntities)
+            onFeaturesFound(featureEntities)
         }
 
     }
